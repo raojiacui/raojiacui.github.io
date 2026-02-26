@@ -78,6 +78,111 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-今日总结-修复PyTorch-DLL加载问题" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/02/26/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-%E4%BF%AE%E5%A4%8DPyTorch-DLL%E5%8A%A0%E8%BD%BD%E9%97%AE%E9%A2%98/" class="article-date">
+  <time class="dt-published" datetime="2026-02-26T14:25:07.000Z" itemprop="datePublished">2026-02-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E8%AE%B0%E5%BD%95/">技术记录</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/02/26/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-%E4%BF%AE%E5%A4%8DPyTorch-DLL%E5%8A%A0%E8%BD%BD%E9%97%AE%E9%A2%98/">解决 Python Whisper PyTorch DLL 加载失败问题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>在 Windows 上使用 Python 3.14 运行 <code>openai-whisper</code> 时遇到以下错误：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">OSError: [WinError 1114] 动态链接库(DLL)初始化例程失败。</span><br><span class="line">Error loading &quot;c10.dll&quot; or one of its dependencies.</span><br></pre></td></tr></table></figure>
+
+<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><ol>
+<li><strong>Python 版本过新</strong>：Python 3.14 与 PyTorch 的兼容性问题</li>
+<li><strong>DLL 依赖冲突</strong>：PyTorch 的 c10.dll 在 Windows 上加载失败</li>
+<li><strong>缺少 VC++ 运行库</strong>：某些情况下缺少 Visual C++ Redistributable</li>
+</ol>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><h3 id="方案一：切换到-faster-whisper（推荐）"><a href="#方案一：切换到-faster-whisper（推荐）" class="headerlink" title="方案一：切换到 faster-whisper（推荐）"></a>方案一：切换到 faster-whisper（推荐）</h3><p><code>faster-whisper</code> 是 OpenAI Whisper 的重新实现，使用 CTranslate2 而非 PyTorch：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 卸载有问题的包</span></span><br><span class="line">pip uninstall openai-whisper torch torchvision</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 faster-whisper</span></span><br><span class="line">pip install faster-whisper</span><br></pre></td></tr></table></figure>
+
+<p><strong>代码使用示例</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> faster_whisper <span class="keyword">import</span> WhisperModel</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载模型（CPU 模式）</span></span><br><span class="line">model = WhisperModel(<span class="string">&#x27;base&#x27;</span>, device=<span class="string">&#x27;cpu&#x27;</span>, compute_type=<span class="string">&#x27;int8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 转录音频</span></span><br><span class="line">segments, info = model.transcribe(<span class="string">&#x27;audio.wav&#x27;</span>)</span><br><span class="line"><span class="keyword">for</span> segment <span class="keyword">in</span> segments:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[<span class="subst">&#123;segment.start:<span class="number">.2</span>f&#125;</span>s -&gt; <span class="subst">&#123;segment.end:<span class="number">.2</span>f&#125;</span>s] <span class="subst">&#123;segment.text&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>优势</strong>：</p>
+<ul>
+<li>无需 PyTorch，避免 DLL 问题</li>
+<li>速度更快，内存占用更小</li>
+<li>API 与原版类似，迁移成本低</li>
+</ul>
+<h3 id="方案二：重新安装-PyTorch-CPU-版本"><a href="#方案二：重新安装-PyTorch-CPU-版本" class="headerlink" title="方案二：重新安装 PyTorch CPU 版本"></a>方案二：重新安装 PyTorch CPU 版本</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pip uninstall torch torchvision</span><br><span class="line">pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu</span><br></pre></td></tr></table></figure>
+
+<h3 id="方案三：安装-Visual-C-Redistributable"><a href="#方案三：安装-Visual-C-Redistributable" class="headerlink" title="方案三：安装 Visual C++ Redistributable"></a>方案三：安装 Visual C++ Redistributable</h3><p>下载安装：<a target="_blank" rel="noopener" href="https://aka.ms/vs/17/release/vc_redist.x64.exe">https://aka.ms/vs/17/release/vc_redist.x64.exe</a></p>
+<h2 id="虚拟环境注意事项"><a href="#虚拟环境注意事项" class="headerlink" title="虚拟环境注意事项"></a>虚拟环境注意事项</h2><p>如果项目使用虚拟环境（venv），确保在正确的环境中安装：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 激活 venv</span></span><br><span class="line">venv\Scripts\activate</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 faster-whisper</span></span><br><span class="line">pip install faster-whisper</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>对于 Windows 用户使用 Whisper 进行语音识别，<strong>faster-whisper 是更好的选择</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>openai-whisper</th>
+<th>faster-whisper</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>依赖</td>
+<td>PyTorch（重量级）</td>
+<td>CTranslate2（轻量）</td>
+</tr>
+<tr>
+<td>速度</td>
+<td>较慢</td>
+<td>更快</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>较高</td>
+<td>更低</td>
+</tr>
+<tr>
+<td>DLL 问题</td>
+<td>常见</td>
+<td>无</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>经验教训：在 Windows 上使用 Python 机器学习库时，优先选择不依赖 PyTorch&#x2F;TensorFlow 的轻量级实现。</p>
+</blockquote>
+<hr>
+<p><strong>相关项目</strong>：<a target="_blank" rel="noopener" href="https://github.com/raojiacui/video-prompt-analyzer">Video Prompt Analyzer</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://raojiacui.github.io/2026/02/26/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-%E4%BF%AE%E5%A4%8DPyTorch-DLL%E5%8A%A0%E8%BD%BD%E9%97%AE%E9%A2%98/" data-id="cuidavVA-bfeX_mPn1b1n9h3y" data-title="解决 Python Whisper PyTorch DLL 加载失败问题" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DLL/" rel="tag">DLL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PyTorch/" rel="tag">PyTorch</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Whisper/" rel="tag">Whisper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-arrow-video-ai-prompts" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2026/02/24/arrow-video-ai-prompts/" class="article-date">
@@ -522,7 +627,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">分类</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AI%E5%88%9B%E4%BD%9C/">AI创作</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/AI%E6%95%99%E7%A8%8B/">AI教程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%AF%8F%E6%97%A5%E6%80%BB%E7%BB%93/">每日总结</a></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AI%E5%88%9B%E4%BD%9C/">AI创作</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/AI%E6%95%99%E7%A8%8B/">AI教程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E6%9C%AF%E8%AE%B0%E5%BD%95/">技术记录</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%AF%8F%E6%97%A5%E6%80%BB%E7%BB%93/">每日总结</a></li></ul>
     </div>
   </div>
 
@@ -532,7 +637,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E6%8F%90%E7%A4%BA%E8%AF%8D/" rel="tag">AI提示词</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ARROW/" rel="tag">ARROW</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bug%E4%BF%AE%E5%A4%8D/" rel="tag">Bug修复</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/FFmpeg/" rel="tag">FFmpeg</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BD%B1%E8%A7%86%E5%88%B6%E4%BD%9C/" rel="tag">影视制作</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8F%90%E7%A4%BA%E8%AF%8D/" rel="tag">提示词</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%99%E7%A8%8B/" rel="tag">教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A8%A1%E6%9D%BF/" rel="tag">模板</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%86%E9%A2%91%E5%89%AA%E8%BE%91/" rel="tag">视频剪辑</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90/" rel="tag">视频生成</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E6%8F%90%E7%A4%BA%E8%AF%8D/" rel="tag">AI提示词</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ARROW/" rel="tag">ARROW</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bug%E4%BF%AE%E5%A4%8D/" rel="tag">Bug修复</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DLL/" rel="tag">DLL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/FFmpeg/" rel="tag">FFmpeg</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PyTorch/" rel="tag">PyTorch</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Whisper/" rel="tag">Whisper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BD%B1%E8%A7%86%E5%88%B6%E4%BD%9C/" rel="tag">影视制作</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8F%90%E7%A4%BA%E8%AF%8D/" rel="tag">提示词</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%99%E7%A8%8B/" rel="tag">教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A8%A1%E6%9D%BF/" rel="tag">模板</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%86%E9%A2%91%E5%89%AA%E8%BE%91/" rel="tag">视频剪辑</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90/" rel="tag">视频生成</a></li></ul>
     </div>
   </div>
 
@@ -542,7 +647,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签云</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/AI%E6%8F%90%E7%A4%BA%E8%AF%8D/" style="font-size: 10px;">AI提示词</a> <a href="/tags/ARROW/" style="font-size: 10px;">ARROW</a> <a href="/tags/Bug%E4%BF%AE%E5%A4%8D/" style="font-size: 10px;">Bug修复</a> <a href="/tags/FFmpeg/" style="font-size: 10px;">FFmpeg</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 10px;">工作总结</a> <a href="/tags/%E5%BD%B1%E8%A7%86%E5%88%B6%E4%BD%9C/" style="font-size: 10px;">影视制作</a> <a href="/tags/%E6%8F%90%E7%A4%BA%E8%AF%8D/" style="font-size: 20px;">提示词</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 10px;">教程</a> <a href="/tags/%E6%A8%A1%E6%9D%BF/" style="font-size: 10px;">模板</a> <a href="/tags/%E8%A7%86%E9%A2%91%E5%89%AA%E8%BE%91/" style="font-size: 10px;">视频剪辑</a> <a href="/tags/%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90/" style="font-size: 20px;">视频生成</a>
+      <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/AI%E6%8F%90%E7%A4%BA%E8%AF%8D/" style="font-size: 10px;">AI提示词</a> <a href="/tags/ARROW/" style="font-size: 10px;">ARROW</a> <a href="/tags/Bug%E4%BF%AE%E5%A4%8D/" style="font-size: 10px;">Bug修复</a> <a href="/tags/DLL/" style="font-size: 10px;">DLL</a> <a href="/tags/FFmpeg/" style="font-size: 10px;">FFmpeg</a> <a href="/tags/PyTorch/" style="font-size: 10px;">PyTorch</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Whisper/" style="font-size: 10px;">Whisper</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 10px;">工作总结</a> <a href="/tags/%E5%BD%B1%E8%A7%86%E5%88%B6%E4%BD%9C/" style="font-size: 10px;">影视制作</a> <a href="/tags/%E6%8F%90%E7%A4%BA%E8%AF%8D/" style="font-size: 20px;">提示词</a> <a href="/tags/%E6%95%99%E7%A8%8B/" style="font-size: 10px;">教程</a> <a href="/tags/%E6%A8%A1%E6%9D%BF/" style="font-size: 10px;">模板</a> <a href="/tags/%E8%A7%86%E9%A2%91%E5%89%AA%E8%BE%91/" style="font-size: 10px;">视频剪辑</a> <a href="/tags/%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90/" style="font-size: 20px;">视频生成</a>
     </div>
   </div>
 
@@ -564,6 +669,10 @@
       <ul>
         
           <li>
+            <a href="/2026/02/26/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-%E4%BF%AE%E5%A4%8DPyTorch-DLL%E5%8A%A0%E8%BD%BD%E9%97%AE%E9%A2%98/">解决 Python Whisper PyTorch DLL 加载失败问题</a>
+          </li>
+        
+          <li>
             <a href="/2026/02/24/arrow-video-ai-prompts/">ARROW 视频 AI 提示词合集</a>
           </li>
         
@@ -577,10 +686,6 @@
         
           <li>
             <a href="/2026/02/12/hello-world/">Hello World</a>
-          </li>
-        
-          <li>
-            <a href="/2025/02/25/daily-summary-2025-02-25/">每日工作总结 - 2025-02-25</a>
           </li>
         
       </ul>
