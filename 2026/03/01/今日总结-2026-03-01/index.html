@@ -4,21 +4,20 @@
   <meta charset="utf-8">
   
   
-  <title>每日工作总结 - 2025-02-25 | 我的技术博客</title>
+  <title>今日总结-Remotion视频剪辑与Nano-Video修复 | 我的技术博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="今日概览今天主要完成了三件事：  修复 nano-video 项目的 DOM 节点错误 整理 AI 视频生成提示词文档 使用 FFmpeg 拼接视频并上传到 R2   一、Bug 修复 - DOM 节点错误问题描述每次打开网站时出现以下错误：  Failed to execute &#39;removeChild&#39; on &#39;Node&#39;: The node to be rem">
+  <meta name="description" content="今日工作汇总1. Nano-Video 项目 DOM 错误修复修复了浏览器控制台中的 removeChild 和 insertBefore 错误：  components&#x2F;ui&#x2F;sonner.tsx - 添加 mounted 检查，确保只在客户端渲染 lib&#x2F;downloadFile.ts - 添加 parentNode 检查，防止移除不存在的节点 lib&#x2F;cloudflare&#x2F;r2-downlo">
 <meta property="og:type" content="article">
-<meta property="og:title" content="每日工作总结 - 2025-02-25">
-<meta property="og:url" content="https://raojiacui.github.io/2025/02/25/daily-summary-2025-02-25/index.html">
+<meta property="og:title" content="今日总结-Remotion视频剪辑与Nano-Video修复">
+<meta property="og:url" content="https://raojiacui.github.io/2026/03/01/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-03-01/index.html">
 <meta property="og:site_name" content="我的技术博客">
-<meta property="og:description" content="今日概览今天主要完成了三件事：  修复 nano-video 项目的 DOM 节点错误 整理 AI 视频生成提示词文档 使用 FFmpeg 拼接视频并上传到 R2   一、Bug 修复 - DOM 节点错误问题描述每次打开网站时出现以下错误：  Failed to execute &#39;removeChild&#39; on &#39;Node&#39;: The node to be rem">
+<meta property="og:description" content="今日工作汇总1. Nano-Video 项目 DOM 错误修复修复了浏览器控制台中的 removeChild 和 insertBefore 错误：  components&#x2F;ui&#x2F;sonner.tsx - 添加 mounted 检查，确保只在客户端渲染 lib&#x2F;downloadFile.ts - 添加 parentNode 检查，防止移除不存在的节点 lib&#x2F;cloudflare&#x2F;r2-downlo">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-02-25T12:40:00.000Z">
-<meta property="article:modified_time" content="2026-02-25T13:04:03.269Z">
+<meta property="article:published_time" content="2026-03-01T07:30:00.000Z">
+<meta property="article:modified_time" content="2026-03-01T07:30:50.311Z">
 <meta property="article:author" content="raojiacui">
-<meta property="article:tag" content="AI提示词">
 <meta property="article:tag" content="Bug修复">
-<meta property="article:tag" content="FFmpeg">
+<meta property="article:tag" content="Remotion">
 <meta property="article:tag" content="工作总结">
 <meta property="article:tag" content="视频剪辑">
 <meta name="twitter:card" content="summary">
@@ -82,10 +81,10 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-daily-summary-2025-02-25" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-今日总结-2026-03-01" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2025/02/25/daily-summary-2025-02-25/" class="article-date">
-  <time class="dt-published" datetime="2025-02-25T12:40:00.000Z" itemprop="datePublished">2025-02-25</time>
+    <a href="/2026/03/01/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-03-01/" class="article-date">
+  <time class="dt-published" datetime="2026-03-01T07:30:00.000Z" itemprop="datePublished">2026-03-01</time>
 </a>
     
   <div class="article-category">
@@ -100,7 +99,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      每日工作总结 - 2025-02-25
+      今日总结-Remotion视频剪辑与Nano-Video修复
     </h1>
   
 
@@ -108,137 +107,83 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h2 id="今日概览"><a href="#今日概览" class="headerlink" title="今日概览"></a>今日概览</h2><p>今天主要完成了三件事：</p>
-<ol>
-<li>修复 nano-video 项目的 DOM 节点错误</li>
-<li>整理 AI 视频生成提示词文档</li>
-<li>使用 FFmpeg 拼接视频并上传到 R2</li>
-</ol>
-<hr>
-<h2 id="一、Bug-修复-DOM-节点错误"><a href="#一、Bug-修复-DOM-节点错误" class="headerlink" title="一、Bug 修复 - DOM 节点错误"></a>一、Bug 修复 - DOM 节点错误</h2><h3 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h3><p>每次打开网站时出现以下错误：</p>
+        <h2 id="今日工作汇总"><a href="#今日工作汇总" class="headerlink" title="今日工作汇总"></a>今日工作汇总</h2><h3 id="1-Nano-Video-项目-DOM-错误修复"><a href="#1-Nano-Video-项目-DOM-错误修复" class="headerlink" title="1. Nano-Video 项目 DOM 错误修复"></a>1. Nano-Video 项目 DOM 错误修复</h3><p>修复了浏览器控制台中的 <code>removeChild</code> 和 <code>insertBefore</code> 错误：</p>
 <ul>
-<li><code>Failed to execute &#39;removeChild&#39; on &#39;Node&#39;: The node to be removed is not a child of this node</code></li>
-<li><code>Failed to execute &#39;insertBefore&#39; on &#39;Node&#39;: The node before which the new node is to be inserted is not a child of this node</code></li>
+<li><code>components/ui/sonner.tsx</code> - 添加 mounted 检查，确保只在客户端渲染</li>
+<li><code>lib/downloadFile.ts</code> - 添加 parentNode 检查，防止移除不存在的节点</li>
+<li><code>lib/cloudflare/r2-download.ts</code> - 添加 parentNode 检查</li>
 </ul>
-<h3 id="修复内容"><a href="#修复内容" class="headerlink" title="修复内容"></a>修复内容</h3><table>
-<thead>
-<tr>
-<th>文件</th>
-<th>问题</th>
-<th>解决方案</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>BaiDuAnalytics.tsx</code></td>
-<td>直接 DOM 操作 <code>insertBefore/appendChild</code></td>
-<td>改用 Next.js <code>Script</code> 组件</td>
-</tr>
-<tr>
-<td><code>ToltScript.tsx</code></td>
-<td>直接 DOM 操作 <code>appendChild</code></td>
-<td>改用 <code>Script</code> 组件</td>
-</tr>
-<tr>
-<td><code>CookieConsent/index.tsx</code></td>
-<td>组件卸载后 <code>setTimeout</code> 仍执行</td>
-<td>添加 <code>isMounted</code> 检查</td>
-</tr>
-<tr>
-<td><code>TableOfContents.tsx</code></td>
-<td>scroll 事件中直接访问 DOM</td>
-<td>添加 <code>isMounted</code> 检查</td>
-</tr>
-<tr>
-<td><code>downloadFile.ts</code></td>
-<td>DOM 移除时可能出错</td>
-<td>添加 <code>try-finally</code> 保护</td>
-</tr>
-<tr>
-<td><code>r2-download.ts</code></td>
-<td>同上</td>
-<td>添加 <code>try-finally</code> 保护</td>
-</tr>
-<tr>
-<td><code>layout.tsx</code></td>
-<td><code>Toaster</code> 在 <code>ThemeProvider</code> 外部</td>
-<td>移到内部</td>
-</tr>
-</tbody></table>
-<h3 id="核心原因"><a href="#核心原因" class="headerlink" title="核心原因"></a>核心原因</h3><p>React 18 的并发渲染模式与直接 DOM 操作产生冲突，导致组件卸载后仍尝试操作已移除的节点。</p>
-<hr>
-<h2 id="二、AI-视频提示词整理"><a href="#二、AI-视频提示词整理" class="headerlink" title="二、AI 视频提示词整理"></a>二、AI 视频提示词整理</h2><p>生成了 <strong>8 个”无限美食空间”主题</strong>的视频生成提示词：</p>
+<h3 id="2-美食视频剪辑"><a href="#2-美食视频剪辑" class="headerlink" title="2. 美食视频剪辑"></a>2. 美食视频剪辑</h3><p>使用 Remotion 将 11 个美食视频片段拼接成一个完整视频：</p>
 <table>
 <thead>
 <tr>
-<th>主题</th>
-<th>核心元素</th>
+<th>片段</th>
+<th>菜品</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>无限麻辣烫空间</td>
-<td>红色木门、辣油货架、牛肚</td>
+<td>1</td>
+<td>新疆大盘鸡</td>
 </tr>
 <tr>
-<td>无限牛排空间</td>
-<td>炭火烤架、滋滋牛排、奢华氛围</td>
+<td>2</td>
+<td>白菜猪肉炖粉条</td>
 </tr>
 <tr>
-<td>无限水果派空间</td>
-<td>发光货架、草莓塔、LED灯带</td>
+<td>3</td>
+<td>羊蝎子火锅</td>
 </tr>
 <tr>
-<td>无限火锅空间</td>
-<td>中式木雕、涮肉、蒸汽</td>
+<td>4</td>
+<td>金汤佛跳墙</td>
 </tr>
 <tr>
-<td>无限饮料空间</td>
-<td>黄铜水龙头、冰块、乳白液体</td>
+<td>5</td>
+<td>泰式绿咖喱鸡</td>
 </tr>
 <tr>
-<td>无限炒饭空间</td>
-<td>牛膝骨炒饭、黑色货架</td>
+<td>6</td>
+<td>过桥米线</td>
 </tr>
 <tr>
-<td>无限烤肉空间</td>
-<td>旋转烤鸭、油脂流淌、工业风</td>
+<td>7</td>
+<td>椰子鸡火锅</td>
 </tr>
 <tr>
-<td>无限辣条空间</td>
-<td>红色零食、油亮质感</td>
+<td>8</td>
+<td>韩式海鲜拉面</td>
+</tr>
+<tr>
+<td>9</td>
+<td>猪脚姜</td>
+</tr>
+<tr>
+<td>10</td>
+<td>匈牙利牛肉炖肉</td>
+</tr>
+<tr>
+<td>11</td>
+<td>腊味煲仔饭</td>
 </tr>
 </tbody></table>
-<p><strong>统一风格：</strong> 超现实主义 + Dolly In 推镜头 + 跟随镜头 + 特写切换</p>
-<hr>
-<h2 id="三、视频剪辑-FFmpeg-拼接与-R2-上传"><a href="#三、视频剪辑-FFmpeg-拼接与-R2-上传" class="headerlink" title="三、视频剪辑 - FFmpeg 拼接与 R2 上传"></a>三、视频剪辑 - FFmpeg 拼接与 R2 上传</h2><h3 id="操作流程"><a href="#操作流程" class="headerlink" title="操作流程"></a>操作流程</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 创建文件列表</span></span><br><span class="line"><span class="built_in">cd</span> <span class="string">&quot;D:/雨下雨停/OneDrive/文档/&quot;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> &#123;1..8&#125;; <span class="keyword">do</span> <span class="built_in">echo</span> <span class="string">&quot;file &#x27;f<span class="variable">$i</span>.mp4&#x27;&quot;</span>; <span class="keyword">done</span> &gt; filelist.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 执行拼接</span></span><br><span class="line">ffmpeg -f concat -safe 0 -i filelist.txt -c copy merged_f1_to_f8.mp4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 上传 R2</span></span><br><span class="line"><span class="built_in">cd</span> C:/Users/雨下雨停/nano-video</span><br><span class="line">pnpm tsx scripts/upload-local-video-to-r2.ts</span><br></pre></td></tr></table></figure>
-
-<h3 id="最终结果"><a href="#最终结果" class="headerlink" title="最终结果"></a>最终结果</h3><ul>
-<li><strong>本地文件：</strong> <code>D:/雨下雨停/OneDrive/文档/merged_f1_to_f8.mp4</code></li>
-<li><strong>文件大小：</strong> 46 MB</li>
-<li><strong>总时长：</strong> 1分4秒</li>
-<li><strong>CDN 地址：</strong> <a target="_blank" rel="noopener" href="https://cdn.nanobananavideo.net/website/showcase/merged-f1-to-f8.mp4">https://cdn.nanobananavideo.net/website/showcase/merged-f1-to-f8.mp4</a></li>
+<ul>
+<li>输出文件：20MB，88秒</li>
+<li>技术参数：1920x1080，30fps</li>
 </ul>
-<hr>
-<h2 id="四、今日产出"><a href="#四、今日产出" class="headerlink" title="四、今日产出"></a>四、今日产出</h2><ul>
-<li>✅ 修复 7 个文件的 DOM 操作相关 Bug</li>
-<li>✅ 生成 8 个 AI 视频生成提示词文档</li>
-<li>✅ 完成 8 个视频片段的拼接并上传到云端</li>
-<li>✅ 创建视频剪辑教程文档</li>
+<h3 id="3-R2-文件上传"><a href="#3-R2-文件上传" class="headerlink" title="3. R2 文件上传"></a>3. R2 文件上传</h3><p>上传 <code>swz.mp4</code> 到 Cloudflare R2：</p>
+<ul>
+<li>CDN 链接：<a target="_blank" rel="noopener" href="https://cdn.nanobananavideo.net/website/showcase/swz.mp4">https://cdn.nanobananavideo.net/website/showcase/swz.mp4</a></li>
 </ul>
-<hr>
-<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://ffmpeg.org/documentation.html">FFmpeg 官方文档</a></li>
-<li><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/r2/">Cloudflare R2 文档</a></li>
-<li><a target="_blank" rel="noopener" href="https://react.dev/blog/2022/03/29/react-v18#what-is-concurrent-react">React 18 并发渲染</a></li>
-</ul>
+<h3 id="4-博客部署"><a href="#4-博客部署" class="headerlink" title="4. 博客部署"></a>4. 博客部署</h3><p>成功部署到 GitHub Pages：<a href="https://raojiacui.github.io/">https://raojiacui.github.io</a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2025/02/25/daily-summary-2025-02-25/" data-id="cuidvoNfDA_Fpc7Fq73bL3uJf" data-title="每日工作总结 - 2025-02-25" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/03/01/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-03-01/" data-id="cuidYi4ZsIR19OoJLdWfLi6wL" data-title="今日总结-Remotion视频剪辑与Nano-Video修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI%E6%8F%90%E7%A4%BA%E8%AF%8D/" rel="tag">AI提示词</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Bug%E4%BF%AE%E5%A4%8D/" rel="tag">Bug修复</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/FFmpeg/" rel="tag">FFmpeg</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%A7%86%E9%A2%91%E5%89%AA%E8%BE%91/" rel="tag">视频剪辑</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Bug%E4%BF%AE%E5%A4%8D/" rel="tag">Bug修复</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Remotion/" rel="tag">Remotion</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%A7%86%E9%A2%91%E5%89%AA%E8%BE%91/" rel="tag">视频剪辑</a></li></ul>
 
     </footer>
   </div>
@@ -246,15 +191,11 @@
     
 <nav id="article-nav">
   
-    <a href="/2026/02/12/hello-world/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">前一篇</strong>
-      <div class="article-nav-title">
-        
-          Hello World
-        
-      </div>
-    </a>
   
+    <a href="/2026/02/26/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-%E4%BF%AE%E5%A4%8DPyTorch-DLL%E5%8A%A0%E8%BD%BD%E9%97%AE%E9%A2%98/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">解决 Python Whisper PyTorch DLL 加载失败问题</div>
+    </a>
   
 </nav>
 
