@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <author>
+    <name>雨下雨停</name>
+  </author>
+  <generator uri="https://hexo.io/">Hexo</generator>
+  <id>https://raojiacui.github.io/</id>
+  <link href="https://raojiacui.github.io/" rel="alternate"/>
+  <link href="https://raojiacui.github.io/atom.xml" rel="self"/>
+  <rights>All rights reserved 2026, 雨下雨停</rights>
+  <title>我的技术博客</title>
+  <updated>2026-05-05T09:41:15.415Z</updated>
+  <entry>
+    <author>
+      <name>雨下雨停</name>
+    </author>
+    <category term="工作记录" scheme="https://raojiacui.github.io/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/"/>
+    <category term="工作总结" scheme="https://raojiacui.github.io/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/"/>
+    <category term="Hexo" scheme="https://raojiacui.github.io/tags/Hexo/"/>
+    <category term="博客" scheme="https://raojiacui.github.io/tags/%E5%8D%9A%E5%AE%A2/"/>
+    <content>
+      <![CDATA[<h1 id="今日总结：2026-05-05"><a href="#今日总结：2026-05-05" class="headerlink" title="今日总结：2026-05-05"></a>今日总结：2026-05-05</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-博客部署问题修复"><a href="#1-博客部署问题修复" class="headerlink" title="1. 博客部署问题修复"></a>1. 博客部署问题修复</h3><p><strong>问题诊断：</strong></p><ol><li><code>package.json</code> 缺少 <code>hexo</code> 字段，导致 hexo-cli 无法正确识别项目</li><li><code>_config.yml</code> 中 <code>message: Site updated: YYYY-MM-DD HH:mm:ss</code> 缺少引号，YAML 解析失败</li><li>缺少 <code>hexo-renderer-marked</code> 渲染器，markdown 文件无法生成 HTML</li><li><code>.deploy_git</code> 子模块损坏</li></ol><p><strong>解决方案：</strong></p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. package.json 添加 hexo 字段</span></span><br><span class="line"><span class="string">&quot;hexo&quot;</span>: &#123;</span><br><span class="line">  <span class="string">&quot;version&quot;</span>: <span class="string">&quot;8.1.1&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. _config.yml 修复 message 引号</span></span><br><span class="line">message: <span class="string">&quot;Site updated: YYYY-MM-DD HH:mm:ss&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 安装渲染器</span></span><br><span class="line">npm install hexo-renderer-marked --save</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 删除损坏的部署目录后重新部署</span></span><br><span class="line"><span class="built_in">rm</span> -rf .deploy_git</span><br><span class="line">hexo deploy</span><br></pre></td></tr></table></figure><p><strong>根因分析：</strong></p><ul><li>之前一直通过 <code>node -e &quot;require(&#39;./node_modules/hexo-cli/dist/hexo.js&#39;)()&quot;</code> 手动调用能部分工作，是因为直接加载了 CLI 模块，但 find_pkg 找不到 hexo 字段导致无法加载正确的 hexo 实例</li><li>渲染器缺失导致 posts 被 processed 但没有生成 HTML 文件</li></ul><hr><h2 id="明日计划"><a href="#明日计划" class="headerlink" title="明日计划"></a>明日计划</h2><ol><li>继续 TalentsAI 进阶规划题目练习</li><li>博客日常维护</li></ol><hr><h2 id="仓库信息"><a href="#仓库信息" class="headerlink" title="仓库信息"></a>仓库信息</h2><ul><li>博客仓库：<a href="https://github.com/raojiacui/raojiacui.github.io">https://github.com/raojiacui/raojiacui.github.io</a></li><li>本地路径：<code>C:\Users\雨下雨停\hexo-blog</code></li><li>博客地址：<a href="https://raojiacui.github.io/">https://raojiacui.github.io</a></li></ul>]]>
+    </content>
+    <id>https://raojiacui.github.io/2026/05/05/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-05-%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E4%BF%AE%E5%A4%8D/</id>
+    <link href="https://raojiacui.github.io/2026/05/05/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-05-%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E4%BF%AE%E5%A4%8D/"/>
+    <published>2026-05-04T16:00:00.000Z</published>
+    <summary>
+      <![CDATA[<h1 id="今日总结：2026-05-05"><a href="#今日总结：2026-05-05" class="headerlink" title="今日总结：2026-05-05"></a>今日总结：2026-05-05</h1><h2 id="完成项"><a href=]]>
+    </summary>
+    <title>今日总结-2026-05-05-博客部署问题修复</title>
+    <updated>2026-05-05T09:41:15.415Z</updated>
+  </entry>
+  <entry>
+    <author>
+      <name>雨下雨停</name>
+    </author>
+    <category term="工作记录" scheme="https://raojiacui.github.io/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/"/>
+    <category term="工作总结" scheme="https://raojiacui.github.io/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/"/>
+    <category term="TalentsAI" scheme="https://raojiacui.github.io/tags/TalentsAI/"/>
+    <category term="进阶规划" scheme="https://raojiacui.github.io/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/"/>
+    <category term="Git" scheme="https://raojiacui.github.io/tags/Git/"/>
+    <content>
+      <![CDATA[<h1 id="今日总结：2026-05-04"><a href="#今日总结：2026-05-04" class="headerlink" title="今日总结：2026-05-04"></a>今日总结：2026-05-04</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-TalentsAI-进阶规划题目设计"><a href="#1-TalentsAI-进阶规划题目设计" class="headerlink" title="1. TalentsAI 进阶规划题目设计"></a>1. TalentsAI 进阶规划题目设计</h3><p>完成了”思政课课程小组作业分工”场景的题目设计，主题是”AI赋能大模型时代的挑战与机遇”。</p><p><strong>场景设计：</strong></p><ul><li>5人小组：组长小月、晓星星、李芳、浩然、子琪</li><li>分工：上台发言、给定方向、资料收集、资料整理、PPT制作</li><li>剧情亮点：原本指定殷子琪发言，但5月5日殷子琪突然告知已买好回家车票无法参加，临时换成李芳</li></ul><p><strong>题目结构：</strong></p><ul><li>STEP 1：前置信息（角色、通道、出题背景）</li><li>STEP 2：Prompt + 标准答案</li><li>STEP 3a：81条时间轴线索</li><li>STEP 3b：81条骨架消息（真实对话）</li><li>STEP 4：模型回复校验</li></ul><p><strong>设计亮点：</strong></p><ul><li>换人剧情增加题目复杂度</li><li>干扰线索：浩然私聊说”如果实在没人愿意发言，我也可以勉强试试”</li><li>排除线索：晓小星星答辩紧张、浩然明确表示不擅长演讲</li><li>关键线索：李芳主动请缨且PPT是她做的内容最熟</li></ul><h3 id="2-博客-AccessKey-问题修复"><a href="#2-博客-AccessKey-问题修复" class="headerlink" title="2. 博客 AccessKey 问题修复"></a>2. 博客 AccessKey 问题修复</h3><p><strong>问题：</strong></p><ul><li>之前推送博客时，<code>.deploy_git/index.html</code> 中包含了真实的阿里云 AccessKey</li><li>GitHub Push Protection 检测到并阻止推送</li></ul><p><strong>解决方案：</strong></p><ul><li>reset 到 origin/master，丢弃包含真实 key 的 commit</li><li>确认源 markdown 文件使用的是占位符（YOUR_ACCESS_KEY_ID）</li></ul><hr><h2 id="明日计划"><a href="#明日计划" class="headerlink" title="明日计划"></a>明日计划</h2><ol><li>继续 TalentsAI 进阶规划题目练习</li><li>修复 hexo 环境问题</li></ol><hr><h2 id="仓库信息"><a href="#仓库信息" class="headerlink" title="仓库信息"></a>仓库信息</h2><ul><li>博客仓库：<a href="https://github.com/raojiacui/raojiacui.github.io">https://github.com/raojiacui/raojiacui.github.io</a></li><li>本地路径：<code>C:\Users\雨下雨停\hexo-blog</code></li></ul>]]>
+    </content>
+    <id>https://raojiacui.github.io/2026/05/04/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-04-%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92%E9%A2%98%E7%9B%AE%E8%AE%BE%E8%AE%A1-%E5%8D%9A%E5%AE%A2AccessKey%E4%BF%AE%E5%A4%8D/</id>
+    <link href="https://raojiacui.github.io/2026/05/04/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-04-%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92%E9%A2%98%E7%9B%AE%E8%AE%BE%E8%AE%A1-%E5%8D%9A%E5%AE%A2AccessKey%E4%BF%AE%E5%A4%8D/"/>
+    <published>2026-05-03T16:00:00.000Z</published>
+    <summary>
+      <![CDATA[<h1 id="今日总结：2026-05-04"><a href="#今日总结：2026-05-04" class="headerlink" title="今日总结：2026-05-04"></a>今日总结：2026-05-04</h1><h2 id="完成项"><a href=]]>
+    </summary>
+    <title>今日总结-2026-05-04-进阶规划题目设计-博客AccessKey修复</title>
+    <updated>2026-05-05T09:41:15.414Z</updated>
+  </entry>
+  <entry>
+    <author>
+      <name>雨下雨停</name>
+    </author>
+    <category term="开发记录" scheme="https://raojiacui.github.io/categories/%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95/"/>
+    <category term="QtCloud" scheme="https://raojiacui.github.io/tags/QtCloud/"/>
+    <category term="数字资产" scheme="https://raojiacui.github.io/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/"/>
+    <category term="议事档案" scheme="https://raojiacui.github.io/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/"/>
+    <category term="标本契约" scheme="https://raojiacui.github.io/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/"/>
+    <category term="workflow" scheme="https://raojiacui.github.io/tags/workflow/"/>
+    <content>
+      <![CDATA[<h1 id="今日总结：议事档案标本契约-v0-0-3-与术语统一"><a href="#今日总结：议事档案标本契约-v0-0-3-与术语统一" class="headerlink" title="今日总结：议事档案标本契约 v0.0.3 与术语统一"></a>今日总结：议事档案标本契约 v0.0.3 与术语统一</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-标本契约-v0-0-3"><a href="#1-标本契约-v0-0-3" class="headerlink" title="1. 标本契约 v0.0.3"></a>1. 标本契约 v0.0.3</h3><ul><li>议事档案标本契约已提交到仓库</li><li>commit: <code>443ed05</code></li><li>路径: <code>examples/feishu-wiki/contracts/议事档案-specimen.yaml</code></li></ul><h3 id="2-术语统一：lifecycle-→-workflow"><a href="#2-术语统一：lifecycle-→-workflow" class="headerlink" title="2. 术语统一：lifecycle → workflow"></a>2. 术语统一：lifecycle → workflow</h3><ul><li><strong>lifecycle</strong>: 资产自己的生命周期（被动的）</li><li><strong>workflow</strong>: 能力编排的流程（主动的、高内聚的）</li></ul><h3 id="3-架构理念：资产即服务-Asset-as-a-Service"><a href="#3-架构理念：资产即服务-Asset-as-a-Service" class="headerlink" title="3. 架构理念：资产即服务 (Asset as a Service)"></a>3. 架构理念：资产即服务 (Asset as a Service)</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">资产不是&quot;东西&quot;，是&quot;服务&quot;</span><br><span class="line">├── 它暴露什么能力？  → skills</span><br><span class="line">└── 这些能力怎么触发？→ workflow（状态+顺序）</span><br></pre></td></tr></table></figure><h3 id="4-标本验证"><a href="#4-标本验证" class="headerlink" title="4. 标本验证"></a>4. 标本验证</h3><ul><li>从实际文档提炼结构（议事规则、决策、复盘研讨各一个样本）</li><li>用标本验证实际文档，发现建模漏洞：<ul><li>元数据区、个人心得等字段已补充到标本</li><li>辩论区在实际中不运转，已移除</li><li>决议区改为可选</li></ul></li></ul><h3 id="5-确认文档"><a href="#5-确认文档" class="headerlink" title="5. 确认文档"></a>5. 确认文档</h3><ul><li>议事档案标本说明.md 已提交</li><li>发给 @黄梓姗 @朱彦真 确认业务细节</li></ul><h3 id="6-scanner-py-miner-py"><a href="#6-scanner-py-miner-py" class="headerlink" title="6. scanner.py + miner.py"></a>6. scanner.py + miner.py</h3><ul><li>扫描器和挖掘器写好了</li><li>暂未提交，待后续完善</li><li>路径: <code>examples/feishu-wiki/app/</code></li></ul><h3 id="7-QtCloud-开发架构师-Skill"><a href="#7-QtCloud-开发架构师-Skill" class="headerlink" title="7. QtCloud 开发架构师 Skill"></a>7. QtCloud 开发架构师 Skill</h3><ul><li>创建了 <code>qtcloud-developer-architect</code> skill</li><li>用于跟进项目进度和状态追踪</li></ul><hr><h2 id="开发阶段"><a href="#开发阶段" class="headerlink" title="开发阶段"></a>开发阶段</h2><table><thead><tr><th>阶段</th><th>状态</th></tr></thead><tbody><tr><td>1. 标本契约设计</td><td>✅ DONE</td></tr><tr><td>2. 标本验证（团队确认）</td><td>🔄 进行中</td></tr><tr><td>3. scanner.py + miner.py</td><td>⏳ 待做</td></tr><tr><td>4. 重写 src/cli</td><td>⏳ 待做</td></tr><tr><td>5. 集成到 src</td><td>⏳ 待做</td></tr><tr><td>6. 平台化开发</td><td>⏳ 待做</td></tr></tbody></table><hr><h2 id="明日计划"><a href="#明日计划" class="headerlink" title="明日计划"></a>明日计划</h2><ol><li>完善 scanner.py + miner.py</li><li>重写 src/cli 代码</li><li>集成到 src</li></ol><hr><h2 id="仓库信息"><a href="#仓库信息" class="headerlink" title="仓库信息"></a>仓库信息</h2><ul><li>QtCloud Asset: <a href="https://github.com/quanttide/qtcloud-asset">https://github.com/quanttide/qtcloud-asset</a></li><li>本地路径: <code>C:\Users\雨下雨停\q-tech\apps\qtcloud-asset</code></li></ul><hr><p><em>由 qtcloud-developer-architect skill 生成</em></p>]]>
+    </content>
+    <id>https://raojiacui.github.io/2026/04/23/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-04-23-%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6v0.0.3-%E6%9C%AF%E8%AF%AD%E7%BB%9F%E4%B8%80/</id>
+    <link href="https://raojiacui.github.io/2026/04/23/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-04-23-%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6v0.0.3-%E6%9C%AF%E8%AF%AD%E7%BB%9F%E4%B8%80/"/>
+    <published>2026-04-22T16:00:00.000Z</published>
+    <summary>
+      <![CDATA[<h1 id="今日总结：议事档案标本契约-v0-0-3-与术语统一"><a href="#今日总结：议事档案标本契约-v0-0-3-与术语统一" class="headerlink" title="今日总结：议事档案标本契约 v0.0.3 与术语统一"></a>今日总结：议事档]]>
+    </summary>
+    <title>今日总结-2026-04-23-议事档案标本契约v0.0.3-术语统一</title>
+    <updated>2026-04-23T15:08:43.775Z</updated>
+  </entry>
+</feed>
