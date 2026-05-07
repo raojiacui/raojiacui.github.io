@@ -1,3 +1,15 @@
+---
+title: QtConsult部署到阿里云OSS全流程教程
+date: 2026-05-07 20:19:03
+categories:
+  - 部署教程
+tags:
+  - QtConsult
+  - 阿里云
+  - OSS
+  - GitHub Actions
+---
+
 # QtConsult 部署到阿里云 OSS 全流程
 
 > 日期：2026-05-07
