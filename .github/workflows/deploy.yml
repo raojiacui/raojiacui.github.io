@@ -2,13 +2,17 @@ name: Deploy Blog
 
 on:
   push:
-    branches: [master]
+    branches: [source]
+  pull_request:
+    branches: [source]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: source
 
       - uses: actions/setup-node@v4
         with:
@@ -27,8 +31,9 @@ jobs:
         run: npm run build
 
       - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/source'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          publish_branch: master
+          publish_branch: gh-pages
