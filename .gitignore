@@ -1,0 +1,8 @@
+.DS_Store
+Thumbs.db
+db.json
+public/
+.deploy_git/
+.deploy_git_bak/
+node_modules/
+.omc/

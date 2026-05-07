@@ -89,5 +89,5 @@ theme: landscape
 deploy:
   type: git
   repo: https://github.com/raojiacui/raojiacui.github.io.git
-  branch: master
+  branch: main
   message: "Site updated: YYYY-MM-DD HH:mm:ss"

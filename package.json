@@ -1,0 +1,33 @@
+{
+  "name": "hexo-blog",
+  "version": "1.0.0",
+  "description": "基于 Hexo 框架搭建的个人技术博客，托管在 GitHub Pages。",
+  "main": "index.js",
+  "scripts": {
+    "build": "hexo generate",
+    "clean": "hexo clean",
+    "deploy": "hexo deploy",
+    "server": "hexo server"
+  },
+  "dependencies": {
+    "hexo": "^5.4.2",
+    "hexo-cli": "^3.0.1",
+    "hexo-deployer-git": "^3.0.0",
+    "hexo-generator-feed": "^4.0.0",
+    "hexo-generator-index": "^4.0.0",
+    "hexo-generator-sitemap": "^3.0.1",
+    "hexo-renderer-marked": "^4.1.0",
+    "hexo-theme-landscape": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raojiacui/raojiacui.github.io.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/raojiacui/raojiacui.github.io/issues"
+  },
+  "homepage": "https://github.com/raojiacui/raojiacui.github.io#readme"
+}
