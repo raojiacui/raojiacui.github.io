@@ -888,13 +888,12 @@ a.article-title:hover {
   position: relative;
   overflow: hidden;
 }
-.article-collapsed {
+.article-collapsed-wrapper {
   position: relative;
 }
 .article-collapsed-preview {
   max-height: 200px;
   overflow: hidden;
-  position: relative;
 }
 .article-collapsed-mask {
   position: absolute;
@@ -930,7 +929,7 @@ a.article-title:hover {
   -ms-transition: -ms-transform 0.3s;
   transition: transform 0.3s;
 }
-.article-collapsed.expanded .article-collapsed-preview {
+.article-collapsed.expanded .article-collapsed-wrapper {
   max-height: none;
 }
 .article-collapsed.expanded .article-collapsed-mask {

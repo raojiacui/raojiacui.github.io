@@ -101,8 +101,9 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <div class="article-collapsed-preview">
-          <p>今日总结：修复《第139次崩塌》AI NPC 接口问题</p>
+        <div class="article-collapsed-wrapper">
+          <div class="article-collapsed-preview">
+            <p>今日总结：修复《第139次崩塌》AI NPC 接口问题</p>
 <p>今天主要处理了《第139次崩塌》项目里的 AI NPC 回复问题。</p>
 <p>这个项目中，玩家可以在剧情节点里选择固定选项，也可以输入自己的自由回复。固定选项本来就是预设文案，但自由回复应该调用 DeepSeek API，让 NPC 根据玩家输入生成动态回应。实际测试时发现，NPC 回复表现得比较固定，因此开始排查是不是 API 又没有连上。</p>
 <h2 id="一、问题现象"><a href="#一、问题现象" class="headerlink" title="一、问题现象"></a>一、问题现象</h2><p>在游戏里，NPC 回复主要有两类。</p>
@@ -188,15 +189,16 @@
 </ol>
 <p>这次修复后，《第139次崩塌》的自由输入 NPC 回复已经可以正常走 AI 生成，不再只是固定文案或失败兜底。</p>
 
+          </div>
+          <div class="article-collapsed-mask"></div>
         </div>
-        <div class="article-collapsed-mask"></div>
-      </div>
-      <div class="article-expand-btn" onclick="toggleArticle(this)">
-        <span class="expand-icon">▾</span> 阅读全文
-      </div>
+        <div class="article-expand-btn" onclick="toggleArticle(this)">
+          <span class="expand-icon">▾</span> 阅读全文
+        </div>
       
+    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/31/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-31-%E7%AC%AC139%E6%AC%A1%E5%B4%A9%E5%A1%8C-AI-NPC%E6%8E%A5%E5%8F%A3%E4%BF%AE%E5%A4%8D/" data-id="cmq1wc2bm000wvs3g7xtk2oim" data-title="今日总结-2026-05-31-第139次崩塌-AI-NPC接口修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/31/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-31-%E7%AC%AC139%E6%AC%A1%E5%B4%A9%E5%A1%8C-AI-NPC%E6%8E%A5%E5%8F%A3%E4%BF%AE%E5%A4%8D/" data-id="cmq1ww48f00155o3g92uxgnd6" data-title="今日总结-2026-05-31-第139次崩塌-AI-NPC接口修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -236,8 +238,9 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <div class="article-collapsed-preview">
-          <h1 id="今日总结：QtCloud-Asset-域名绑定与-K8s-备选方案"><a href="#今日总结：QtCloud-Asset-域名绑定与-K8s-备选方案" class="headerlink" title="今日总结：QtCloud Asset 域名绑定与 K8s 备选方案"></a>今日总结：QtCloud Asset 域名绑定与 K8s 备选方案</h1><p>今天继续处理 <code>qtcloud-asset</code> 的正式域名问题。原目标很明确：</p>
+        <div class="article-collapsed-wrapper">
+          <div class="article-collapsed-preview">
+            <h1 id="今日总结：QtCloud-Asset-域名绑定与-K8s-备选方案"><a href="#今日总结：QtCloud-Asset-域名绑定与-K8s-备选方案" class="headerlink" title="今日总结：QtCloud Asset 域名绑定与 K8s 备选方案"></a>今日总结：QtCloud Asset 域名绑定与 K8s 备选方案</h1><p>今天继续处理 <code>qtcloud-asset</code> 的正式域名问题。原目标很明确：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">前端 Studio:</span><br><span class="line">https://asset.quanttide.com</span><br><span class="line"></span><br><span class="line">后端 Provider:</span><br><span class="line">https://api.asset.quanttide.com</span><br></pre></td></tr></table></figure>
 
 <p>上次已经把前后端链路跑通，但后端还临时使用 FC 默认域名：</p>
@@ -373,15 +376,16 @@
 
 <p>今天最大的结论是：域名绑定问题已经从“代码怎么配”推进到了“云资源和成本路线怎么选”。FC 仍然是当前最省成本的正式方案，但前提是把备案接入归属问题解决掉。</p>
 
+          </div>
+          <div class="article-collapsed-mask"></div>
         </div>
-        <div class="article-collapsed-mask"></div>
-      </div>
-      <div class="article-expand-btn" onclick="toggleArticle(this)">
-        <span class="expand-icon">▾</span> 阅读全文
-      </div>
+        <div class="article-expand-btn" onclick="toggleArticle(this)">
+          <span class="expand-icon">▾</span> 阅读全文
+        </div>
       
+    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/" data-id="cmq1wc2bl000vvs3g15m0fa2t" data-title="今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/" data-id="cmq1ww48e00135o3ghcj654bw" data-title="今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -421,8 +425,9 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <div class="article-collapsed-preview">
-          <h1 id="今日总结：QtCloud-Asset-FaaS-代码包部署与前后端联通"><a href="#今日总结：QtCloud-Asset-FaaS-代码包部署与前后端联通" class="headerlink" title="今日总结：QtCloud Asset FaaS 代码包部署与前后端联通"></a>今日总结：QtCloud Asset FaaS 代码包部署与前后端联通</h1><p>今天主要继续昨天没有完成的 <code>qtcloud-asset</code> 部署工作。目标很明确：把 <code>provider</code> 服务端真正部署到阿里云 Function Compute，并让 <code>studio</code> 前端能访问到后端服务。</p>
+        <div class="article-collapsed-wrapper">
+          <div class="article-collapsed-preview">
+            <h1 id="今日总结：QtCloud-Asset-FaaS-代码包部署与前后端联通"><a href="#今日总结：QtCloud-Asset-FaaS-代码包部署与前后端联通" class="headerlink" title="今日总结：QtCloud Asset FaaS 代码包部署与前后端联通"></a>今日总结：QtCloud Asset FaaS 代码包部署与前后端联通</h1><p>今天主要继续昨天没有完成的 <code>qtcloud-asset</code> 部署工作。目标很明确：把 <code>provider</code> 服务端真正部署到阿里云 Function Compute，并让 <code>studio</code> 前端能访问到后端服务。</p>
 <p>最终结果是前后端链路已经跑通：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">前端 Studio:</span><br><span class="line">http://asset.quanttide.com</span><br><span class="line"></span><br><span class="line">后端 Provider:</span><br><span class="line">https://provide-package-tuzknrkwac.cn-hangzhou.fcapp.run</span><br></pre></td></tr></table></figure>
 
@@ -556,15 +561,16 @@
 
 <p>今天的结论是：<code>qtcloud-asset</code> 已经从“部署探索”推进到“前后端可用”。虽然正式域名和 HTTPS 还有后续工作，但核心链路已经打通，服务端也确实跑在阿里云 FaaS 上。</p>
 
+          </div>
+          <div class="article-collapsed-mask"></div>
         </div>
-        <div class="article-collapsed-mask"></div>
-      </div>
-      <div class="article-expand-btn" onclick="toggleArticle(this)">
-        <span class="expand-icon">▾</span> 阅读全文
-      </div>
+        <div class="article-expand-btn" onclick="toggleArticle(this)">
+          <span class="expand-icon">▾</span> 阅读全文
+        </div>
       
+    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/" data-id="cmq1wc2bk000svs3gfu4tefnn" data-title="今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/" data-id="cmq1ww48e00145o3g00966kcv" data-title="今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -604,8 +610,9 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <div class="article-collapsed-preview">
-          <h1 id="Hexo-博客部署到-GitHub-Pages-流程教程"><a href="#Hexo-博客部署到-GitHub-Pages-流程教程" class="headerlink" title="Hexo 博客部署到 GitHub Pages 流程教程"></a>Hexo 博客部署到 GitHub Pages 流程教程</h1><p>这篇文档记录当前博客的标准部署流程。博客源仓库和发布仓库使用同一个 GitHub 仓库的不同分支：</p>
+        <div class="article-collapsed-wrapper">
+          <div class="article-collapsed-preview">
+            <h1 id="Hexo-博客部署到-GitHub-Pages-流程教程"><a href="#Hexo-博客部署到-GitHub-Pages-流程教程" class="headerlink" title="Hexo 博客部署到 GitHub Pages 流程教程"></a>Hexo 博客部署到 GitHub Pages 流程教程</h1><p>这篇文档记录当前博客的标准部署流程。博客源仓库和发布仓库使用同一个 GitHub 仓库的不同分支：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">仓库：https://github.com/raojiacui/raojiacui.github.io</span><br><span class="line">源码分支：source</span><br><span class="line">发布分支：main</span><br><span class="line">本地路径：C:\Users\雨下雨停\hexo-blog</span><br><span class="line">线上地址：https://raojiacui.github.io/</span><br></pre></td></tr></table></figure>
 
 <h2 id="一、整体流程"><a href="#一、整体流程" class="headerlink" title="一、整体流程"></a>一、整体流程</h2><p>完整流程分成两件事：</p>
@@ -724,15 +731,16 @@
 </ol>
 <p>这样既能保证线上博客更新，也能保证文章源码可追溯。</p>
 
+          </div>
+          <div class="article-collapsed-mask"></div>
         </div>
-        <div class="article-collapsed-mask"></div>
-      </div>
-      <div class="article-expand-btn" onclick="toggleArticle(this)">
-        <span class="expand-icon">▾</span> 阅读全文
-      </div>
+        <div class="article-expand-btn" onclick="toggleArticle(this)">
+          <span class="expand-icon">▾</span> 阅读全文
+        </div>
       
+    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/08/Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmq1wc2ay0001vs3g8jmg3aiv" data-title="Hexo博客部署到GitHub Pages流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/08/Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmq1ww47p00005o3g47swdqmd" data-title="Hexo博客部署到GitHub Pages流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -772,8 +780,9 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <div class="article-collapsed-preview">
-          <h1 id="今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索"><a href="#今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索" class="headerlink" title="今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索"></a>今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索</h1><p>今天主要做了三条线的事情：</p>
+        <div class="article-collapsed-wrapper">
+          <div class="article-collapsed-preview">
+            <h1 id="今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索"><a href="#今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索" class="headerlink" title="今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索"></a>今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索</h1><p>今天主要做了三条线的事情：</p>
 <ol>
 <li>部署 <code>qtadmin</code> 到阿里云 OSS。</li>
 <li>联调 <code>qtconsult</code> 前后端并发布三个版本。</li>
@@ -885,15 +894,16 @@
 
 <p>今天的结论是：前端部署流程已经比较稳定，服务端 FaaS 部署的关键不在代码，而在云产品的镜像和运行时约束。后续继续把 provider 的代码包部署跑通，就能避开 ACR 企业版成本，同时满足“服务端用 FaaS”的要求。</p>
 
+          </div>
+          <div class="article-collapsed-mask"></div>
         </div>
-        <div class="article-collapsed-mask"></div>
-      </div>
-      <div class="article-expand-btn" onclick="toggleArticle(this)">
-        <span class="expand-icon">▾</span> 阅读全文
-      </div>
+        <div class="article-expand-btn" onclick="toggleArticle(this)">
+          <span class="expand-icon">▾</span> 阅读全文
+        </div>
       
+    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/" data-id="cmq1wc2bj000qvs3ggfkjgr99" data-title="今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/" data-id="cmq1ww48g00185o3gfllser6c" data-title="今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -933,8 +943,9 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <div class="article-collapsed-preview">
-          <h1 id="QtConsult-部署到阿里云-OSS-全流程"><a href="#QtConsult-部署到阿里云-OSS-全流程" class="headerlink" title="QtConsult 部署到阿里云 OSS 全流程"></a>QtConsult 部署到阿里云 OSS 全流程</h1><blockquote>
+        <div class="article-collapsed-wrapper">
+          <div class="article-collapsed-preview">
+            <h1 id="QtConsult-部署到阿里云-OSS-全流程"><a href="#QtConsult-部署到阿里云-OSS-全流程" class="headerlink" title="QtConsult 部署到阿里云 OSS 全流程"></a>QtConsult 部署到阿里云 OSS 全流程</h1><blockquote>
 <p>日期：2026-05-07<br>访问地址：<a target="_blank" rel="noopener" href="https://consult.quanttide.com/">https://consult.quanttide.com</a></p>
 </blockquote>
 <hr>
@@ -1107,15 +1118,16 @@
 </tr>
 </tbody></table>
 
+          </div>
+          <div class="article-collapsed-mask"></div>
         </div>
-        <div class="article-collapsed-mask"></div>
-      </div>
-      <div class="article-expand-btn" onclick="toggleArticle(this)">
-        <span class="expand-icon">▾</span> 阅读全文
-      </div>
+        <div class="article-expand-btn" onclick="toggleArticle(this)">
+          <span class="expand-icon">▾</span> 阅读全文
+        </div>
       
+    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/07/QtConsult%E9%83%A8%E7%BD%B2%E5%88%B0%E9%98%BF%E9%87%8C%E4%BA%91OSS%E5%85%A8%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmq1wc2ar0000vs3g14lc6w4j" data-title="QtConsult部署到阿里云OSS全流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/07/QtConsult%E9%83%A8%E7%BD%B2%E5%88%B0%E9%98%BF%E9%87%8C%E4%BA%91OSS%E5%85%A8%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmq1ww47u00015o3gcgera2nh" data-title="QtConsult部署到阿里云OSS全流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -1155,8 +1167,9 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <div class="article-collapsed-preview">
-          <h1 id="今日总结：2026-05-05"><a href="#今日总结：2026-05-05" class="headerlink" title="今日总结：2026-05-05"></a>今日总结：2026-05-05</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-博客部署问题修复"><a href="#1-博客部署问题修复" class="headerlink" title="1. 博客部署问题修复"></a>1. 博客部署问题修复</h3><p><strong>问题诊断：</strong></p>
+        <div class="article-collapsed-wrapper">
+          <div class="article-collapsed-preview">
+            <h1 id="今日总结：2026-05-05"><a href="#今日总结：2026-05-05" class="headerlink" title="今日总结：2026-05-05"></a>今日总结：2026-05-05</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-博客部署问题修复"><a href="#1-博客部署问题修复" class="headerlink" title="1. 博客部署问题修复"></a>1. 博客部署问题修复</h3><p><strong>问题诊断：</strong></p>
 <ol>
 <li><code>package.json</code> 缺少 <code>hexo</code> 字段，导致 hexo-cli 无法正确识别项目</li>
 <li><code>_config.yml</code> 中 <code>message: Site updated: YYYY-MM-DD HH:mm:ss</code> 缺少引号，YAML 解析失败</li>
@@ -1183,15 +1196,16 @@
 <li>博客地址：<a href="https://raojiacui.github.io/">https://raojiacui.github.io</a></li>
 </ul>
 
+          </div>
+          <div class="article-collapsed-mask"></div>
         </div>
-        <div class="article-collapsed-mask"></div>
-      </div>
-      <div class="article-expand-btn" onclick="toggleArticle(this)">
-        <span class="expand-icon">▾</span> 阅读全文
-      </div>
+        <div class="article-expand-btn" onclick="toggleArticle(this)">
+          <span class="expand-icon">▾</span> 阅读全文
+        </div>
       
+    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/05/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-05-%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E4%BF%AE%E5%A4%8D/" data-id="cmq1wc2bh000nvs3ga8zi2wj8" data-title="今日总结-2026-05-05-博客部署问题修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/05/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-05-%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E4%BF%AE%E5%A4%8D/" data-id="cmq1ww48d00105o3g8pr08tda" data-title="今日总结-2026-05-05-博客部署问题修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -1231,8 +1245,9 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <div class="article-collapsed-preview">
-          <h1 id="今日总结：2026-05-04"><a href="#今日总结：2026-05-04" class="headerlink" title="今日总结：2026-05-04"></a>今日总结：2026-05-04</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-TalentsAI-进阶规划题目设计"><a href="#1-TalentsAI-进阶规划题目设计" class="headerlink" title="1. TalentsAI 进阶规划题目设计"></a>1. TalentsAI 进阶规划题目设计</h3><p>完成了”思政课课程小组作业分工”场景的题目设计，主题是”AI赋能大模型时代的挑战与机遇”。</p>
+        <div class="article-collapsed-wrapper">
+          <div class="article-collapsed-preview">
+            <h1 id="今日总结：2026-05-04"><a href="#今日总结：2026-05-04" class="headerlink" title="今日总结：2026-05-04"></a>今日总结：2026-05-04</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-TalentsAI-进阶规划题目设计"><a href="#1-TalentsAI-进阶规划题目设计" class="headerlink" title="1. TalentsAI 进阶规划题目设计"></a>1. TalentsAI 进阶规划题目设计</h3><p>完成了”思政课课程小组作业分工”场景的题目设计，主题是”AI赋能大模型时代的挑战与机遇”。</p>
 <p><strong>场景设计：</strong></p>
 <ul>
 <li>5人小组：组长小月、晓星星、李芳、浩然、子琪</li>
@@ -1275,15 +1290,16 @@
 <li>本地路径：<code>C:\Users\雨下雨停\hexo-blog</code></li>
 </ul>
 
+          </div>
+          <div class="article-collapsed-mask"></div>
         </div>
-        <div class="article-collapsed-mask"></div>
-      </div>
-      <div class="article-expand-btn" onclick="toggleArticle(this)">
-        <span class="expand-icon">▾</span> 阅读全文
-      </div>
+        <div class="article-expand-btn" onclick="toggleArticle(this)">
+          <span class="expand-icon">▾</span> 阅读全文
+        </div>
       
+    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/04/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-04-%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92%E9%A2%98%E7%9B%AE%E8%AE%BE%E8%AE%A1-%E5%8D%9A%E5%AE%A2AccessKey%E4%BF%AE%E5%A4%8D/" data-id="cmq1wc2bj000rvs3gak4k1uj1" data-title="今日总结-2026-05-04-进阶规划题目设计-博客AccessKey修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/04/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-04-%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92%E9%A2%98%E7%9B%AE%E8%AE%BE%E8%AE%A1-%E5%8D%9A%E5%AE%A2AccessKey%E4%BF%AE%E5%A4%8D/" data-id="cmq1ww48c000z5o3gdhb58k14" data-title="今日总结-2026-05-04-进阶规划题目设计-博客AccessKey修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -1323,8 +1339,9 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <div class="article-collapsed-preview">
-          <h1 id="今日总结：议事档案标本契约-v0-0-3-与术语统一"><a href="#今日总结：议事档案标本契约-v0-0-3-与术语统一" class="headerlink" title="今日总结：议事档案标本契约 v0.0.3 与术语统一"></a>今日总结：议事档案标本契约 v0.0.3 与术语统一</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-标本契约-v0-0-3"><a href="#1-标本契约-v0-0-3" class="headerlink" title="1. 标本契约 v0.0.3"></a>1. 标本契约 v0.0.3</h3><ul>
+        <div class="article-collapsed-wrapper">
+          <div class="article-collapsed-preview">
+            <h1 id="今日总结：议事档案标本契约-v0-0-3-与术语统一"><a href="#今日总结：议事档案标本契约-v0-0-3-与术语统一" class="headerlink" title="今日总结：议事档案标本契约 v0.0.3 与术语统一"></a>今日总结：议事档案标本契约 v0.0.3 与术语统一</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-标本契约-v0-0-3"><a href="#1-标本契约-v0-0-3" class="headerlink" title="1. 标本契约 v0.0.3"></a>1. 标本契约 v0.0.3</h3><ul>
 <li>议事档案标本契约已提交到仓库</li>
 <li>commit: <code>443ed05</code></li>
 <li>路径: <code>examples/feishu-wiki/contracts/议事档案-specimen.yaml</code></li>
@@ -1404,15 +1421,16 @@
 <hr>
 <p><em>由 qtcloud-developer-architect skill 生成</em></p>
 
+          </div>
+          <div class="article-collapsed-mask"></div>
         </div>
-        <div class="article-collapsed-mask"></div>
-      </div>
-      <div class="article-expand-btn" onclick="toggleArticle(this)">
-        <span class="expand-icon">▾</span> 阅读全文
-      </div>
+        <div class="article-expand-btn" onclick="toggleArticle(this)">
+          <span class="expand-icon">▾</span> 阅读全文
+        </div>
       
+    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/04/23/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-04-23-%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6v0.0.3-%E6%9C%AF%E8%AF%AD%E7%BB%9F%E4%B8%80/" data-id="cmq1wc2bg000mvs3g09k6cg4e" data-title="今日总结-2026-04-23-议事档案标本契约v0.0.3-术语统一" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/04/23/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-04-23-%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6v0.0.3-%E6%9C%AF%E8%AF%AD%E7%BB%9F%E4%B8%80/" data-id="cmq1ww47x00045o3g0rib32tj" data-title="今日总结-2026-04-23-议事档案标本契约v0.0.3-术语统一" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
