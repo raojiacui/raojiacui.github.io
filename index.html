@@ -75,6 +75,422 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-今日总结-2026-05-21-抖音桌宠项目-手势控制与像素猫重构" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/05/21/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-21-%E6%8A%96%E9%9F%B3%E6%A1%8C%E5%AE%A0%E9%A1%B9%E7%9B%AE-%E6%89%8B%E5%8A%BF%E6%8E%A7%E5%88%B6%E4%B8%8E%E5%83%8F%E7%B4%A0%E7%8C%AB%E9%87%8D%E6%9E%84/" class="article-date">
+  <time class="dt-published" datetime="2026-05-21T10:30:00.000Z" itemprop="datePublished">2026-05-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E8%AE%B0%E5%BD%95/">项目记录</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/05/21/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-21-%E6%8A%96%E9%9F%B3%E6%A1%8C%E5%AE%A0%E9%A1%B9%E7%9B%AE-%E6%89%8B%E5%8A%BF%E6%8E%A7%E5%88%B6%E4%B8%8E%E5%83%8F%E7%B4%A0%E7%8C%AB%E9%87%8D%E6%9E%84/">今日总结-2026-05-21-抖音桌宠项目-手势控制与像素猫重构</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
+      
+        <div class="article-collapsed-preview">
+          <h1 id="今日总结-2026-05-21"><a href="#今日总结-2026-05-21" class="headerlink" title="今日总结 2026-05-21"></a>今日总结 2026-05-21</h1><h2 id="项目：抖音陪伴桌宠-参赛项目”抖音AI创变者大赛”"><a href="#项目：抖音陪伴桌宠-参赛项目”抖音AI创变者大赛”" class="headerlink" title="项目：抖音陪伴桌宠 - 参赛项目”抖音AI创变者大赛”"></a>项目：抖音陪伴桌宠 - 参赛项目”抖音AI创变者大赛”</h2><hr>
+<h2 id="一、遇到的主要困难"><a href="#一、遇到的主要困难" class="headerlink" title="一、遇到的主要困难"></a>一、遇到的主要困难</h2><h3 id="1-像素猫-CSS-渲染问题"><a href="#1-像素猫-CSS-渲染问题" class="headerlink" title="1. 像素猫 CSS 渲染问题"></a>1. 像素猫 CSS 渲染问题</h3><p><strong>问题描述</strong>：CSS 编写时出现孤立代码块，<code>.pixel-cat-torso</code> 块里残留了 <code>top</code>、<code>width</code> 等属性导致 LightningCSS 报错。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SyntaxError: [lightningcss minify] Invalid token in pseudo element: WhiteSpace(&quot; &quot;)</span><br><span class="line">253 |    display: none;</span><br><span class="line">254 |  &#125;</span><br><span class="line">255 |    top: 82px;   &lt;- 孤立代码</span><br></pre></td></tr></table></figure>
+
+<p><strong>解决办法</strong>：删除孤立的 CSS 声明块，只保留 <code>&#123; display: none; &#125;</code>。</p>
+<hr>
+<h3 id="2-useDrag-的-setPosition-命名冲突"><a href="#2-useDrag-的-setPosition-命名冲突" class="headerlink" title="2. useDrag 的 setPosition 命名冲突"></a>2. useDrag 的 setPosition 命名冲突</h3><p><strong>问题描述</strong>：原 <code>useState</code> 返回的 <code>setPosition</code> 和自定义的 <code>setPosition</code> 函数重名，导致递归调用。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 错误写法</span></span><br><span class="line"><span class="keyword">const</span> [position, setPosition] = <span class="title function_">useState</span>(...);</span><br><span class="line"><span class="keyword">const</span> setPosition = <span class="title function_">useCallback</span>(...) <span class="comment">// 重名！</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>解决办法</strong>：将 state 的 setter 重命名为 <code>setPositionState</code>，自定义函数保留 <code>setPosition</code>。</p>
+<hr>
+<h3 id="3-摄像头权限被拒绝（已允许仍报权限错误）"><a href="#3-摄像头权限被拒绝（已允许仍报权限错误）" class="headerlink" title="3. 摄像头权限被拒绝（已允许仍报权限错误）"></a>3. 摄像头权限被拒绝（已允许仍报权限错误）</h3><p><strong>问题描述</strong>：摄像头权限已授予，但一直报”摄像头权限被拒绝”。</p>
+<p><strong>原因</strong>：错误信息覆盖问题，<code>error</code> state 没有在关闭手势时清空。</p>
+<p><strong>解决办法</strong>：在 <code>toggleEnabled</code> 关闭时添加 <code>setError(null)</code>。</p>
+<hr>
+<h3 id="4-MediaPipe-Hands-“Hands不是构造函数”"><a href="#4-MediaPipe-Hands-“Hands不是构造函数”" class="headerlink" title="4. MediaPipe Hands “Hands不是构造函数”"></a>4. MediaPipe Hands “Hands不是构造函数”</h3><p><strong>问题描述</strong>：动态导入 <code>@mediapipe/hands</code> npm 包后，<code>new Hands()</code> 报错。</p>
+<p><strong>原因</strong>：ES Module 打包后导出方式不同，直接 import 拿不到正确的类。</p>
+<p><strong>解决办法</strong>：改用 CDN 加载脚本方式，通过 <code>document.createElement(&#39;script&#39;)</code> 加载 <code>hands.js</code>，挂载到 <code>window.Hands</code>。</p>
+<hr>
+<h3 id="5-手势控制和鼠标拖拽冲突"><a href="#5-手势控制和鼠标拖拽冲突" class="headerlink" title="5. 手势控制和鼠标拖拽冲突"></a>5. 手势控制和鼠标拖拽冲突</h3><p><strong>问题描述</strong>：开启手势后，手掌位置的 <code>setPosition</code> 持续更新，导致 React re-render，<code>isDragging</code> 状态丢失，鼠标拖拽失效。</p>
+<p><strong>原因</strong>：Gesture → setPosition → re-render → useDrag 状态重置。</p>
+<p><strong>解决办法</strong>：</p>
+<ol>
+<li>在 <code>useEffect</code> 中判断 <code>!isDragging</code> 才更新位置</li>
+<li>手势控制期间不触发 re-render 问题，通过 LERP 插值在 hook 内部平滑处理</li>
+</ol>
+<hr>
+<h3 id="6-手势控制启用后鼠标拖不动"><a href="#6-手势控制启用后鼠标拖不动" class="headerlink" title="6. 手势控制启用后鼠标拖不动"></a>6. 手势控制启用后鼠标拖不动</h3><p><strong>问题描述</strong>：开启手势后，即使关闭手势，鼠标也拖不动小猫。</p>
+<p><strong>原因</strong>：</p>
+<ol>
+<li>视频元素虽然 <code>display: none</code>，但仍捕获 Pointer Events</li>
+<li><code>pointer-events: all</code> 影响布局容器</li>
+</ol>
+<p><strong>解决办法</strong>：</p>
+<ol>
+<li>视频元素添加 <code>pointerEvents: &#39;none&#39;</code></li>
+<li>手势控制的状态通过 <code>gestureEnabled</code> prop 控制是否生效</li>
+<li>确保 <code>gesturePosition</code> 变化时只在 <code>gestureEnabled &amp;&amp; !isDragging</code> 时更新</li>
+</ol>
+<hr>
+<h2 id="二、核心实现方案"><a href="#二、核心实现方案" class="headerlink" title="二、核心实现方案"></a>二、核心实现方案</h2><h3 id="1-像素猫渲染（纯CSS）"><a href="#1-像素猫渲染（纯CSS）" class="headerlink" title="1. 像素猫渲染（纯CSS）"></a>1. 像素猫渲染（纯CSS）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.pixel-cat-body       -&gt; 整体容器 184x124px</span><br><span class="line">.pixel-cat-head      -&gt; 头部 68x34px（小巧）</span><br><span class="line">.pixel-cat-body::before -&gt; 身体（胖嘟嘟）</span><br><span class="line">.pixel-eye           -&gt; 眼睛（可闭眼动画）</span><br><span class="line">.pixel-mouth         -&gt; 嘴巴（带腮红）</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-手势控制架构"><a href="#2-手势控制架构" class="headerlink" title="2. 手势控制架构"></a>2. 手势控制架构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">useGestureControl (hook)</span><br><span class="line">├── MediaPipe Hands (CDN 加载)</span><br><span class="line">├── 单手检测 -&gt; 手掌位置 -&gt; 移动小猫</span><br><span class="line">├── 单手张开度 -&gt; 缩放小猫</span><br><span class="line">├── 双手检测 -&gt; 双掌中心移动</span><br><span class="line">└── 双掌距离 -&gt; 缩放小猫</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-状态管理"><a href="#3-状态管理" class="headerlink" title="3. 状态管理"></a>3. 状态管理</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">App.tsx</span><br><span class="line">├── gestureEnabled: boolean</span><br><span class="line">├── gesturePosition: &#123;x, y&#125;</span><br><span class="line">└── gestureScale: number</span><br><span class="line">    ↓</span><br><span class="line">PixelCat</span><br><span class="line">├── gestureEnabled -&gt; 控制 transform: scale()</span><br><span class="line">├── gesturePosition -&gt; 控制 left/top</span><br><span class="line">└── !isDragging -&gt; 保护拖拽状态</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、后续任务"><a href="#三、后续任务" class="headerlink" title="三、后续任务"></a>三、后续任务</h2><ul>
+<li><input disabled="" type="checkbox"> 像素猫素材设计（用户自行设计）</li>
+<li><input disabled="" type="checkbox"> 抖音 API 接入（获取视频内容）</li>
+<li><input disabled="" type="checkbox"> 部署到 HTTPS 服务器生成二维码</li>
+<li><input disabled="" type="checkbox"> 比赛现场演示流程确认</li>
+</ul>
+<hr>
+<h2 id="四、技术栈清单"><a href="#四、技术栈清单" class="headerlink" title="四、技术栈清单"></a>四、技术栈清单</h2><table>
+<thead>
+<tr>
+<th>技术</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>React + Vite + TypeScript</td>
+<td>前端框架</td>
+</tr>
+<tr>
+<td>MediaPipe Hands</td>
+<td>手势识别</td>
+</tr>
+<tr>
+<td>DeepSeek API</td>
+<td>AI 对话</td>
+</tr>
+<tr>
+<td>CSS 纯绘制</td>
+<td>像素猫渲染</td>
+</tr>
+</tbody></table>
+<hr>
+<p><strong>明日重点</strong>：确认比赛现场的网络环境和部署方案。</p>
+
+        </div>
+        <div class="article-collapsed-mask"></div>
+      </div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
+      
+    <footer class="article-footer">
+      <a data-url="https://raojiacui.github.io/2026/05/21/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-21-%E6%8A%96%E9%9F%B3%E6%A1%8C%E5%AE%A0%E9%A1%B9%E7%9B%AE-%E6%89%8B%E5%8A%BF%E6%8E%A7%E5%88%B6%E4%B8%8E%E5%83%8F%E7%B4%A0%E7%8C%AB%E9%87%8D%E6%9E%84/" data-id="cmq1u8ks0000eo03ggzhebpe8" data-title="今日总结-2026-05-21-抖音桌宠项目-手势控制与像素猫重构" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MediaPipe/" rel="tag">MediaPipe</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/React/" rel="tag">React</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%89%8B%E5%8A%BF%E6%8E%A7%E5%88%B6/" rel="tag">手势控制</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%96%E9%9F%B3/" rel="tag">抖音</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%A1%8C%E5%AE%A0/" rel="tag">桌宠</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-今日总结-2026-05-20-听见入境-抖音AI创变者大赛参赛记录" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/05/20/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-20-%E5%90%AC%E8%A7%81%E5%85%A5%E5%A2%83-%E6%8A%96%E9%9F%B3AI%E5%88%9B%E5%8F%98%E8%80%85%E5%A4%A7%E8%B5%9B%E5%8F%82%E8%B5%9B%E8%AE%B0%E5%BD%95/" class="article-date">
+  <time class="dt-published" datetime="2026-05-19T16:00:00.000Z" itemprop="datePublished">2026-05-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/05/20/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-20-%E5%90%AC%E8%A7%81%E5%85%A5%E5%A2%83-%E6%8A%96%E9%9F%B3AI%E5%88%9B%E5%8F%98%E8%80%85%E5%A4%A7%E8%B5%9B%E5%8F%82%E8%B5%9B%E8%AE%B0%E5%BD%95/">今日总结-2026-05-20-听见入境-抖音AI创变者大赛参赛记录</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
+      
+        <div class="article-collapsed-preview">
+          <h1 id="抖音AI创变者大赛参赛手记：听见入境"><a href="#抖音AI创变者大赛参赛手记：听见入境" class="headerlink" title="抖音AI创变者大赛参赛手记：听见入境"></a>抖音AI创变者大赛参赛手记：听见入境</h1><blockquote>
+<p>记录日期：2026年5月20日<br>赛道：赛道四 - 视觉搜索<br>团队：3人</p>
+</blockquote>
+<h2 id="项目灵感"><a href="#项目灵感" class="headerlink" title="项目灵感"></a>项目灵感</h2><p>参加抖音AI创变者大赛，我们选择了<strong>赛道四：视觉搜索</strong>。一开始想做”视频BGM识别”，但觉得太简单。后来升级成：</p>
+<blockquote>
+<p><strong>“听见即入境”</strong> —— 识别BGM → 分析情绪/场景 → 推荐同氛围视频/滤镜/拍摄脚本 → 语音生成拍摄建议</p>
+</blockquote>
+<p>这个方向结合了音频识别、多模态理解、推荐系统，既有技术挑战，又有实用价值。</p>
+<h2 id="技术方案"><a href="#技术方案" class="headerlink" title="技术方案"></a>技术方案</h2><h3 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h3><ul>
+<li><strong>前端</strong>：React + TypeScript + Vite（纯前端H5）</li>
+<li><strong>音频识别</strong>：AudD API（免费100次/天）</li>
+<li><strong>情绪分析</strong>：豆包/kimi LLM API（可选）</li>
+<li><strong>部署</strong>：本地运行 → 内网穿透 → 二维码接入抖音虚拟平台</li>
+</ul>
+<h3 id="核心流程"><a href="#核心流程" class="headerlink" title="核心流程"></a>核心流程</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">用户播放BGM（录音3-10秒）</span><br><span class="line">    ↓</span><br><span class="line">AudD API 识别歌曲（歌名 + 艺术家）</span><br><span class="line">    ↓</span><br><span class="line">LLM 分析情绪标签（欢快/慵懒/电影感/怀旧...）</span><br><span class="line">    ↓</span><br><span class="line">推荐同类氛围的抖音视频</span><br><span class="line">    ↓</span><br><span class="line">语音输入&quot;我也想拍这种视频&quot;</span><br><span class="line">    ↓</span><br><span class="line">AI 生成拍摄脚本建议</span><br></pre></td></tr></table></figure>
+
+<h2 id="设计风格"><a href="#设计风格" class="headerlink" title="设计风格"></a>设计风格</h2><p>我们选择了<strong>人文温馨风格</strong>，区别于常见的霓虹赛博朋克：</p>
+<ul>
+<li><strong>暖米色背景</strong>（<code>#F7F5F0</code>）—— 温和不刺眼</li>
+<li><strong>赭红色强调</strong>（<code>#C67B5A</code>）—— 温暖的品牌色</li>
+<li><strong>Noto Serif + Noto Sans</strong> —— 中文衬线字体，叙事感</li>
+<li><strong>柔和阴影</strong> —— 轻盈的卡片投影</li>
+<li><strong>响应式设计</strong> —— 移动端 + 桌面端双适配</li>
+</ul>
+<h2 id="项目结构"><a href="#项目结构" class="headerlink" title="项目结构"></a>项目结构</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">ting-jian-ru-jing/</span><br><span class="line">├── src/</span><br><span class="line">│   ├── components/</span><br><span class="line">│   │   ├── AudioRecorder.tsx    # 音频录制</span><br><span class="line">│   │   ├── ResultDisplay.tsx     # 结果展示</span><br><span class="line">│   │   ├── VideoRecommend.tsx    # 视频推荐</span><br><span class="line">│   │   └── ScriptGenerator.tsx  # 脚本生成</span><br><span class="line">│   ├── services/</span><br><span class="line">│   │   ├── audd.ts              # AudD 音频识别</span><br><span class="line">│   │   └── llm.ts               # LLM 情绪分析</span><br><span class="line">│   ├── hooks/</span><br><span class="line">│   │   └── useAudioRecorder.ts  # 音频录制 Hook</span><br><span class="line">│   ├── data/</span><br><span class="line">│   │   └── mockVideos.ts       # Mock 视频数据</span><br><span class="line">│   ├── App.tsx</span><br><span class="line">│   └── App.css</span><br><span class="line">├── .env                        # API Keys</span><br><span class="line">└── package.json</span><br></pre></td></tr></table></figure>
+
+<h2 id="遇到的问题与解决"><a href="#遇到的问题与解决" class="headerlink" title="遇到的问题与解决"></a>遇到的问题与解决</h2><h3 id="1-音频识别-API-选择"><a href="#1-音频识别-API-选择" class="headerlink" title="1. 音频识别 API 选择"></a>1. 音频识别 API 选择</h3><p>一开始想用 ACRCloud，但注册流程太复杂。后来发现 <strong>AudD</strong> 更简单：</p>
+<ul>
+<li>注册只需邮箱</li>
+<li>免费100次/天，够比赛用</li>
+<li>API 接口简洁</li>
+</ul>
+<h3 id="2-设计风格"><a href="#2-设计风格" class="headerlink" title="2. 设计风格"></a>2. 设计风格</h3><p>最初做了霓虹赛博朋克风格，但觉得太”AI味”，不够温暖。后来改成了人文温馨风格，用暖米色 + 赭红，配合柔和的动效，视觉上更舒适。</p>
+<h3 id="3-响应式适配"><a href="#3-响应式适配" class="headerlink" title="3. 响应式适配"></a>3. 响应式适配</h3><p>需要同时适配手机和电脑。最终方案：</p>
+<ul>
+<li><code>&lt; 380px</code>：紧凑移动端</li>
+<li><code>≥ 720px</code>：桌面端（更大留白）</li>
+<li><code>≥ 1024px</code>：大屏横屏</li>
+</ul>
+<h2 id="下一步"><a href="#下一步" class="headerlink" title="下一步"></a>下一步</h2><ul>
+<li><input disabled="" type="checkbox"> 海报设计</li>
+<li><input disabled="" type="checkbox"> 内网穿透 + 二维码</li>
+<li><input disabled="" type="checkbox"> LLM API 接入（可选）</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>官网：<a target="_blank" rel="noopener" href="https://aiia.douyin.com/">https://aiia.douyin.com/</a></li>
+<li>AudD：<a target="_blank" rel="noopener" href="https://audd.io/">https://audd.io/</a></li>
+<li>奖金：一等奖10万/队，二等奖6万/队，三等奖3万/队</li>
+</ul>
+<hr>
+<p><em>更多进展将持续更新…</em></p>
+
+        </div>
+        <div class="article-collapsed-mask"></div>
+      </div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
+      
+    <footer class="article-footer">
+      <a data-url="https://raojiacui.github.io/2026/05/20/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-20-%E5%90%AC%E8%A7%81%E5%85%A5%E5%A2%83-%E6%8A%96%E9%9F%B3AI%E5%88%9B%E5%8F%98%E8%80%85%E5%A4%A7%E8%B5%9B%E5%8F%82%E8%B5%9B%E8%AE%B0%E5%BD%95/" data-id="cmq1u8krw0006o03g02v89xrx" data-title="今日总结-2026-05-20-听见入境-抖音AI创变者大赛参赛记录" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AudD-API/" rel="tag">AudD API</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/React/" rel="tag">React</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%96%E9%9F%B3AI%E5%88%9B%E5%8F%98%E8%80%85%E5%A4%A7%E8%B5%9B/" rel="tag">抖音AI创变者大赛</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%A7%86%E8%A7%89%E6%90%9C%E7%B4%A2/" rel="tag">视觉搜索</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-今日总结-2026-05-11-QtCloud-Asset-域名绑定与K8s备选方案" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/" class="article-date">
+  <time class="dt-published" datetime="2026-05-10T16:00:00.000Z" itemprop="datePublished">2026-05-11</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/">今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
+      
+        <div class="article-collapsed-preview">
+          <h1 id="今日总结：QtCloud-Asset-域名绑定与-K8s-备选方案"><a href="#今日总结：QtCloud-Asset-域名绑定与-K8s-备选方案" class="headerlink" title="今日总结：QtCloud Asset 域名绑定与 K8s 备选方案"></a>今日总结：QtCloud Asset 域名绑定与 K8s 备选方案</h1><p>今天继续处理 <code>qtcloud-asset</code> 的正式域名问题。原目标很明确：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">前端 Studio:</span><br><span class="line">https://asset.quanttide.com</span><br><span class="line"></span><br><span class="line">后端 Provider:</span><br><span class="line">https://api.asset.quanttide.com</span><br></pre></td></tr></table></figure>
+
+<p>上次已经把前后端链路跑通，但后端还临时使用 FC 默认域名：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://provide-package-tuzknrkwac.cn-hangzhou.fcapp.run</span><br></pre></td></tr></table></figure>
+
+<p>今天主要围绕 <code>api.asset.quanttide.com</code> 的正式绑定继续推进。</p>
+<h2 id="一、确认当前可用状态"><a href="#一、确认当前可用状态" class="headerlink" title="一、确认当前可用状态"></a>一、确认当前可用状态</h2><p>先复盘了 5 月 9 日的总结和当前部署状态。结论是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Provider package workflow: success</span><br><span class="line">Studio workflow: success</span><br><span class="line">http://asset.quanttide.com: 可访问</span><br><span class="line">https://asset.quanttide.com: 证书信任仍有问题</span><br><span class="line">api.asset.quanttide.com: 还没有正式可用</span><br></pre></td></tr></table></figure>
+
+<p>GitHub Actions 上最新几次部署也都能跑通，说明 CI、打包、OSS 上传这条链路本身没有断。</p>
+<h2 id="二、继续尝试-FC-自定义域名"><a href="#二、继续尝试-FC-自定义域名" class="headerlink" title="二、继续尝试 FC 自定义域名"></a>二、继续尝试 FC 自定义域名</h2><p>今天最开始仍然尝试把后端绑定到 Function Compute 自定义域名：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api.asset.quanttide.com</span><br></pre></td></tr></table></figure>
+
+<p>Terraform 里之前已经做过可选开关：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">enable_provider_custom_domain = false</span><br></pre></td></tr></table></figure>
+
+<p>如果后续备案归属校验通过，把它改成 <code>true</code> 就可以创建 FC 自定义域名和 DNS CNAME。</p>
+<p>今天进一步确认了 FC v3 的自定义域名资源支持 HTTPS 证书配置，也就是说技术上可以做到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api.asset.quanttide.com -&gt; FC provider-package</span><br></pre></td></tr></table></figure>
+
+<p>并支持证书。</p>
+<p>但实际在阿里云控制台操作时，仍然卡在备案接入校验：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未接入阿里云</span><br></pre></td></tr></table></figure>
+
+<p>这里关键点是：RAM 子账号权限和备案接入归属不是一回事。即使 RAM 子账号有 FC、DNS、证书权限，FC 创建自定义域名时仍会校验：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">当前 FC 所属主账号是否拥有 / 接入了 quanttide.com 的备案</span><br></pre></td></tr></table></figure>
+
+<p>所以今天最终判断：这个问题不是代码问题，也不是 GitHub Actions 问题，而是域名备案接入和当前阿里云主账号归属的校验问题。</p>
+<h2 id="三、申请-SSL-证书的流程也梳理了一遍"><a href="#三、申请-SSL-证书的流程也梳理了一遍" class="headerlink" title="三、申请 SSL 证书的流程也梳理了一遍"></a>三、申请 SSL 证书的流程也梳理了一遍</h2><p>今天还梳理了阿里云免费 SSL 证书的申请路径。</p>
+<p>免费证书现在在阿里云里通常叫：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">个人测试证书（免费版）</span><br></pre></td></tr></table></figure>
+
+<p>申请时应该选择：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CSR 生成方式: 系统生成</span><br><span class="line">域名验证方式: 自动 DNS 验证</span><br><span class="line">资源组: 默认资源组或项目资源组</span><br></pre></td></tr></table></figure>
+
+<p>这里也确认了一个点：证书申请和 FC 自定义域名绑定是两件事。证书可以申请，但 FC 绑定 <code>api.asset.quanttide.com</code> 仍然会单独做 ICP 接入校验。</p>
+<h2 id="四、切换思路：评估-K8s-方案"><a href="#四、切换思路：评估-K8s-方案" class="headerlink" title="四、切换思路：评估 K8s 方案"></a>四、切换思路：评估 K8s 方案</h2><p>因为 FC 自定义域名被备案接入挡住，今天临时改为评估 Kubernetes 方案：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api.asset.quanttide.com -&gt; Ingress -&gt; provider 容器</span><br></pre></td></tr></table></figure>
+
+<p>为此在仓库里新增了 Docker 和 K8s 部署配置。</p>
+<p>主要提交包括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">256f8de enable provider deployment on kubernetes</span><br><span class="line">da0f0fd deploy provider image to kubernetes</span><br><span class="line">b07db03 harden kubernetes deploy kubeconfig handling</span><br><span class="line">a68ccda run kubernetes deploy on manifest changes</span><br></pre></td></tr></table></figure>
+
+<p>新增或调整的关键文件：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.github/workflows/deploy-provider-image.yml</span><br><span class="line">.github/workflows/deploy-provider-k8s.yml</span><br><span class="line">manifests/docker/Dockerfile.provider</span><br><span class="line">manifests/docker/.dockerignore</span><br><span class="line">manifests/k8s/namespace.yaml</span><br><span class="line">manifests/k8s/provider.yaml</span><br><span class="line">manifests/k8s/README.md</span><br><span class="line">src/provider/app/main.py</span><br><span class="line">src/studio/lib/main.dart</span><br></pre></td></tr></table></figure>
+
+<h2 id="五、Docker-镜像构建已经打通"><a href="#五、Docker-镜像构建已经打通" class="headerlink" title="五、Docker 镜像构建已经打通"></a>五、Docker 镜像构建已经打通</h2><p>原来的 <code>Dockerfile.provider</code> 使用 <code>uv</code> 镜像，并且 <code>.dockerignore</code> 把整个 <code>src/provider/</code> 排除了，会导致构建上下文不完整。</p>
+<p>今天改成了更直接的 Python 镜像：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> python:<span class="number">3.12</span>-slim</span><br></pre></td></tr></table></figure>
+
+<p>并使用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">src/provider/requirements.txt</span><br></pre></td></tr></table></figure>
+
+<p>安装依赖。</p>
+<p>新增的 GitHub Actions workflow 会把镜像推送到阿里云个人版 ACR：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crpi-uorshhk4a32pmmio.cn-hangzhou.personal.cr.aliyuncs.com/quanttide/qtcloud-asset-provider:latest</span><br></pre></td></tr></table></figure>
+
+<p>今天验证结果：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Deploy Provider Image: success</span><br></pre></td></tr></table></figure>
+
+<p>说明镜像构建和推送已经打通。</p>
+<h2 id="六、K8s-部署-workflow-已经写好，但缺集群"><a href="#六、K8s-部署-workflow-已经写好，但缺集群" class="headerlink" title="六、K8s 部署 workflow 已经写好，但缺集群"></a>六、K8s 部署 workflow 已经写好，但缺集群</h2><p>今天还新增了 K8s 部署 workflow：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Deploy Provider to Kubernetes</span><br></pre></td></tr></table></figure>
+
+<p>它会做这些事：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1. 读取 KUBE_CONFIG</span><br><span class="line">2. 创建 namespace: qtcloud-asset</span><br><span class="line">3. 创建 ACR pull secret</span><br><span class="line">4. 创建 TLS secret</span><br><span class="line">5. apply manifests/k8s/provider.yaml</span><br><span class="line">6. 等待 Deployment rollout</span><br></pre></td></tr></table></figure>
+
+<p>K8s 清单包括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Namespace</span><br><span class="line">Deployment</span><br><span class="line">Service</span><br><span class="line">Ingress</span><br></pre></td></tr></table></figure>
+
+<p>Ingress 目标域名是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api.asset.quanttide.com</span><br></pre></td></tr></table></figure>
+
+<p>但实际部署失败，因为当前还没有可用的 ACK kubeconfig。GitHub Actions 里报过：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl fallback 到 localhost:8080</span><br></pre></td></tr></table></figure>
+
+<p>后来 workflow 已经增强为显式检查 <code>KUBE_CONFIG</code>，也支持原始 kubeconfig 或 base64 kubeconfig。</p>
+<p>不过最后讨论下来，ACK/K8s 本身会产生费用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ACK 集群</span><br><span class="line">Worker 节点</span><br><span class="line">Ingress/SLB</span><br><span class="line">公网流量</span><br></pre></td></tr></table></figure>
+
+<p>对于当前只有一个 FastAPI provider 的场景，K8s 有点重。</p>
+<h2 id="七、成本和方案判断"><a href="#七、成本和方案判断" class="headerlink" title="七、成本和方案判断"></a>七、成本和方案判断</h2><p>今天最后重新比较了几种方案。</p>
+<h3 id="方案-1：继续用-FC-默认域名"><a href="#方案-1：继续用-FC-默认域名" class="headerlink" title="方案 1：继续用 FC 默认域名"></a>方案 1：继续用 FC 默认域名</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://provide-package-tuzknrkwac.cn-hangzhou.fcapp.run</span><br></pre></td></tr></table></figure>
+
+<p>优点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">成本最低</span><br><span class="line">当前已经跑通</span><br><span class="line">不需要额外服务器或集群</span><br></pre></td></tr></table></figure>
+
+<p>缺点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">不是正式 API 域名</span><br></pre></td></tr></table></figure>
+
+<h3 id="方案-2：解决-FC-备案接入问题"><a href="#方案-2：解决-FC-备案接入问题" class="headerlink" title="方案 2：解决 FC 备案接入问题"></a>方案 2：解决 FC 备案接入问题</h3><p>最终目标：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://api.asset.quanttide.com -&gt; FC provider-package</span><br></pre></td></tr></table></figure>
+
+<p>优点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">最符合当前 FaaS 架构</span><br><span class="line">不需要维护服务器</span><br><span class="line">成本比 ECS / ACK 低</span><br></pre></td></tr></table></figure>
+
+<p>缺点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">需要确认 quanttide.com 的备案接入是否在当前 FC 所属主账号下</span><br></pre></td></tr></table></figure>
+
+<h3 id="方案-3：ECS-轻量应用服务器-Docker-Nginx"><a href="#方案-3：ECS-轻量应用服务器-Docker-Nginx" class="headerlink" title="方案 3：ECS / 轻量应用服务器 + Docker + Nginx"></a>方案 3：ECS / 轻量应用服务器 + Docker + Nginx</h3><p>优点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">比 ACK 简单</span><br><span class="line">比 K8s 便宜</span><br><span class="line">可以绑定 api.asset.quanttide.com</span><br></pre></td></tr></table></figure>
+
+<p>缺点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">仍然有服务器费用</span><br><span class="line">需要维护服务器和 Nginx</span><br></pre></td></tr></table></figure>
+
+<h3 id="方案-4：ACK-K8s"><a href="#方案-4：ACK-K8s" class="headerlink" title="方案 4：ACK / K8s"></a>方案 4：ACK / K8s</h3><p>优点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">工程化程度高</span><br><span class="line">以后扩展服务方便</span><br></pre></td></tr></table></figure>
+
+<p>缺点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">成本最高</span><br><span class="line">对当前单服务过重</span><br></pre></td></tr></table></figure>
+
+<p>今天最后结论是：暂时不继续创建 ACK 集群，明天再决定是否继续 FC 备案接入，还是改走 ECS / 轻量服务器。</p>
+<h2 id="八、今天的验证"><a href="#八、今天的验证" class="headerlink" title="八、今天的验证"></a>八、今天的验证</h2><p>今天完成并验证了：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">GitHub Actions YAML 解析通过</span><br><span class="line">K8s YAML 解析通过</span><br><span class="line">provider Python compile 通过</span><br><span class="line">Terraform validate 通过</span><br><span class="line">Provider image workflow 成功</span><br><span class="line">Provider package workflow 成功</span><br><span class="line">Studio workflow 成功</span><br></pre></td></tr></table></figure>
+
+<p>本地没有 Docker、kubectl、aliyun CLI，所以本地不能直接构建镜像或操作 ACK。镜像构建已经交给 GitHub Actions 完成。</p>
+<h2 id="九、明日待办"><a href="#九、明日待办" class="headerlink" title="九、明日待办"></a>九、明日待办</h2><p>明天继续前，先决定正式路线：</p>
+<ol>
+<li><p>继续查 <code>quanttide.com</code> 的备案接入归属，确认是否能在当前 FC 主账号下绑定 <code>api.asset.quanttide.com</code>。</p>
+</li>
+<li><p>如果 FC 能解决，回到 FC 自定义域名方案，避免额外服务器成本。</p>
+</li>
+<li><p>如果 FC 备案接入短期解决不了，再评估轻量应用服务器 / ECS。</p>
+</li>
+<li><p>暂时不建议为了一个 provider 创建 ACK 集群，除非后续明确要 Kubernetes 化。</p>
+</li>
+<li><p>如果继续 K8s，需要先创建 ACK 集群，并把公网 kubeconfig 写入 GitHub Secret：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KUBE_CONFIG</span><br></pre></td></tr></table></figure></li>
+<li><p>如果走 ECS，需要补 Docker Compose / Nginx / systemd 或部署脚本。</p>
+</li>
+</ol>
+<h2 id="当前状态"><a href="#当前状态" class="headerlink" title="当前状态"></a>当前状态</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">前端 asset.quanttide.com:</span><br><span class="line">HTTP 可访问，HTTPS 证书问题待处理</span><br><span class="line"></span><br><span class="line">后端 FC 默认域名:</span><br><span class="line">可用</span><br><span class="line"></span><br><span class="line">后端 api.asset.quanttide.com:</span><br><span class="line">目标域名已写入前端和 provider 配置，但正式服务尚未部署成功</span><br><span class="line"></span><br><span class="line">Provider Docker 镜像:</span><br><span class="line">已通过 GitHub Actions 构建并推送到 ACR</span><br><span class="line"></span><br><span class="line">K8s 清单和部署 workflow:</span><br><span class="line">已准备，但缺 ACK 集群和 KUBE_CONFIG</span><br></pre></td></tr></table></figure>
+
+<p>今天最大的结论是：域名绑定问题已经从“代码怎么配”推进到了“云资源和成本路线怎么选”。FC 仍然是当前最省成本的正式方案，但前提是把备案接入归属问题解决掉。</p>
+
+        </div>
+        <div class="article-collapsed-mask"></div>
+      </div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
+      
+    <footer class="article-footer">
+      <a data-url="https://raojiacui.github.io/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/" data-id="cmq1u8ks2000jo03g0sbtfdlw" data-title="今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-今日总结-2026-05-09-QtCloud-Asset-FaaS-前后端部署跑通" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/" class="article-date">
@@ -99,9 +515,10 @@
 
       </header>
     
-    <div class="e-content article-entry" itemprop="articleBody">
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <h1 id="今日总结：QtCloud-Asset-FaaS-代码包部署与前后端联通"><a href="#今日总结：QtCloud-Asset-FaaS-代码包部署与前后端联通" class="headerlink" title="今日总结：QtCloud Asset FaaS 代码包部署与前后端联通"></a>今日总结：QtCloud Asset FaaS 代码包部署与前后端联通</h1><p>今天主要继续昨天没有完成的 <code>qtcloud-asset</code> 部署工作。目标很明确：把 <code>provider</code> 服务端真正部署到阿里云 Function Compute，并让 <code>studio</code> 前端能访问到后端服务。</p>
+        <div class="article-collapsed-preview">
+          <h1 id="今日总结：QtCloud-Asset-FaaS-代码包部署与前后端联通"><a href="#今日总结：QtCloud-Asset-FaaS-代码包部署与前后端联通" class="headerlink" title="今日总结：QtCloud Asset FaaS 代码包部署与前后端联通"></a>今日总结：QtCloud Asset FaaS 代码包部署与前后端联通</h1><p>今天主要继续昨天没有完成的 <code>qtcloud-asset</code> 部署工作。目标很明确：把 <code>provider</code> 服务端真正部署到阿里云 Function Compute，并让 <code>studio</code> 前端能访问到后端服务。</p>
 <p>最终结果是前后端链路已经跑通：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">前端 Studio:</span><br><span class="line">http://asset.quanttide.com</span><br><span class="line"></span><br><span class="line">后端 Provider:</span><br><span class="line">https://provide-package-tuzknrkwac.cn-hangzhou.fcapp.run</span><br></pre></td></tr></table></figure>
 
@@ -235,14 +652,180 @@
 
 <p>今天的结论是：<code>qtcloud-asset</code> 已经从“部署探索”推进到“前后端可用”。虽然正式域名和 HTTPS 还有后续工作，但核心链路已经打通，服务端也确实跑在阿里云 FaaS 上。</p>
 
+        </div>
+        <div class="article-collapsed-mask"></div>
+      </div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
       
-    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/" data-id="cmoyj5q85001iek3gajkn5v23" data-title="今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/" data-id="cmq1u8kry000ao03g1x68guzd" data-title="今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-今日总结-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-部署与发版" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/" class="article-date">
+  <time class="dt-published" datetime="2026-05-07T16:00:00.000Z" itemprop="datePublished">2026-05-08</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/">今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
+      
+        <div class="article-collapsed-preview">
+          <h1 id="今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索"><a href="#今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索" class="headerlink" title="今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索"></a>今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索</h1><p>今天主要做了三条线的事情：</p>
+<ol>
+<li>部署 <code>qtadmin</code> 到阿里云 OSS。</li>
+<li>联调 <code>qtconsult</code> 前后端并发布三个版本。</li>
+<li>部署 <code>qtcloud-asset</code>，重点探索 <code>provider</code> 服务端上 FaaS。</li>
+</ol>
+<h2 id="一、QtAdmin-部署到阿里云"><a href="#一、QtAdmin-部署到阿里云" class="headerlink" title="一、QtAdmin 部署到阿里云"></a>一、QtAdmin 部署到阿里云</h2><p>一开始先克隆了 <code>qtadmin</code> 仓库，然后参考昨天 <code>qtconsult</code> 的 Terraform + GitHub Actions 流程，把 <code>qtadmin</code> 的 Studio 前端部署到阿里云 OSS。</p>
+<p>整体流程是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Flutter Web build -&gt; OSS bucket -&gt; DNS CNAME -&gt; GitHub Actions 自动部署</span><br></pre></td></tr></table></figure>
+
+<p>部署过程中遇到过 Flutter Web build 失败的问题。后面修复了构建相关配置，让 GitHub Actions 可以成功构建并上传到 OSS。最终 <code>qtadmin</code> 的 OSS 静态站点部署跑通，域名绑定也完成了。</p>
+<p>这部分学到的是：<code>qtadmin</code> 和 <code>qtconsult studio</code> 这类前端应用，只要本质是 Flutter Web 静态资源，就适合走 OSS。GitHub 仓库有变更后，只要 workflow 配好，push 到指定分支就会自动构建并同步到阿里云 OSS。</p>
+<h2 id="二、QtConsult-前后端联调与版本发布"><a href="#二、QtConsult-前后端联调与版本发布" class="headerlink" title="二、QtConsult 前后端联调与版本发布"></a>二、QtConsult 前后端联调与版本发布</h2><p>老板给的方向是：<code>qtconsult-provider -&gt; qtconsult-archive</code>，并且提到了 <code>docs/dev/storage.md</code> 里的归档机制。核心目标不是单纯发版，而是通过前后端联调理解系统架构，把 provider、studio 和整体应用串起来。</p>
+<p>今天在 <code>qtconsult</code> 里完成了这些事情：</p>
+<ol>
+<li>适配 provider 的 S3/OSS 风格存储配置。</li>
+<li>补 provider 测试。</li>
+<li>让 studio 通过 <code>ProviderService</code> 访问 provider。</li>
+<li>修复 Web 端缓存兼容问题。</li>
+<li>增加 fixture fallback，保证前端在 provider 不可用时也能有可展示数据。</li>
+<li>修复 OSS2 相关 Studio 部署问题。</li>
+</ol>
+<p>之后发布了三个版本：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">provider/v0.1.0</span><br><span class="line">studio/v0.1.0</span><br><span class="line">v0.1.0</span><br></pre></td></tr></table></figure>
+
+<p>对应 GitHub Releases 也创建好了，release notes 后来改成了中文说明。</p>
+<p>这部分最重要的收获是：<code>qtconsult</code> 不是一个孤立前端，也不是一个孤立 provider，而是要把应用层产品和领域层能力接起来。老板提到的看板方法，其实是在推动几个产品在工作流定义上统一：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">量潮咨询</span><br><span class="line">量潮数据</span><br><span class="line">量潮项目云</span><br></pre></td></tr></table></figure>
+
+<p>比如咨询可以被定义为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">调研 -&gt; 分析 -&gt; 决策 -&gt; 执行</span><br></pre></td></tr></table></figure>
+
+<p>而数据、项目也有类似的 workflow 定义。GitHub Projects 比较贴合老板的工作习惯，但在复杂项目结构组织上不好用，所以后续产品要吸收它的优点，同时解决它的不足。</p>
+<h2 id="三、GitHub-Token-与权限问题"><a href="#三、GitHub-Token-与权限问题" class="headerlink" title="三、GitHub Token 与权限问题"></a>三、GitHub Token 与权限问题</h2><p>中间遇到了 GitHub 登录失败的问题。一开始怀疑是网络问题，后来改用 token。token 用完后，我也意识到：一旦把 GitHub PAT 贴到对话里，就应该立刻删除或 revoke。</p>
+<p>后续更好的做法是：</p>
+<ol>
+<li>尽量用 <code>gh auth login</code> 在本机授权。</li>
+<li>或者用 GitHub Secrets。</li>
+<li>不要在聊天窗口直接长期暴露 PAT。</li>
+</ol>
+<h2 id="四、QtCloud-Asset-部署"><a href="#四、QtCloud-Asset-部署" class="headerlink" title="四、QtCloud Asset 部署"></a>四、QtCloud Asset 部署</h2><p>老板说服务端用 FaaS 部署，所以先判断了 <code>qtcloud-asset</code> 的结构：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src/studio   -&gt; 前端静态站点，部署到 OSS</span><br><span class="line">src/provider -&gt; 服务端 API，部署到 Function Compute</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-Studio-部署到-OSS"><a href="#1-Studio-部署到-OSS" class="headerlink" title="1. Studio 部署到 OSS"></a>1. Studio 部署到 OSS</h3><p><code>studio</code> 先沿用 OSS 流程。创建和使用的资源包括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bucket: qtcloud-asset-studio</span><br><span class="line">domain: asset.quanttide.com</span><br></pre></td></tr></table></figure>
+
+<p>这里遇到了 OSS 官方 CLI 下载问题。前几次下载到的不是正确二进制，而是 XML 错误页或错误格式文件，导致 GitHub Actions 报错：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">syntax error near unexpected token `newline&#x27;</span><br><span class="line">gzip: stdin: not in gzip format</span><br></pre></td></tr></table></figure>
+
+<p>后来改成阿里云官方 <code>ossutil v2</code> 的正确 zip 包地址：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://gosspublic.alicdn.com/ossutil/v2/2.2.1/ossutil-2.2.1-linux-amd64.zip</span><br></pre></td></tr></table></figure>
+
+<p>并用官方 CLI 上传，最终 Studio 部署流程跑通。</p>
+<h3 id="2-Provider-容器路线探索"><a href="#2-Provider-容器路线探索" class="headerlink" title="2. Provider 容器路线探索"></a>2. Provider 容器路线探索</h3><p>接着处理 <code>provider</code>。先补了一个最小 FastAPI 服务：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GET /</span><br><span class="line">GET /health</span><br></pre></td></tr></table></figure>
+
+<p>并写了 Dockerfile，准备走：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Docker image -&gt; ACR -&gt; FC custom-container</span><br></pre></td></tr></table></figure>
+
+<p>最开始镜像推到了个人版 ACR：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crpi-uorshhk4a32pmmio.cn-hangzhou.personal.cr.aliyuncs.com/quanttide/qtcloud-asset-provider</span><br></pre></td></tr></table></figure>
+
+<p>GitHub Actions 能推送成功，但 Terraform 创建 FC 函数失败：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Image not stored in ACR is not supported yet</span><br><span class="line">Image and function must be in the same region</span><br></pre></td></tr></table></figure>
+
+<p>之后尝试过：</p>
+<ol>
+<li>FC v2。</li>
+<li>FC v3。</li>
+<li>关闭镜像加速。</li>
+<li>配置 <code>acr_instance_id</code>。</li>
+<li>改用 <code>registry.cn-hangzhou.aliyuncs.com</code>。</li>
+<li>手动在 FC 控制台创建函数。</li>
+</ol>
+<p>最后确认：FC 控制台也不接受这个 <code>crpi</code> 镜像地址，报 <code>InvalidImageFormat</code>。所以问题不是 Terraform 写错，而是 FC 当前不认这个新版个人版 ACR 域名。</p>
+<p>标准 ACR 地址理论上更适合 FC：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">registry.cn-hangzhou.aliyuncs.com/quanttide/qtcloud-asset-provider</span><br></pre></td></tr></table></figure>
+
+<p>但 GitHub Actions 登录时报：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">403 Forbidden</span><br></pre></td></tr></table></figure>
+
+<p>说明当前 registry 账号密码不能登录这个标准地址。企业版 ACR 可以解决，但会产生费用，所以今天没有继续走企业版路线。</p>
+<h3 id="3-改为-FC-代码包部署"><a href="#3-改为-FC-代码包部署" class="headerlink" title="3. 改为 FC 代码包部署"></a>3. 改为 FC 代码包部署</h3><p>最后把方案调整为：不用容器镜像，改用 FC 代码包部署。这仍然是 FaaS，但绕开 ACR：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">GitHub Actions 在 Ubuntu 上安装 provider 依赖</span><br><span class="line">打包 FastAPI 代码为 zip</span><br><span class="line">上传 zip 到 OSS</span><br><span class="line">Terraform 用 custom.debian12 创建 FC 函数</span><br><span class="line">启动命令 uvicorn</span><br><span class="line">端口 9000</span><br><span class="line">健康检查 /health</span><br></pre></td></tr></table></figure>
+
+<p>这部分已经提交了一版基础改造：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fix: deploy asset provider as fc package</span><br></pre></td></tr></table></figure>
+
+<p>不过最后一轮 workflow 还没有完全跑通。当前还有一个待处理的小改动：把打包命令从系统 <code>zip</code> 改成 Python 自带 <code>zipfile</code>，减少 GitHub Actions 环境依赖。</p>
+<h2 id="五、今天学到的东西"><a href="#五、今天学到的东西" class="headerlink" title="五、今天学到的东西"></a>五、今天学到的东西</h2><p>今天最重要的是把三类部署方式区分清楚了：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">静态前端：Flutter Web -&gt; OSS</span><br><span class="line">服务端容器：Docker -&gt; ACR -&gt; FC custom-container</span><br><span class="line">服务端代码包：Python/FastAPI -&gt; zip -&gt; OSS -&gt; FC custom runtime</span><br></pre></td></tr></table></figure>
+
+<p><code>qtadmin</code>、<code>qtconsult studio</code>、<code>qtcloud-asset studio</code> 都属于第一类，所以 OSS 很合适。</p>
+<p><code>qtcloud-asset provider</code> 是服务端，不能简单当成静态站点上传 OSS。老板说 FaaS，所以应该用 FC。但 FC custom-container 又引入 ACR 镜像兼容问题。今天证明了新版个人版 <code>crpi</code> 域名目前在这个场景不顺，所以改走代码包部署更省钱、更现实。</p>
+<p>另一个经验是：遇到云产品集成问题时，要区分三类错误：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 代码错误：服务本身不能启动</span><br><span class="line">2. CI/CD 错误：构建、上传、登录失败</span><br><span class="line">3. 云产品约束：控制台和 API 都不接受某种资源组合</span><br></pre></td></tr></table></figure>
+
+<p>今天 <code>provider</code> 容器部署的问题最终属于第三类，不是简单改代码能解决的。</p>
+<h2 id="六、下次继续做什么"><a href="#六、下次继续做什么" class="headerlink" title="六、下次继续做什么"></a>六、下次继续做什么</h2><p>下次建议从这里继续：</p>
+<ol>
+<li>提交 provider workflow 的 <code>zipfile</code> 修正。</li>
+<li>推送后观察 <code>Deploy Provider Package</code> workflow。</li>
+<li>如果失败，查看 GitHub Actions 具体红色日志。</li>
+<li>workflow 成功上传 zip 到 OSS 后，运行 <code>terraform apply</code>。</li>
+<li>创建 FC custom runtime provider 函数。</li>
+<li>测试 <code>/health</code> 和 <code>/</code>。</li>
+<li>把最终 provider 公网地址写入 README 或部署文档。</li>
+</ol>
+<h2 id="当前状态"><a href="#当前状态" class="headerlink" title="当前状态"></a>当前状态</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">qtadmin：已部署</span><br><span class="line">qtconsult：已联调并发布 provider/v0.1.0、studio/v0.1.0、v0.1.0</span><br><span class="line">qtcloud-asset studio：OSS 流程已跑通</span><br><span class="line">qtcloud-asset provider：容器路线已确认受 ACR/FC 限制，正在切换为 FC 代码包部署</span><br></pre></td></tr></table></figure>
+
+<p>今天的结论是：前端部署流程已经比较稳定，服务端 FaaS 部署的关键不在代码，而在云产品的镜像和运行时约束。后续继续把 provider 的代码包部署跑通，就能避开 ACR 企业版成本，同时满足“服务端用 FaaS”的要求。</p>
+
+        </div>
+        <div class="article-collapsed-mask"></div>
+      </div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
+      
+    <footer class="article-footer">
+      <a data-url="https://raojiacui.github.io/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/" data-id="cmq1u8krx0009o03gdt5l0tlv" data-title="今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
 
     </footer>
   </div>
@@ -276,9 +859,10 @@
 
       </header>
     
-    <div class="e-content article-entry" itemprop="articleBody">
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <h1 id="Hexo-博客部署到-GitHub-Pages-流程教程"><a href="#Hexo-博客部署到-GitHub-Pages-流程教程" class="headerlink" title="Hexo 博客部署到 GitHub Pages 流程教程"></a>Hexo 博客部署到 GitHub Pages 流程教程</h1><p>这篇文档记录当前博客的标准部署流程。博客源仓库和发布仓库使用同一个 GitHub 仓库的不同分支：</p>
+        <div class="article-collapsed-preview">
+          <h1 id="Hexo-博客部署到-GitHub-Pages-流程教程"><a href="#Hexo-博客部署到-GitHub-Pages-流程教程" class="headerlink" title="Hexo 博客部署到 GitHub Pages 流程教程"></a>Hexo 博客部署到 GitHub Pages 流程教程</h1><p>这篇文档记录当前博客的标准部署流程。博客源仓库和发布仓库使用同一个 GitHub 仓库的不同分支：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">仓库：https://github.com/raojiacui/raojiacui.github.io</span><br><span class="line">源码分支：source</span><br><span class="line">发布分支：main</span><br><span class="line">本地路径：C:\Users\雨下雨停\hexo-blog</span><br><span class="line">线上地址：https://raojiacui.github.io/</span><br></pre></td></tr></table></figure>
 
 <h2 id="一、整体流程"><a href="#一、整体流程" class="headerlink" title="一、整体流程"></a>一、整体流程</h2><p>完整流程分成两件事：</p>
@@ -397,169 +981,19 @@
 </ol>
 <p>这样既能保证线上博客更新，也能保证文章源码可追溯。</p>
 
+        </div>
+        <div class="article-collapsed-mask"></div>
+      </div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
       
-    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/08/Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmoyj5q7k0000ek3g07o2gmus" data-title="Hexo博客部署到GitHub Pages流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/08/Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmq1u8ks0000fo03gbq1f2nqy" data-title="Hexo博客部署到GitHub Pages流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-今日总结-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-部署与发版" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/" class="article-date">
-  <time class="dt-published" datetime="2026-05-07T16:00:00.000Z" itemprop="datePublished">2026-05-08</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/">今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索"><a href="#今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索" class="headerlink" title="今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索"></a>今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索</h1><p>今天主要做了三条线的事情：</p>
-<ol>
-<li>部署 <code>qtadmin</code> 到阿里云 OSS。</li>
-<li>联调 <code>qtconsult</code> 前后端并发布三个版本。</li>
-<li>部署 <code>qtcloud-asset</code>，重点探索 <code>provider</code> 服务端上 FaaS。</li>
-</ol>
-<h2 id="一、QtAdmin-部署到阿里云"><a href="#一、QtAdmin-部署到阿里云" class="headerlink" title="一、QtAdmin 部署到阿里云"></a>一、QtAdmin 部署到阿里云</h2><p>一开始先克隆了 <code>qtadmin</code> 仓库，然后参考昨天 <code>qtconsult</code> 的 Terraform + GitHub Actions 流程，把 <code>qtadmin</code> 的 Studio 前端部署到阿里云 OSS。</p>
-<p>整体流程是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Flutter Web build -&gt; OSS bucket -&gt; DNS CNAME -&gt; GitHub Actions 自动部署</span><br></pre></td></tr></table></figure>
-
-<p>部署过程中遇到过 Flutter Web build 失败的问题。后面修复了构建相关配置，让 GitHub Actions 可以成功构建并上传到 OSS。最终 <code>qtadmin</code> 的 OSS 静态站点部署跑通，域名绑定也完成了。</p>
-<p>这部分学到的是：<code>qtadmin</code> 和 <code>qtconsult studio</code> 这类前端应用，只要本质是 Flutter Web 静态资源，就适合走 OSS。GitHub 仓库有变更后，只要 workflow 配好，push 到指定分支就会自动构建并同步到阿里云 OSS。</p>
-<h2 id="二、QtConsult-前后端联调与版本发布"><a href="#二、QtConsult-前后端联调与版本发布" class="headerlink" title="二、QtConsult 前后端联调与版本发布"></a>二、QtConsult 前后端联调与版本发布</h2><p>老板给的方向是：<code>qtconsult-provider -&gt; qtconsult-archive</code>，并且提到了 <code>docs/dev/storage.md</code> 里的归档机制。核心目标不是单纯发版，而是通过前后端联调理解系统架构，把 provider、studio 和整体应用串起来。</p>
-<p>今天在 <code>qtconsult</code> 里完成了这些事情：</p>
-<ol>
-<li>适配 provider 的 S3/OSS 风格存储配置。</li>
-<li>补 provider 测试。</li>
-<li>让 studio 通过 <code>ProviderService</code> 访问 provider。</li>
-<li>修复 Web 端缓存兼容问题。</li>
-<li>增加 fixture fallback，保证前端在 provider 不可用时也能有可展示数据。</li>
-<li>修复 OSS2 相关 Studio 部署问题。</li>
-</ol>
-<p>之后发布了三个版本：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">provider/v0.1.0</span><br><span class="line">studio/v0.1.0</span><br><span class="line">v0.1.0</span><br></pre></td></tr></table></figure>
-
-<p>对应 GitHub Releases 也创建好了，release notes 后来改成了中文说明。</p>
-<p>这部分最重要的收获是：<code>qtconsult</code> 不是一个孤立前端，也不是一个孤立 provider，而是要把应用层产品和领域层能力接起来。老板提到的看板方法，其实是在推动几个产品在工作流定义上统一：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">量潮咨询</span><br><span class="line">量潮数据</span><br><span class="line">量潮项目云</span><br></pre></td></tr></table></figure>
-
-<p>比如咨询可以被定义为：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">调研 -&gt; 分析 -&gt; 决策 -&gt; 执行</span><br></pre></td></tr></table></figure>
-
-<p>而数据、项目也有类似的 workflow 定义。GitHub Projects 比较贴合老板的工作习惯，但在复杂项目结构组织上不好用，所以后续产品要吸收它的优点，同时解决它的不足。</p>
-<h2 id="三、GitHub-Token-与权限问题"><a href="#三、GitHub-Token-与权限问题" class="headerlink" title="三、GitHub Token 与权限问题"></a>三、GitHub Token 与权限问题</h2><p>中间遇到了 GitHub 登录失败的问题。一开始怀疑是网络问题，后来改用 token。token 用完后，我也意识到：一旦把 GitHub PAT 贴到对话里，就应该立刻删除或 revoke。</p>
-<p>后续更好的做法是：</p>
-<ol>
-<li>尽量用 <code>gh auth login</code> 在本机授权。</li>
-<li>或者用 GitHub Secrets。</li>
-<li>不要在聊天窗口直接长期暴露 PAT。</li>
-</ol>
-<h2 id="四、QtCloud-Asset-部署"><a href="#四、QtCloud-Asset-部署" class="headerlink" title="四、QtCloud Asset 部署"></a>四、QtCloud Asset 部署</h2><p>老板说服务端用 FaaS 部署，所以先判断了 <code>qtcloud-asset</code> 的结构：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src/studio   -&gt; 前端静态站点，部署到 OSS</span><br><span class="line">src/provider -&gt; 服务端 API，部署到 Function Compute</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-Studio-部署到-OSS"><a href="#1-Studio-部署到-OSS" class="headerlink" title="1. Studio 部署到 OSS"></a>1. Studio 部署到 OSS</h3><p><code>studio</code> 先沿用 OSS 流程。创建和使用的资源包括：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bucket: qtcloud-asset-studio</span><br><span class="line">domain: asset.quanttide.com</span><br></pre></td></tr></table></figure>
-
-<p>这里遇到了 OSS 官方 CLI 下载问题。前几次下载到的不是正确二进制，而是 XML 错误页或错误格式文件，导致 GitHub Actions 报错：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">syntax error near unexpected token `newline&#x27;</span><br><span class="line">gzip: stdin: not in gzip format</span><br></pre></td></tr></table></figure>
-
-<p>后来改成阿里云官方 <code>ossutil v2</code> 的正确 zip 包地址：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://gosspublic.alicdn.com/ossutil/v2/2.2.1/ossutil-2.2.1-linux-amd64.zip</span><br></pre></td></tr></table></figure>
-
-<p>并用官方 CLI 上传，最终 Studio 部署流程跑通。</p>
-<h3 id="2-Provider-容器路线探索"><a href="#2-Provider-容器路线探索" class="headerlink" title="2. Provider 容器路线探索"></a>2. Provider 容器路线探索</h3><p>接着处理 <code>provider</code>。先补了一个最小 FastAPI 服务：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GET /</span><br><span class="line">GET /health</span><br></pre></td></tr></table></figure>
-
-<p>并写了 Dockerfile，准备走：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Docker image -&gt; ACR -&gt; FC custom-container</span><br></pre></td></tr></table></figure>
-
-<p>最开始镜像推到了个人版 ACR：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crpi-uorshhk4a32pmmio.cn-hangzhou.personal.cr.aliyuncs.com/quanttide/qtcloud-asset-provider</span><br></pre></td></tr></table></figure>
-
-<p>GitHub Actions 能推送成功，但 Terraform 创建 FC 函数失败：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Image not stored in ACR is not supported yet</span><br><span class="line">Image and function must be in the same region</span><br></pre></td></tr></table></figure>
-
-<p>之后尝试过：</p>
-<ol>
-<li>FC v2。</li>
-<li>FC v3。</li>
-<li>关闭镜像加速。</li>
-<li>配置 <code>acr_instance_id</code>。</li>
-<li>改用 <code>registry.cn-hangzhou.aliyuncs.com</code>。</li>
-<li>手动在 FC 控制台创建函数。</li>
-</ol>
-<p>最后确认：FC 控制台也不接受这个 <code>crpi</code> 镜像地址，报 <code>InvalidImageFormat</code>。所以问题不是 Terraform 写错，而是 FC 当前不认这个新版个人版 ACR 域名。</p>
-<p>标准 ACR 地址理论上更适合 FC：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">registry.cn-hangzhou.aliyuncs.com/quanttide/qtcloud-asset-provider</span><br></pre></td></tr></table></figure>
-
-<p>但 GitHub Actions 登录时报：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">403 Forbidden</span><br></pre></td></tr></table></figure>
-
-<p>说明当前 registry 账号密码不能登录这个标准地址。企业版 ACR 可以解决，但会产生费用，所以今天没有继续走企业版路线。</p>
-<h3 id="3-改为-FC-代码包部署"><a href="#3-改为-FC-代码包部署" class="headerlink" title="3. 改为 FC 代码包部署"></a>3. 改为 FC 代码包部署</h3><p>最后把方案调整为：不用容器镜像，改用 FC 代码包部署。这仍然是 FaaS，但绕开 ACR：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">GitHub Actions 在 Ubuntu 上安装 provider 依赖</span><br><span class="line">打包 FastAPI 代码为 zip</span><br><span class="line">上传 zip 到 OSS</span><br><span class="line">Terraform 用 custom.debian12 创建 FC 函数</span><br><span class="line">启动命令 uvicorn</span><br><span class="line">端口 9000</span><br><span class="line">健康检查 /health</span><br></pre></td></tr></table></figure>
-
-<p>这部分已经提交了一版基础改造：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fix: deploy asset provider as fc package</span><br></pre></td></tr></table></figure>
-
-<p>不过最后一轮 workflow 还没有完全跑通。当前还有一个待处理的小改动：把打包命令从系统 <code>zip</code> 改成 Python 自带 <code>zipfile</code>，减少 GitHub Actions 环境依赖。</p>
-<h2 id="五、今天学到的东西"><a href="#五、今天学到的东西" class="headerlink" title="五、今天学到的东西"></a>五、今天学到的东西</h2><p>今天最重要的是把三类部署方式区分清楚了：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">静态前端：Flutter Web -&gt; OSS</span><br><span class="line">服务端容器：Docker -&gt; ACR -&gt; FC custom-container</span><br><span class="line">服务端代码包：Python/FastAPI -&gt; zip -&gt; OSS -&gt; FC custom runtime</span><br></pre></td></tr></table></figure>
-
-<p><code>qtadmin</code>、<code>qtconsult studio</code>、<code>qtcloud-asset studio</code> 都属于第一类，所以 OSS 很合适。</p>
-<p><code>qtcloud-asset provider</code> 是服务端，不能简单当成静态站点上传 OSS。老板说 FaaS，所以应该用 FC。但 FC custom-container 又引入 ACR 镜像兼容问题。今天证明了新版个人版 <code>crpi</code> 域名目前在这个场景不顺，所以改走代码包部署更省钱、更现实。</p>
-<p>另一个经验是：遇到云产品集成问题时，要区分三类错误：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 代码错误：服务本身不能启动</span><br><span class="line">2. CI/CD 错误：构建、上传、登录失败</span><br><span class="line">3. 云产品约束：控制台和 API 都不接受某种资源组合</span><br></pre></td></tr></table></figure>
-
-<p>今天 <code>provider</code> 容器部署的问题最终属于第三类，不是简单改代码能解决的。</p>
-<h2 id="六、下次继续做什么"><a href="#六、下次继续做什么" class="headerlink" title="六、下次继续做什么"></a>六、下次继续做什么</h2><p>下次建议从这里继续：</p>
-<ol>
-<li>提交 provider workflow 的 <code>zipfile</code> 修正。</li>
-<li>推送后观察 <code>Deploy Provider Package</code> workflow。</li>
-<li>如果失败，查看 GitHub Actions 具体红色日志。</li>
-<li>workflow 成功上传 zip 到 OSS 后，运行 <code>terraform apply</code>。</li>
-<li>创建 FC custom runtime provider 函数。</li>
-<li>测试 <code>/health</code> 和 <code>/</code>。</li>
-<li>把最终 provider 公网地址写入 README 或部署文档。</li>
-</ol>
-<h2 id="当前状态"><a href="#当前状态" class="headerlink" title="当前状态"></a>当前状态</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">qtadmin：已部署</span><br><span class="line">qtconsult：已联调并发布 provider/v0.1.0、studio/v0.1.0、v0.1.0</span><br><span class="line">qtcloud-asset studio：OSS 流程已跑通</span><br><span class="line">qtcloud-asset provider：容器路线已确认受 ACR/FC 限制，正在切换为 FC 代码包部署</span><br></pre></td></tr></table></figure>
-
-<p>今天的结论是：前端部署流程已经比较稳定，服务端 FaaS 部署的关键不在代码，而在云产品的镜像和运行时约束。后续继续把 provider 的代码包部署跑通，就能避开 ACR 企业版成本，同时满足“服务端用 FaaS”的要求。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/" data-id="cmoyj5q84001hek3gdy58hdav" data-title="今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版" class="article-share-link"><span class="fa fa-share">分享</span></a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
 
     </footer>
   </div>
@@ -593,9 +1027,10 @@
 
       </header>
     
-    <div class="e-content article-entry" itemprop="articleBody">
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <h1 id="QtConsult-部署到阿里云-OSS-全流程"><a href="#QtConsult-部署到阿里云-OSS-全流程" class="headerlink" title="QtConsult 部署到阿里云 OSS 全流程"></a>QtConsult 部署到阿里云 OSS 全流程</h1><blockquote>
+        <div class="article-collapsed-preview">
+          <h1 id="QtConsult-部署到阿里云-OSS-全流程"><a href="#QtConsult-部署到阿里云-OSS-全流程" class="headerlink" title="QtConsult 部署到阿里云 OSS 全流程"></a>QtConsult 部署到阿里云 OSS 全流程</h1><blockquote>
 <p>日期：2026-05-07<br>访问地址：<a target="_blank" rel="noopener" href="https://consult.quanttide.com/">https://consult.quanttide.com</a></p>
 </blockquote>
 <hr>
@@ -768,10 +1203,15 @@
 </tr>
 </tbody></table>
 
+        </div>
+        <div class="article-collapsed-mask"></div>
+      </div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
       
-    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/07/QtConsult%E9%83%A8%E7%BD%B2%E5%88%B0%E9%98%BF%E9%87%8C%E4%BA%91OSS%E5%85%A8%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmoyj5q7n0001ek3ggdo682km" data-title="QtConsult部署到阿里云OSS全流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/07/QtConsult%E9%83%A8%E7%BD%B2%E5%88%B0%E9%98%BF%E9%87%8C%E4%BA%91OSS%E5%85%A8%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmq1u8krp0000o03gd7644rbt" data-title="QtConsult部署到阿里云OSS全流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -809,9 +1249,10 @@
 
       </header>
     
-    <div class="e-content article-entry" itemprop="articleBody">
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <h1 id="今日总结：2026-05-05"><a href="#今日总结：2026-05-05" class="headerlink" title="今日总结：2026-05-05"></a>今日总结：2026-05-05</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-博客部署问题修复"><a href="#1-博客部署问题修复" class="headerlink" title="1. 博客部署问题修复"></a>1. 博客部署问题修复</h3><p><strong>问题诊断：</strong></p>
+        <div class="article-collapsed-preview">
+          <h1 id="今日总结：2026-05-05"><a href="#今日总结：2026-05-05" class="headerlink" title="今日总结：2026-05-05"></a>今日总结：2026-05-05</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-博客部署问题修复"><a href="#1-博客部署问题修复" class="headerlink" title="1. 博客部署问题修复"></a>1. 博客部署问题修复</h3><p><strong>问题诊断：</strong></p>
 <ol>
 <li><code>package.json</code> 缺少 <code>hexo</code> 字段，导致 hexo-cli 无法正确识别项目</li>
 <li><code>_config.yml</code> 中 <code>message: Site updated: YYYY-MM-DD HH:mm:ss</code> 缺少引号，YAML 解析失败</li>
@@ -838,10 +1279,15 @@
 <li>博客地址：<a href="https://raojiacui.github.io/">https://raojiacui.github.io</a></li>
 </ul>
 
+        </div>
+        <div class="article-collapsed-mask"></div>
+      </div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
       
-    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/05/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-05-%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E4%BF%AE%E5%A4%8D/" data-id="cmoyj5q7u000nek3gazy08s1l" data-title="今日总结-2026-05-05-博客部署问题修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/05/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-05-%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E4%BF%AE%E5%A4%8D/" data-id="cmq1u8krv0004o03g469i2zq9" data-title="今日总结-2026-05-05-博客部署问题修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -879,9 +1325,10 @@
 
       </header>
     
-    <div class="e-content article-entry" itemprop="articleBody">
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <h1 id="今日总结：2026-05-04"><a href="#今日总结：2026-05-04" class="headerlink" title="今日总结：2026-05-04"></a>今日总结：2026-05-04</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-TalentsAI-进阶规划题目设计"><a href="#1-TalentsAI-进阶规划题目设计" class="headerlink" title="1. TalentsAI 进阶规划题目设计"></a>1. TalentsAI 进阶规划题目设计</h3><p>完成了”思政课课程小组作业分工”场景的题目设计，主题是”AI赋能大模型时代的挑战与机遇”。</p>
+        <div class="article-collapsed-preview">
+          <h1 id="今日总结：2026-05-04"><a href="#今日总结：2026-05-04" class="headerlink" title="今日总结：2026-05-04"></a>今日总结：2026-05-04</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-TalentsAI-进阶规划题目设计"><a href="#1-TalentsAI-进阶规划题目设计" class="headerlink" title="1. TalentsAI 进阶规划题目设计"></a>1. TalentsAI 进阶规划题目设计</h3><p>完成了”思政课课程小组作业分工”场景的题目设计，主题是”AI赋能大模型时代的挑战与机遇”。</p>
 <p><strong>场景设计：</strong></p>
 <ul>
 <li>5人小组：组长小月、晓星星、李芳、浩然、子琪</li>
@@ -924,10 +1371,15 @@
 <li>本地路径：<code>C:\Users\雨下雨停\hexo-blog</code></li>
 </ul>
 
+        </div>
+        <div class="article-collapsed-mask"></div>
+      </div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
       
-    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/04/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-04-%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92%E9%A2%98%E7%9B%AE%E8%AE%BE%E8%AE%A1-%E5%8D%9A%E5%AE%A2AccessKey%E4%BF%AE%E5%A4%8D/" data-id="cmoyj5q7t000mek3g2nzz54zz" data-title="今日总结-2026-05-04-进阶规划题目设计-博客AccessKey修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/04/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-04-%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92%E9%A2%98%E7%9B%AE%E8%AE%BE%E8%AE%A1-%E5%8D%9A%E5%AE%A2AccessKey%E4%BF%AE%E5%A4%8D/" data-id="cmq1u8krv0005o03gcy9ndtmr" data-title="今日总结-2026-05-04-进阶规划题目设计-博客AccessKey修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -965,9 +1417,10 @@
 
       </header>
     
-    <div class="e-content article-entry" itemprop="articleBody">
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       
-        <h1 id="今日总结：议事档案标本契约-v0-0-3-与术语统一"><a href="#今日总结：议事档案标本契约-v0-0-3-与术语统一" class="headerlink" title="今日总结：议事档案标本契约 v0.0.3 与术语统一"></a>今日总结：议事档案标本契约 v0.0.3 与术语统一</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-标本契约-v0-0-3"><a href="#1-标本契约-v0-0-3" class="headerlink" title="1. 标本契约 v0.0.3"></a>1. 标本契约 v0.0.3</h3><ul>
+        <div class="article-collapsed-preview">
+          <h1 id="今日总结：议事档案标本契约-v0-0-3-与术语统一"><a href="#今日总结：议事档案标本契约-v0-0-3-与术语统一" class="headerlink" title="今日总结：议事档案标本契约 v0.0.3 与术语统一"></a>今日总结：议事档案标本契约 v0.0.3 与术语统一</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-标本契约-v0-0-3"><a href="#1-标本契约-v0-0-3" class="headerlink" title="1. 标本契约 v0.0.3"></a>1. 标本契约 v0.0.3</h3><ul>
 <li>议事档案标本契约已提交到仓库</li>
 <li>commit: <code>443ed05</code></li>
 <li>路径: <code>examples/feishu-wiki/contracts/议事档案-specimen.yaml</code></li>
@@ -1047,10 +1500,15 @@
 <hr>
 <p><em>由 qtcloud-developer-architect skill 生成</em></p>
 
+        </div>
+        <div class="article-collapsed-mask"></div>
+      </div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
       
-    </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/04/23/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-04-23-%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6v0.0.3-%E6%9C%AF%E8%AF%AD%E7%BB%9F%E4%B8%80/" data-id="cmoyj5q7v000qek3ghf078wfe" data-title="今日总结-2026-04-23-议事档案标本契约v0.0.3-术语统一" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/04/23/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-04-23-%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6v0.0.3-%E6%9C%AF%E8%AF%AD%E7%BB%9F%E4%B8%80/" data-id="cmq1u8krs0001o03ghzg0gkfl" data-title="今日总结-2026-04-23-议事档案标本契约v0.0.3-术语统一" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -1074,7 +1532,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">分类</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95/">开发记录</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">部署教程</a></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95/">开发记录</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">部署教程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%A1%B9%E7%9B%AE%E8%AE%B0%E5%BD%95/">项目记录</a></li></ul>
     </div>
   </div>
 
@@ -1084,7 +1542,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TalentsAI/" rel="tag">TalentsAI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" rel="tag">进阶规划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AudD-API/" rel="tag">AudD API</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MediaPipe/" rel="tag">MediaPipe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/React/" rel="tag">React</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TalentsAI/" rel="tag">TalentsAI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%89%8B%E5%8A%BF%E6%8E%A7%E5%88%B6/" rel="tag">手势控制</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%96%E9%9F%B3/" rel="tag">抖音</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%96%E9%9F%B3AI%E5%88%9B%E5%8F%98%E8%80%85%E5%A4%A7%E8%B5%9B/" rel="tag">抖音AI创变者大赛</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A1%8C%E5%AE%A0/" rel="tag">桌宠</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%86%E8%A7%89%E6%90%9C%E7%B4%A2/" rel="tag">视觉搜索</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" rel="tag">进阶规划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
     </div>
   </div>
 
@@ -1094,7 +1552,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签云</h3>
     <div class="widget tagcloud">
-      <a href="/tags/Function-Compute/" style="font-size: 13.33px;">Function Compute</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/GitHub-Actions/" style="font-size: 16.67px;">GitHub Actions</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/Hexo/" style="font-size: 13.33px;">Hexo</a> <a href="/tags/OSS/" style="font-size: 13.33px;">OSS</a> <a href="/tags/QtAdmin/" style="font-size: 10px;">QtAdmin</a> <a href="/tags/QtCloud/" style="font-size: 10px;">QtCloud</a> <a href="/tags/QtCloud-Asset/" style="font-size: 13.33px;">QtCloud Asset</a> <a href="/tags/QtConsult/" style="font-size: 13.33px;">QtConsult</a> <a href="/tags/TalentsAI/" style="font-size: 10px;">TalentsAI</a> <a href="/tags/workflow/" style="font-size: 10px;">workflow</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 13.33px;">博客</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 20px;">工作总结</a> <a href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" style="font-size: 10px;">数字资产</a> <a href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" style="font-size: 10px;">标本契约</a> <a href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" style="font-size: 10px;">议事档案</a> <a href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" style="font-size: 10px;">进阶规划</a> <a href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" style="font-size: 10px;">部署教程</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 16.67px;">阿里云</a>
+      <a href="/tags/AudD-API/" style="font-size: 10px;">AudD API</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Function-Compute/" style="font-size: 15px;">Function Compute</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/GitHub-Actions/" style="font-size: 17.5px;">GitHub Actions</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/Hexo/" style="font-size: 12.5px;">Hexo</a> <a href="/tags/Kubernetes/" style="font-size: 10px;">Kubernetes</a> <a href="/tags/MediaPipe/" style="font-size: 10px;">MediaPipe</a> <a href="/tags/OSS/" style="font-size: 12.5px;">OSS</a> <a href="/tags/QtAdmin/" style="font-size: 10px;">QtAdmin</a> <a href="/tags/QtCloud/" style="font-size: 10px;">QtCloud</a> <a href="/tags/QtCloud-Asset/" style="font-size: 15px;">QtCloud Asset</a> <a href="/tags/QtConsult/" style="font-size: 12.5px;">QtConsult</a> <a href="/tags/React/" style="font-size: 12.5px;">React</a> <a href="/tags/TalentsAI/" style="font-size: 10px;">TalentsAI</a> <a href="/tags/workflow/" style="font-size: 10px;">workflow</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 12.5px;">博客</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 20px;">工作总结</a> <a href="/tags/%E6%89%8B%E5%8A%BF%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">手势控制</a> <a href="/tags/%E6%8A%96%E9%9F%B3/" style="font-size: 10px;">抖音</a> <a href="/tags/%E6%8A%96%E9%9F%B3AI%E5%88%9B%E5%8F%98%E8%80%85%E5%A4%A7%E8%B5%9B/" style="font-size: 10px;">抖音AI创变者大赛</a> <a href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" style="font-size: 10px;">数字资产</a> <a href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" style="font-size: 10px;">标本契约</a> <a href="/tags/%E6%A1%8C%E5%AE%A0/" style="font-size: 10px;">桌宠</a> <a href="/tags/%E8%A7%86%E8%A7%89%E6%90%9C%E7%B4%A2/" style="font-size: 10px;">视觉搜索</a> <a href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" style="font-size: 10px;">议事档案</a> <a href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" style="font-size: 10px;">进阶规划</a> <a href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" style="font-size: 10px;">部署教程</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 17.5px;">阿里云</a>
     </div>
   </div>
 
@@ -1116,23 +1574,23 @@
       <ul>
         
           <li>
+            <a href="/2026/05/21/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-21-%E6%8A%96%E9%9F%B3%E6%A1%8C%E5%AE%A0%E9%A1%B9%E7%9B%AE-%E6%89%8B%E5%8A%BF%E6%8E%A7%E5%88%B6%E4%B8%8E%E5%83%8F%E7%B4%A0%E7%8C%AB%E9%87%8D%E6%9E%84/">今日总结-2026-05-21-抖音桌宠项目-手势控制与像素猫重构</a>
+          </li>
+        
+          <li>
+            <a href="/2026/05/20/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-20-%E5%90%AC%E8%A7%81%E5%85%A5%E5%A2%83-%E6%8A%96%E9%9F%B3AI%E5%88%9B%E5%8F%98%E8%80%85%E5%A4%A7%E8%B5%9B%E5%8F%82%E8%B5%9B%E8%AE%B0%E5%BD%95/">今日总结-2026-05-20-听见入境-抖音AI创变者大赛参赛记录</a>
+          </li>
+        
+          <li>
+            <a href="/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/">今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案</a>
+          </li>
+        
+          <li>
             <a href="/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/">今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通</a>
           </li>
         
           <li>
-            <a href="/2026/05/08/Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/">Hexo博客部署到GitHub Pages流程教程</a>
-          </li>
-        
-          <li>
             <a href="/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/">今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版</a>
-          </li>
-        
-          <li>
-            <a href="/2026/05/07/QtConsult%E9%83%A8%E7%BD%B2%E5%88%B0%E9%98%BF%E9%87%8C%E4%BA%91OSS%E5%85%A8%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/">QtConsult部署到阿里云OSS全流程教程</a>
-          </li>
-        
-          <li>
-            <a href="/2026/05/05/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-05-%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E4%BF%AE%E5%A4%8D/">今日总结-2026-05-05-博客部署问题修复</a>
           </li>
         
       </ul>
@@ -1181,6 +1639,13 @@
 
 
 
+
+<script>
+function toggleArticle(btn) {
+  var entry = btn.previousElementSibling;
+  entry.classList.add('expanded');
+}
+</script>
   </div>
 </body>
 </html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案 | 我的技术博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="今日总结：QtCloud Asset 域名绑定与 K8s 备选方案今天继续处理 qtcloud-asset 的正式域名问题。原目标很明确： 12345前端 Studio:https:&#x2F;&#x2F;asset.quanttide.com后端 Provider:https:&#x2F;&#x2F;api.asset.quanttide.com  上次已经把前后端链路跑通，但后端还临时使用 FC 默认域名： 1https:&#x2F;&#x2F;pro">
+<meta property="og:type" content="article">
+<meta property="og:title" content="今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案">
+<meta property="og:url" content="https://raojiacui.github.io/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/index.html">
+<meta property="og:site_name" content="我的技术博客">
+<meta property="og:description" content="今日总结：QtCloud Asset 域名绑定与 K8s 备选方案今天继续处理 qtcloud-asset 的正式域名问题。原目标很明确： 12345前端 Studio:https:&#x2F;&#x2F;asset.quanttide.com后端 Provider:https:&#x2F;&#x2F;api.asset.quanttide.com  上次已经把前后端链路跑通，但后端还临时使用 FC 默认域名： 1https:&#x2F;&#x2F;pro">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-11T14:38:42.916Z">
+<meta property="article:author" content="雨下雨停">
+<meta property="article:tag" content="阿里云">
+<meta property="article:tag" content="GitHub Actions">
+<meta property="article:tag" content="工作总结">
+<meta property="article:tag" content="Function Compute">
+<meta property="article:tag" content="QtCloud Asset">
+<meta property="article:tag" content="Kubernetes">
+<meta property="article:tag" content="Docker">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="我的技术博客" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">我的技术博客</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS 订阅"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="搜索"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://raojiacui.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-今日总结-2026-05-11-QtCloud-Asset-域名绑定与K8s备选方案" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/" class="article-date">
+  <time class="dt-published" datetime="2026-05-10T16:00:00.000Z" itemprop="datePublished">2026-05-11</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="今日总结：QtCloud-Asset-域名绑定与-K8s-备选方案"><a href="#今日总结：QtCloud-Asset-域名绑定与-K8s-备选方案" class="headerlink" title="今日总结：QtCloud Asset 域名绑定与 K8s 备选方案"></a>今日总结：QtCloud Asset 域名绑定与 K8s 备选方案</h1><p>今天继续处理 <code>qtcloud-asset</code> 的正式域名问题。原目标很明确：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">前端 Studio:</span><br><span class="line">https://asset.quanttide.com</span><br><span class="line"></span><br><span class="line">后端 Provider:</span><br><span class="line">https://api.asset.quanttide.com</span><br></pre></td></tr></table></figure>
+
+<p>上次已经把前后端链路跑通，但后端还临时使用 FC 默认域名：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://provide-package-tuzknrkwac.cn-hangzhou.fcapp.run</span><br></pre></td></tr></table></figure>
+
+<p>今天主要围绕 <code>api.asset.quanttide.com</code> 的正式绑定继续推进。</p>
+<h2 id="一、确认当前可用状态"><a href="#一、确认当前可用状态" class="headerlink" title="一、确认当前可用状态"></a>一、确认当前可用状态</h2><p>先复盘了 5 月 9 日的总结和当前部署状态。结论是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Provider package workflow: success</span><br><span class="line">Studio workflow: success</span><br><span class="line">http://asset.quanttide.com: 可访问</span><br><span class="line">https://asset.quanttide.com: 证书信任仍有问题</span><br><span class="line">api.asset.quanttide.com: 还没有正式可用</span><br></pre></td></tr></table></figure>
+
+<p>GitHub Actions 上最新几次部署也都能跑通，说明 CI、打包、OSS 上传这条链路本身没有断。</p>
+<h2 id="二、继续尝试-FC-自定义域名"><a href="#二、继续尝试-FC-自定义域名" class="headerlink" title="二、继续尝试 FC 自定义域名"></a>二、继续尝试 FC 自定义域名</h2><p>今天最开始仍然尝试把后端绑定到 Function Compute 自定义域名：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api.asset.quanttide.com</span><br></pre></td></tr></table></figure>
+
+<p>Terraform 里之前已经做过可选开关：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">enable_provider_custom_domain = false</span><br></pre></td></tr></table></figure>
+
+<p>如果后续备案归属校验通过，把它改成 <code>true</code> 就可以创建 FC 自定义域名和 DNS CNAME。</p>
+<p>今天进一步确认了 FC v3 的自定义域名资源支持 HTTPS 证书配置，也就是说技术上可以做到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api.asset.quanttide.com -&gt; FC provider-package</span><br></pre></td></tr></table></figure>
+
+<p>并支持证书。</p>
+<p>但实际在阿里云控制台操作时，仍然卡在备案接入校验：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未接入阿里云</span><br></pre></td></tr></table></figure>
+
+<p>这里关键点是：RAM 子账号权限和备案接入归属不是一回事。即使 RAM 子账号有 FC、DNS、证书权限，FC 创建自定义域名时仍会校验：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">当前 FC 所属主账号是否拥有 / 接入了 quanttide.com 的备案</span><br></pre></td></tr></table></figure>
+
+<p>所以今天最终判断：这个问题不是代码问题，也不是 GitHub Actions 问题，而是域名备案接入和当前阿里云主账号归属的校验问题。</p>
+<h2 id="三、申请-SSL-证书的流程也梳理了一遍"><a href="#三、申请-SSL-证书的流程也梳理了一遍" class="headerlink" title="三、申请 SSL 证书的流程也梳理了一遍"></a>三、申请 SSL 证书的流程也梳理了一遍</h2><p>今天还梳理了阿里云免费 SSL 证书的申请路径。</p>
+<p>免费证书现在在阿里云里通常叫：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">个人测试证书（免费版）</span><br></pre></td></tr></table></figure>
+
+<p>申请时应该选择：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CSR 生成方式: 系统生成</span><br><span class="line">域名验证方式: 自动 DNS 验证</span><br><span class="line">资源组: 默认资源组或项目资源组</span><br></pre></td></tr></table></figure>
+
+<p>这里也确认了一个点：证书申请和 FC 自定义域名绑定是两件事。证书可以申请，但 FC 绑定 <code>api.asset.quanttide.com</code> 仍然会单独做 ICP 接入校验。</p>
+<h2 id="四、切换思路：评估-K8s-方案"><a href="#四、切换思路：评估-K8s-方案" class="headerlink" title="四、切换思路：评估 K8s 方案"></a>四、切换思路：评估 K8s 方案</h2><p>因为 FC 自定义域名被备案接入挡住，今天临时改为评估 Kubernetes 方案：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api.asset.quanttide.com -&gt; Ingress -&gt; provider 容器</span><br></pre></td></tr></table></figure>
+
+<p>为此在仓库里新增了 Docker 和 K8s 部署配置。</p>
+<p>主要提交包括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">256f8de enable provider deployment on kubernetes</span><br><span class="line">da0f0fd deploy provider image to kubernetes</span><br><span class="line">b07db03 harden kubernetes deploy kubeconfig handling</span><br><span class="line">a68ccda run kubernetes deploy on manifest changes</span><br></pre></td></tr></table></figure>
+
+<p>新增或调整的关键文件：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.github/workflows/deploy-provider-image.yml</span><br><span class="line">.github/workflows/deploy-provider-k8s.yml</span><br><span class="line">manifests/docker/Dockerfile.provider</span><br><span class="line">manifests/docker/.dockerignore</span><br><span class="line">manifests/k8s/namespace.yaml</span><br><span class="line">manifests/k8s/provider.yaml</span><br><span class="line">manifests/k8s/README.md</span><br><span class="line">src/provider/app/main.py</span><br><span class="line">src/studio/lib/main.dart</span><br></pre></td></tr></table></figure>
+
+<h2 id="五、Docker-镜像构建已经打通"><a href="#五、Docker-镜像构建已经打通" class="headerlink" title="五、Docker 镜像构建已经打通"></a>五、Docker 镜像构建已经打通</h2><p>原来的 <code>Dockerfile.provider</code> 使用 <code>uv</code> 镜像，并且 <code>.dockerignore</code> 把整个 <code>src/provider/</code> 排除了，会导致构建上下文不完整。</p>
+<p>今天改成了更直接的 Python 镜像：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> python:<span class="number">3.12</span>-slim</span><br></pre></td></tr></table></figure>
+
+<p>并使用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">src/provider/requirements.txt</span><br></pre></td></tr></table></figure>
+
+<p>安装依赖。</p>
+<p>新增的 GitHub Actions workflow 会把镜像推送到阿里云个人版 ACR：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crpi-uorshhk4a32pmmio.cn-hangzhou.personal.cr.aliyuncs.com/quanttide/qtcloud-asset-provider:latest</span><br></pre></td></tr></table></figure>
+
+<p>今天验证结果：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Deploy Provider Image: success</span><br></pre></td></tr></table></figure>
+
+<p>说明镜像构建和推送已经打通。</p>
+<h2 id="六、K8s-部署-workflow-已经写好，但缺集群"><a href="#六、K8s-部署-workflow-已经写好，但缺集群" class="headerlink" title="六、K8s 部署 workflow 已经写好，但缺集群"></a>六、K8s 部署 workflow 已经写好，但缺集群</h2><p>今天还新增了 K8s 部署 workflow：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Deploy Provider to Kubernetes</span><br></pre></td></tr></table></figure>
+
+<p>它会做这些事：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1. 读取 KUBE_CONFIG</span><br><span class="line">2. 创建 namespace: qtcloud-asset</span><br><span class="line">3. 创建 ACR pull secret</span><br><span class="line">4. 创建 TLS secret</span><br><span class="line">5. apply manifests/k8s/provider.yaml</span><br><span class="line">6. 等待 Deployment rollout</span><br></pre></td></tr></table></figure>
+
+<p>K8s 清单包括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Namespace</span><br><span class="line">Deployment</span><br><span class="line">Service</span><br><span class="line">Ingress</span><br></pre></td></tr></table></figure>
+
+<p>Ingress 目标域名是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api.asset.quanttide.com</span><br></pre></td></tr></table></figure>
+
+<p>但实际部署失败，因为当前还没有可用的 ACK kubeconfig。GitHub Actions 里报过：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl fallback 到 localhost:8080</span><br></pre></td></tr></table></figure>
+
+<p>后来 workflow 已经增强为显式检查 <code>KUBE_CONFIG</code>，也支持原始 kubeconfig 或 base64 kubeconfig。</p>
+<p>不过最后讨论下来，ACK/K8s 本身会产生费用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ACK 集群</span><br><span class="line">Worker 节点</span><br><span class="line">Ingress/SLB</span><br><span class="line">公网流量</span><br></pre></td></tr></table></figure>
+
+<p>对于当前只有一个 FastAPI provider 的场景，K8s 有点重。</p>
+<h2 id="七、成本和方案判断"><a href="#七、成本和方案判断" class="headerlink" title="七、成本和方案判断"></a>七、成本和方案判断</h2><p>今天最后重新比较了几种方案。</p>
+<h3 id="方案-1：继续用-FC-默认域名"><a href="#方案-1：继续用-FC-默认域名" class="headerlink" title="方案 1：继续用 FC 默认域名"></a>方案 1：继续用 FC 默认域名</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://provide-package-tuzknrkwac.cn-hangzhou.fcapp.run</span><br></pre></td></tr></table></figure>
+
+<p>优点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">成本最低</span><br><span class="line">当前已经跑通</span><br><span class="line">不需要额外服务器或集群</span><br></pre></td></tr></table></figure>
+
+<p>缺点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">不是正式 API 域名</span><br></pre></td></tr></table></figure>
+
+<h3 id="方案-2：解决-FC-备案接入问题"><a href="#方案-2：解决-FC-备案接入问题" class="headerlink" title="方案 2：解决 FC 备案接入问题"></a>方案 2：解决 FC 备案接入问题</h3><p>最终目标：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://api.asset.quanttide.com -&gt; FC provider-package</span><br></pre></td></tr></table></figure>
+
+<p>优点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">最符合当前 FaaS 架构</span><br><span class="line">不需要维护服务器</span><br><span class="line">成本比 ECS / ACK 低</span><br></pre></td></tr></table></figure>
+
+<p>缺点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">需要确认 quanttide.com 的备案接入是否在当前 FC 所属主账号下</span><br></pre></td></tr></table></figure>
+
+<h3 id="方案-3：ECS-轻量应用服务器-Docker-Nginx"><a href="#方案-3：ECS-轻量应用服务器-Docker-Nginx" class="headerlink" title="方案 3：ECS / 轻量应用服务器 + Docker + Nginx"></a>方案 3：ECS / 轻量应用服务器 + Docker + Nginx</h3><p>优点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">比 ACK 简单</span><br><span class="line">比 K8s 便宜</span><br><span class="line">可以绑定 api.asset.quanttide.com</span><br></pre></td></tr></table></figure>
+
+<p>缺点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">仍然有服务器费用</span><br><span class="line">需要维护服务器和 Nginx</span><br></pre></td></tr></table></figure>
+
+<h3 id="方案-4：ACK-K8s"><a href="#方案-4：ACK-K8s" class="headerlink" title="方案 4：ACK / K8s"></a>方案 4：ACK / K8s</h3><p>优点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">工程化程度高</span><br><span class="line">以后扩展服务方便</span><br></pre></td></tr></table></figure>
+
+<p>缺点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">成本最高</span><br><span class="line">对当前单服务过重</span><br></pre></td></tr></table></figure>
+
+<p>今天最后结论是：暂时不继续创建 ACK 集群，明天再决定是否继续 FC 备案接入，还是改走 ECS / 轻量服务器。</p>
+<h2 id="八、今天的验证"><a href="#八、今天的验证" class="headerlink" title="八、今天的验证"></a>八、今天的验证</h2><p>今天完成并验证了：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">GitHub Actions YAML 解析通过</span><br><span class="line">K8s YAML 解析通过</span><br><span class="line">provider Python compile 通过</span><br><span class="line">Terraform validate 通过</span><br><span class="line">Provider image workflow 成功</span><br><span class="line">Provider package workflow 成功</span><br><span class="line">Studio workflow 成功</span><br></pre></td></tr></table></figure>
+
+<p>本地没有 Docker、kubectl、aliyun CLI，所以本地不能直接构建镜像或操作 ACK。镜像构建已经交给 GitHub Actions 完成。</p>
+<h2 id="九、明日待办"><a href="#九、明日待办" class="headerlink" title="九、明日待办"></a>九、明日待办</h2><p>明天继续前，先决定正式路线：</p>
+<ol>
+<li><p>继续查 <code>quanttide.com</code> 的备案接入归属，确认是否能在当前 FC 主账号下绑定 <code>api.asset.quanttide.com</code>。</p>
+</li>
+<li><p>如果 FC 能解决，回到 FC 自定义域名方案，避免额外服务器成本。</p>
+</li>
+<li><p>如果 FC 备案接入短期解决不了，再评估轻量应用服务器 / ECS。</p>
+</li>
+<li><p>暂时不建议为了一个 provider 创建 ACK 集群，除非后续明确要 Kubernetes 化。</p>
+</li>
+<li><p>如果继续 K8s，需要先创建 ACK 集群，并把公网 kubeconfig 写入 GitHub Secret：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KUBE_CONFIG</span><br></pre></td></tr></table></figure></li>
+<li><p>如果走 ECS，需要补 Docker Compose / Nginx / systemd 或部署脚本。</p>
+</li>
+</ol>
+<h2 id="当前状态"><a href="#当前状态" class="headerlink" title="当前状态"></a>当前状态</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">前端 asset.quanttide.com:</span><br><span class="line">HTTP 可访问，HTTPS 证书问题待处理</span><br><span class="line"></span><br><span class="line">后端 FC 默认域名:</span><br><span class="line">可用</span><br><span class="line"></span><br><span class="line">后端 api.asset.quanttide.com:</span><br><span class="line">目标域名已写入前端和 provider 配置，但正式服务尚未部署成功</span><br><span class="line"></span><br><span class="line">Provider Docker 镜像:</span><br><span class="line">已通过 GitHub Actions 构建并推送到 ACR</span><br><span class="line"></span><br><span class="line">K8s 清单和部署 workflow:</span><br><span class="line">已准备，但缺 ACK 集群和 KUBE_CONFIG</span><br></pre></td></tr></table></figure>
+
+<p>今天最大的结论是：域名绑定问题已经从“代码怎么配”推进到了“云资源和成本路线怎么选”。FC 仍然是当前最省成本的正式方案，但前提是把备案接入归属问题解决掉。</p>
+
+      </div>
+      
+    <footer class="article-footer">
+      <a data-url="https://raojiacui.github.io/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/" data-id="cmq1u8ks2000jo03g0sbtfdlw" data-title="今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2026/05/20/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-20-%E5%90%AC%E8%A7%81%E5%85%A5%E5%A2%83-%E6%8A%96%E9%9F%B3AI%E5%88%9B%E5%8F%98%E8%80%85%E5%A4%A7%E8%B5%9B%E5%8F%82%E8%B5%9B%E8%AE%B0%E5%BD%95/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">前一篇</strong>
+      <div class="article-nav-title">
+        
+          今日总结-2026-05-20-听见入境-抖音AI创变者大赛参赛记录
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95/">开发记录</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">部署教程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%A1%B9%E7%9B%AE%E8%AE%B0%E5%BD%95/">项目记录</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AudD-API/" rel="tag">AudD API</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MediaPipe/" rel="tag">MediaPipe</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/React/" rel="tag">React</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TalentsAI/" rel="tag">TalentsAI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%89%8B%E5%8A%BF%E6%8E%A7%E5%88%B6/" rel="tag">手势控制</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%96%E9%9F%B3/" rel="tag">抖音</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%96%E9%9F%B3AI%E5%88%9B%E5%8F%98%E8%80%85%E5%A4%A7%E8%B5%9B/" rel="tag">抖音AI创变者大赛</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A1%8C%E5%AE%A0/" rel="tag">桌宠</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%86%E8%A7%89%E6%90%9C%E7%B4%A2/" rel="tag">视觉搜索</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" rel="tag">进阶规划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AudD-API/" style="font-size: 10px;">AudD API</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Function-Compute/" style="font-size: 15px;">Function Compute</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/GitHub-Actions/" style="font-size: 17.5px;">GitHub Actions</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/Hexo/" style="font-size: 12.5px;">Hexo</a> <a href="/tags/Kubernetes/" style="font-size: 10px;">Kubernetes</a> <a href="/tags/MediaPipe/" style="font-size: 10px;">MediaPipe</a> <a href="/tags/OSS/" style="font-size: 12.5px;">OSS</a> <a href="/tags/QtAdmin/" style="font-size: 10px;">QtAdmin</a> <a href="/tags/QtCloud/" style="font-size: 10px;">QtCloud</a> <a href="/tags/QtCloud-Asset/" style="font-size: 15px;">QtCloud Asset</a> <a href="/tags/QtConsult/" style="font-size: 12.5px;">QtConsult</a> <a href="/tags/React/" style="font-size: 12.5px;">React</a> <a href="/tags/TalentsAI/" style="font-size: 10px;">TalentsAI</a> <a href="/tags/workflow/" style="font-size: 10px;">workflow</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 12.5px;">博客</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 20px;">工作总结</a> <a href="/tags/%E6%89%8B%E5%8A%BF%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">手势控制</a> <a href="/tags/%E6%8A%96%E9%9F%B3/" style="font-size: 10px;">抖音</a> <a href="/tags/%E6%8A%96%E9%9F%B3AI%E5%88%9B%E5%8F%98%E8%80%85%E5%A4%A7%E8%B5%9B/" style="font-size: 10px;">抖音AI创变者大赛</a> <a href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" style="font-size: 10px;">数字资产</a> <a href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" style="font-size: 10px;">标本契约</a> <a href="/tags/%E6%A1%8C%E5%AE%A0/" style="font-size: 10px;">桌宠</a> <a href="/tags/%E8%A7%86%E8%A7%89%E6%90%9C%E7%B4%A2/" style="font-size: 10px;">视觉搜索</a> <a href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" style="font-size: 10px;">议事档案</a> <a href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" style="font-size: 10px;">进阶规划</a> <a href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" style="font-size: 10px;">部署教程</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 17.5px;">阿里云</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/04/">四月 2026</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/05/21/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-21-%E6%8A%96%E9%9F%B3%E6%A1%8C%E5%AE%A0%E9%A1%B9%E7%9B%AE-%E6%89%8B%E5%8A%BF%E6%8E%A7%E5%88%B6%E4%B8%8E%E5%83%8F%E7%B4%A0%E7%8C%AB%E9%87%8D%E6%9E%84/">今日总结-2026-05-21-抖音桌宠项目-手势控制与像素猫重构</a>
+          </li>
+        
+          <li>
+            <a href="/2026/05/20/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-20-%E5%90%AC%E8%A7%81%E5%85%A5%E5%A2%83-%E6%8A%96%E9%9F%B3AI%E5%88%9B%E5%8F%98%E8%80%85%E5%A4%A7%E8%B5%9B%E5%8F%82%E8%B5%9B%E8%AE%B0%E5%BD%95/">今日总结-2026-05-20-听见入境-抖音AI创变者大赛参赛记录</a>
+          </li>
+        
+          <li>
+            <a href="/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/">今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案</a>
+          </li>
+        
+          <li>
+            <a href="/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/">今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通</a>
+          </li>
+        
+          <li>
+            <a href="/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/">今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 雨下雨停<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+
+<script>
+function toggleArticle(btn) {
+  var entry = btn.previousElementSibling;
+  entry.classList.add('expanded');
+}
+</script>
+  </div>
+</body>
+</html>
