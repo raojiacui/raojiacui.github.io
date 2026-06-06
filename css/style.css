@@ -888,7 +888,7 @@ a.article-title:hover {
   position: relative;
   overflow: hidden;
 }
-.article-collapsed-wrapper {
+.article-entry.article-collapsed {
   position: relative;
 }
 .article-collapsed-preview {
@@ -929,13 +929,13 @@ a.article-title:hover {
   -ms-transition: -ms-transform 0.3s;
   transition: transform 0.3s;
 }
-.article-collapsed.expanded .article-collapsed-wrapper {
+.article-entry.article-collapsed.expanded .article-collapsed-preview {
   max-height: none;
 }
-.article-collapsed.expanded .article-collapsed-mask {
+.article-entry.article-collapsed.expanded .article-collapsed-mask {
   display: none;
 }
-.article-collapsed.expanded .article-expand-btn {
+.article-entry.article-collapsed.expanded .article-expand-btn {
   display: none;
 }
 #comments {
