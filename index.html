@@ -75,6 +75,175 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-2026-06-30-Next.js-cookie-i18n-踩坑实录" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/06/30/2026-06-30-Next.js-cookie-i18n-%E8%B8%A9%E5%9D%91%E5%AE%9E%E5%BD%95/" class="article-date">
+  <time class="dt-published" datetime="2026-06-29T16:00:00.000Z" itemprop="datePublished">2026-06-30</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/06/30/2026-06-30-Next.js-cookie-i18n-%E8%B8%A9%E5%9D%91%E5%AE%9E%E5%BD%95/">2026-06-30-Next.js 纯 Cookie 模式 i18n 实战与踩坑实录</a>
+    </h1>
+  
+
+      </header>
+    
+    
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
+      <div class="article-collapsed-preview">
+        <h1 id="Next-js-纯-Cookie-模式-i18n-实战与踩坑实录"><a href="#Next-js-纯-Cookie-模式-i18n-实战与踩坑实录" class="headerlink" title="Next.js 纯 Cookie 模式 i18n 实战与踩坑实录"></a>Next.js 纯 Cookie 模式 i18n 实战与踩坑实录</h1><p>今天给 <code>prompt-lens</code>（AI 视频提示词分析工具）加了一整套中英双语支持。需求看起来很简单——“右上角切语言，所有内容（包括 AI 输出）跟着变”——但实际做下来踩了 5 个坑，其中两个是 next-intl 框架层面的”设计陷阱”。这篇记一下完整实现思路和坑点。</p>
+<h2 id="一、需求与选型"><a href="#一、需求与选型" class="headerlink" title="一、需求与选型"></a>一、需求与选型</h2><p>需求拆解：</p>
+<ol>
+<li>页面所有内容支持中英展示</li>
+<li>右上角自由切换语言</li>
+<li>AI 分析结果按当前语言生成</li>
+<li>已有中文历史记录保持不动，新分析按当前语言</li>
+</ol>
+<p>技术选型上最大的决策是 <strong>locale 存哪里</strong>。两条路：</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>URL 形态</th>
+<th>对 better-auth 的影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>URL 前缀（<code>/zh/dashboard</code>、<code>/en/dashboard</code>）</td>
+<td>变</td>
+<td>需要改 auth 回调路径，risk 高</td>
+</tr>
+<tr>
+<td>Cookie（URL 不变）</td>
+<td>不变</td>
+<td>零影响</td>
+</tr>
+</tbody></table>
+<p>选了 Cookie。事后证明这个选择对，但 next-intl 对”纯 cookie 模式”的支持并不友好——这是后面坑 1 的根源。</p>
+<h2 id="二、整体架构"><a href="#二、整体架构" class="headerlink" title="二、整体架构"></a>二、整体架构</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">浏览器 cookie (NEXT_LOCALE=zh|en)</span><br><span class="line">        │</span><br><span class="line">        ├─→ middleware.ts        (请求入口：检测/写入 cookie)</span><br><span class="line">        │</span><br><span class="line">        ├─→ i18n/request.ts      (服务端：读 cookie 决定加载哪份 messages)</span><br><span class="line">        │</span><br><span class="line">        ├─→ app/layout.tsx       (服务端：getLocale + NextIntlClientProvider 注入)</span><br><span class="line">        │</span><br><span class="line">        └─→ 组件 useTranslations()  (客户端：直接拿当前 locale 的文案)</span><br></pre></td></tr></table></figure>
+
+<p>URL 全程不变（<code>/dashboard</code> 始终是 <code>/dashboard</code>），locale 只存在 cookie 里。对 better-auth、对已有所有 <code>&lt;Link&gt;</code>、对 SEO 都零侵入。</p>
+<h2 id="三、四个关键环节"><a href="#三、四个关键环节" class="headerlink" title="三、四个关键环节"></a>三、四个关键环节</h2><h3 id="1-middleware-ts-—-请求入口检测"><a href="#1-middleware-ts-—-请求入口检测" class="headerlink" title="1. middleware.ts — 请求入口检测"></a>1. middleware.ts — 请求入口检测</h3><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> cookieLocale = request.<span class="property">cookies</span>.<span class="title function_">get</span>(<span class="variable constant_">LOCALE_COOKIE</span>)?.<span class="property">value</span>;</span><br><span class="line"><span class="keyword">const</span> acceptLang = request.<span class="property">headers</span>.<span class="title function_">get</span>(<span class="string">&quot;accept-language&quot;</span>) ?? <span class="string">&quot;&quot;</span>;</span><br><span class="line"><span class="comment">// cookie 没命中 → 看 Accept-Language（en 优先 zh）</span></span><br><span class="line"><span class="keyword">const</span> detectedLocale = <span class="title function_">isLocale</span>(cookieLocale) ? cookieLocale : prefersEn ? <span class="string">&quot;en&quot;</span> : <span class="string">&quot;zh&quot;</span>;</span><br><span class="line"><span class="comment">// 不重写 URL（cookie 模式核心）</span></span><br><span class="line"><span class="keyword">if</span> (!<span class="title function_">isLocale</span>(cookieLocale)) &#123;</span><br><span class="line">  response.<span class="property">cookies</span>.<span class="title function_">set</span>(<span class="variable constant_">LOCALE_COOKIE</span>, detectedLocale, &#123;</span><br><span class="line">    <span class="attr">path</span>: <span class="string">&quot;/&quot;</span>, <span class="attr">maxAge</span>: <span class="number">60</span> * <span class="number">60</span> * <span class="number">24</span> * <span class="number">365</span>, <span class="attr">sameSite</span>: <span class="string">&quot;lax&quot;</span>,</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意：<strong>不重写 URL</strong> 是 cookie 模式的核心。一旦你在 middleware 里 rewrite URL，就回到了路由前缀模式。</p>
+<h3 id="2-i18n-request-ts-—-服务端取-messages"><a href="#2-i18n-request-ts-—-服务端取-messages" class="headerlink" title="2. i18n/request.ts — 服务端取 messages"></a>2. i18n/request.ts — 服务端取 messages</h3><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">getRequestConfig</span>(<span class="title function_">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> cookieStore = <span class="keyword">await</span> <span class="title function_">cookies</span>();</span><br><span class="line">  <span class="keyword">const</span> cookieValue = cookieStore.<span class="title function_">get</span>(<span class="variable constant_">LOCALE_COOKIE</span>)?.<span class="property">value</span>;</span><br><span class="line">  <span class="keyword">const</span> locale = <span class="title function_">isLocale</span>(cookieValue) ? cookieValue : defaultLocale;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    locale,</span><br><span class="line">    <span class="attr">messages</span>: (<span class="keyword">await</span> <span class="keyword">import</span>(<span class="string">`./messages/<span class="subst">$&#123;locale&#125;</span>.json`</span>)).<span class="property">default</span>,</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这里<strong>绕开了 <code>requestLocale</code> 参数</strong>，直接用 <code>next/headers</code> 的 <code>cookies()</code> 自己读。原因见坑 2。</p>
+<h3 id="3-language-switcher-tsx-—-客户端切换"><a href="#3-language-switcher-tsx-—-客户端切换" class="headerlink" title="3. language-switcher.tsx — 客户端切换"></a>3. language-switcher.tsx — 客户端切换</h3><figure class="highlight tsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> locale = <span class="title function_">useLocale</span>();</span><br><span class="line"><span class="keyword">const</span> router = <span class="title function_">useRouter</span>();</span><br><span class="line"><span class="keyword">const</span> <span class="title function_">switchTo</span> = (<span class="params"><span class="attr">next</span>: <span class="title class_">Locale</span></span>) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">`NEXT_LOCALE=<span class="subst">$&#123;next&#125;</span>; path=/; max-age=31536000`</span>;</span><br><span class="line">  router.<span class="title function_">refresh</span>();   <span class="comment">// 触发服务端重新读 cookie → 重新注入 messages</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><code>router.refresh()</code> 而不是 <code>window.location.reload()</code>——保留组件状态，体验更顺。</p>
+<h3 id="4-AI-输出语言透传"><a href="#4-AI-输出语言透传" class="headerlink" title="4. AI 输出语言透传"></a>4. AI 输出语言透传</h3><p>这是这次需求里最核心也是最容易遗漏的一环：<strong>i18n 只管 UI 文案，AI 返回的是模型生成的自由文本，不在 messages.json 里</strong>。</p>
+<p>所以需要把当前 locale 透传给后端，让后端按 locale 选不同的 prompt：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Client</span></span><br><span class="line"><span class="keyword">const</span> locale = <span class="title function_">useLocale</span>() <span class="keyword">as</span> <span class="title class_">Locale</span>;</span><br><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;/api/analyze&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">body</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123; ..., <span class="attr">outputLanguage</span>: locale &#125;),</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Server</span></span><br><span class="line"><span class="keyword">const</span> &#123; outputLanguage &#125; = body;</span><br><span class="line"><span class="title function_">analyzeFrames</span>(&#123; ..., outputLanguage &#125;);  <span class="comment">// 内部 PROMPTS[outputLanguage].single</span></span><br><span class="line">db.<span class="title function_">insert</span>(analysisHistory).<span class="title function_">values</span>(&#123; ..., <span class="attr">language</span>: outputLanguage &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>中英两版 prompt 分别在 <code>lib/ai/prompts/zh.ts</code> 和 <code>lib/ai/prompts/en.ts</code>：</p>
+<ul>
+<li>中文维度：”画面主体/环境场景/镜头语言/光影照明/美术风格/氛围情绪”</li>
+<li>英文维度：”Subject/Environment/Camera/Lighting/Art Style/Mood”</li>
+</ul>
+<p>数据库 <code>analysis_history</code> 表加了 <code>language</code> 列（<code>text DEFAULT &#39;zh&#39; NOT NULL</code>），旧记录自动回填 <code>&#39;zh&#39;</code>，符合”旧中文记录保持不动”的要求。</p>
+<h2 id="四、踩过的-5-个坑"><a href="#四、踩过的-5-个坑" class="headerlink" title="四、踩过的 5 个坑"></a>四、踩过的 5 个坑</h2><h3 id="坑-1：localePrefix-39-never-39-导致-404"><a href="#坑-1：localePrefix-39-never-39-导致-404" class="headerlink" title="坑 1：localePrefix: &#39;never&#39; 导致 404"></a>坑 1：<code>localePrefix: &#39;never&#39;</code> 导致 404</h3><p><strong>现象</strong>：在 <code>i18n/routing.ts</code> 配了 <code>localePrefix: &#39;never&#39;</code>，访问 <code>/dashboard</code> 直接 404。</p>
+<p><strong>原因</strong>：next-intl v3 在 <code>&#39;never&#39;</code> 模式下<strong>要求</strong> <code>app/[locale]/...</code> 动态段 + <code>setRequestLocale</code>，否则找不到页面。但我们要的是”URL 完全不带 locale 前缀”的纯 cookie 模式，next-intl 官方并不直接支持。</p>
+<p><strong>解法</strong>：完全不用 <code>createMiddleware</code>，改用手动 cookie。<code>i18n/routing.ts</code> 只保留 <code>locales</code> 和 <code>defaultLocale</code> 两个字段：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> routing = <span class="title function_">defineRouting</span>(&#123;</span><br><span class="line">  <span class="attr">locales</span>: [<span class="string">&quot;zh&quot;</span>, <span class="string">&quot;en&quot;</span>],</span><br><span class="line">  <span class="attr">defaultLocale</span>: <span class="string">&quot;zh&quot;</span>,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>middleware.ts</code> 自己读 cookie，不依赖 next-intl 的路由中间件。</p>
+<h3 id="坑-2：i18n-request-ts-签名版本不对"><a href="#坑-2：i18n-request-ts-签名版本不对" class="headerlink" title="坑 2：i18n/request.ts 签名版本不对"></a>坑 2：<code>i18n/request.ts</code> 签名版本不对</h3><p><strong>现象</strong>：旧代码用 <code>getRequestConfig(async (&#123; locale &#125;) =&gt; ...)</code>，新版 next-intl 警告这个签名要废弃。</p>
+<p><strong>原因</strong>：next-intl 升级后推荐 <code>(&#123; requestLocale &#125;)</code>，但我们没走 next-intl middleware 路由，<code>requestLocale</code> 其实是空的。</p>
+<p><strong>解法</strong>：绕开 <code>requestLocale</code>，用 <code>next/headers</code> 的 <code>cookies()</code> 自己读。既兼容新版又不依赖路由。</p>
+<h3 id="坑-3：extractCorePrompt-正则强依赖中文"><a href="#坑-3：extractCorePrompt-正则强依赖中文" class="headerlink" title="坑 3：extractCorePrompt 正则强依赖中文"></a>坑 3：<code>extractCorePrompt</code> 正则强依赖中文</h3><p><strong>现象</strong>：英文模式下 AI 返回 <code>Core Prompt: xxx</code>，但 <code>extractCorePrompt</code> 提取不到核心提示词。</p>
+<p><strong>原因</strong>：旧逻辑硬编码中文标签：<code>/核心提示词[：:]\s*([^\n]+)/</code>。</p>
+<p><strong>解法</strong>：正则双语兼容：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/(?:核心提示词|<span class="title class_">Core</span> <span class="title class_">Prompt</span>)\s*[：:]\s*([^\n]+)/i</span><br></pre></td></tr></table></figure>
+
+<h3 id="坑-4：JSON-语法错误（漏逗号）"><a href="#坑-4：JSON-语法错误（漏逗号）" class="headerlink" title="坑 4：JSON 语法错误（漏逗号）"></a>坑 4：JSON 语法错误（漏逗号）</h3><p><strong>现象</strong>：扩展 <code>zh.json</code> / <code>en.json</code> 时，运行时报 JSON parse error。</p>
+<p><strong>原因</strong>：<code>videoGenerate</code> 块和 <code>videoEdit</code> 块之间漏了逗号。</p>
+<p><strong>解法</strong>：加回逗号，并写了校验脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node -e <span class="string">&quot;JSON.parse(require(&#x27;fs&#x27;).readFileSync(&#x27;i18n/messages/zh.json&#x27;,&#x27;utf8&#x27;)); console.log(&#x27;OK&#x27;)&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="坑-5：数据库迁移失败-—-type-quot-analyze-mode-quot-already-exists"><a href="#坑-5：数据库迁移失败-—-type-quot-analyze-mode-quot-already-exists" class="headerlink" title="坑 5：数据库迁移失败 — type &quot;analyze_mode&quot; already exists"></a>坑 5：数据库迁移失败 — <code>type &quot;analyze_mode&quot; already exists</code></h3><p><strong>现象</strong>：<code>pnpm db:migrate</code> 报错，整个迁移回滚。</p>
+<p><strong>原因</strong>：这是个历史遗留问题——之前开发时一直用 <code>db:push</code>（直推 schema，不写迁移记录）改库。这次 <code>db:generate</code> 生成的 <code>0003_blushing_thor.sql</code> 把所有未记录的变更（创建 <code>video_generation</code> 表、给 enum 加值、加 <code>language</code> 列）全打包成一个迁移文件。<code>db:migrate</code> 想从头跑这个文件，但 <code>analyze_mode</code> enum 早就在 0000 时建过了 → 撞重复。</p>
+<p><strong>解法</strong>：改用 <code>pnpm db:push</code>。它直接比对当前 schema 与数据库实际状态，只算出”缺一个 <code>language</code> 列”这个 diff，安全应用。</p>
+<blockquote>
+<p><strong>教训</strong>：<code>db:push</code> 和 <code>db:migrate</code> 不要混用。<code>push</code> 适合开发期快速迭代，<code>migrate</code> 适合生产。一旦混用，迁移历史和数据库实际状态会脱节，后面 <code>migrate</code> 必撞车。如果要正规化，要么全程 <code>push</code>，要么在切换到 <code>migrate</code> 前，先手动把 <code>__drizzle_migrations</code> 表对齐到当前 schema 状态。</p>
+</blockquote>
+<h2 id="五、关键设计权衡"><a href="#五、关键设计权衡" class="headerlink" title="五、关键设计权衡"></a>五、关键设计权衡</h2><table>
+<thead>
+<tr>
+<th>决策</th>
+<th>选择</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>locale 存储</td>
+<td>Cookie 而非 URL</td>
+<td>URL 不变 → better-auth、所有 <code>&lt;Link&gt;</code>、SEO 都零影响</td>
+</tr>
+<tr>
+<td>切换触发</td>
+<td><code>router.refresh()</code> 而非整页刷新</td>
+<td>保留组件状态，体验更顺</td>
+</tr>
+<tr>
+<td>旧历史记录</td>
+<td>不动，新记录按当前语言</td>
+<td><code>language</code> 列 <code>DEFAULT &#39;zh&#39;</code>，旧行自动回填</td>
+</tr>
+<tr>
+<td>切换器位置</td>
+<td>首页而非 dashboard</td>
+<td>用户明确要求”一进入的页面就能切”</td>
+</tr>
+<tr>
+<td>未登录访问 dashboard</td>
+<td>跳回首页</td>
+<td><code>useEffect</code> 检测 session，未登录 <code>router.replace(&quot;/&quot;)</code></td>
+</tr>
+<tr>
+<td>迁移工具</td>
+<td><code>db:push</code> 而非 <code>db:migrate</code></td>
+<td>历史已脱节，push 做差量同步更安全</td>
+</tr>
+</tbody></table>
+<h2 id="六、一句话总结"><a href="#六、一句话总结" class="headerlink" title="六、一句话总结"></a>六、一句话总结</h2><p><strong>Cookie 存 locale → middleware 检测 → request.ts 读 cookie 取 messages → layout 注入 Provider → 组件 <code>useTranslations()</code> 拿文案 → AI 路径单独透传 <code>outputLanguage</code> 给后端 prompt 选择。</strong></p>
+<p>最大的坑是 next-intl 的 URL 前缀模式不适合纯 cookie 方案，必须绕开它自己读 cookie；其次是数据库迁移历史不一致，最后用 <code>db:push</code> 做差量同步。</p>
+<p>整套改动 26 个文件，+3010 / -585 行，已推送到 <code>origin/main</code>。</p>
+<p>Love you.</p>
+
+      </div>
+      <div class="article-collapsed-mask"></div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
+    </div>
+    
+    <footer class="article-footer">
+      <a data-url="https://raojiacui.github.io/2026/06/30/2026-06-30-Next.js-cookie-i18n-%E8%B8%A9%E5%9D%91%E5%AE%9E%E5%BD%95/" data-id="cmr07f5gp0006zc3gdcj936jk" data-title="2026-06-30-Next.js 纯 Cookie 模式 i18n 实战与踩坑实录" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cookie/" rel="tag">Cookie</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Drizzle/" rel="tag">Drizzle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Prompt-Lens/" rel="tag">Prompt Lens</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/i18n/" rel="tag">i18n</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/next-intl/" rel="tag">next-intl</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-今日总结-2026-06-12-Vercel大文件上传413与Blob直传修复" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2026/06/12/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-06-12-Vercel%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0413%E4%B8%8EBlob%E7%9B%B4%E4%BC%A0%E4%BF%AE%E5%A4%8D/" class="article-date">
@@ -270,7 +439,7 @@
     </div>
     
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/06/12/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-06-12-Vercel%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0413%E4%B8%8EBlob%E7%9B%B4%E4%BC%A0%E4%BF%AE%E5%A4%8D/" data-id="cmqaqaalj0000vo3g8txh0ewq" data-title="今日总结-2026-06-12-Vercel 大文件上传 413 与 Blob 直传修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/06/12/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-06-12-Vercel%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0413%E4%B8%8EBlob%E7%9B%B4%E4%BC%A0%E4%BF%AE%E5%A4%8D/" data-id="cmr07f5hv001xzc3g02ew5wqq" data-title="今日总结-2026-06-12-Vercel 大文件上传 413 与 Blob 直传修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -302,7 +471,7 @@
         
   
     <h1 itemprop="name">
-      <a class="p-name article-title" href="/2026/05/31/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-31-%E7%AC%AC139%E6%AC%A1%E5%B4%A9%E5%A1%8C-AI-NPC%E6%8E%A5%E5%8F%A3%E4%BF%AE%E5%A4%8D/">今日总结-2026-05-31-第139次崩塌-AI-NPC接口修复</a>
+      <a class="p-name article-title" href="/2026/05/31/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-31-%E7%AC%AC139%E6%AC%A1%E5%B4%A9%E5%A1%8C-AI-NPC%E6%8E%A5%E5%8F%A3%E4%BF%AE%E5%A4%8D/">今日总结-2026-05-31-第139次崩塌 AI NPC 接口修复</a>
     </h1>
   
 
@@ -311,27 +480,26 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       <div class="article-collapsed-preview">
-        <p>今日总结：修复《第139次崩塌》AI NPC 接口问题</p>
-<p>今天主要处理了《第139次崩塌》项目里的 AI NPC 回复问题。</p>
+        <h1 id="今日总结：修复《第139次崩塌》AI-NPC-接口问题"><a href="#今日总结：修复《第139次崩塌》AI-NPC-接口问题" class="headerlink" title="今日总结：修复《第139次崩塌》AI NPC 接口问题"></a>今日总结：修复《第139次崩塌》AI NPC 接口问题</h1><p>今天主要处理了《第139次崩塌》项目里的 AI NPC 回复问题。</p>
 <p>这个项目中，玩家可以在剧情节点里选择固定选项，也可以输入自己的自由回复。固定选项本来就是预设文案，但自由回复应该调用 DeepSeek API，让 NPC 根据玩家输入生成动态回应。实际测试时发现，NPC 回复表现得比较固定，因此开始排查是不是 API 又没有连上。</p>
 <h2 id="一、问题现象"><a href="#一、问题现象" class="headerlink" title="一、问题现象"></a>一、问题现象</h2><p>在游戏里，NPC 回复主要有两类。</p>
 <p>第一类是固定选项回复。玩家点击三个固定选项时，会显示预设文案，例如：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reply: `$&#123;NPCS[speaker]?.name || &#x27;NPC&#x27;&#125;记住了你的选择。`</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">reply</span>: <span class="string">`<span class="subst">$&#123;NPCS[speaker]?.name || <span class="string">&#x27;NPC&#x27;</span>&#125;</span>记住了你的选择。`</span></span><br></pre></td></tr></table></figure>
 
 <p>这部分固定是正常的，因为它本来就是剧情选项反馈。</p>
 <p>第二类是自由输入回复。玩家在输入框中输入内容后，前端会请求：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/api/npc-followup</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/api/npc-followup</span><br></pre></td></tr></table></figure>
 
 <p>这个接口应该由服务端调用 DeepSeek，生成动态 NPC 回复。</p>
 <p>但线上测试时，接口返回了：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">POST https://let-him-survive.vercel.app/api/npc-followup</span><br><span class="line">Status: 404</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">POST https://let-him-survive.vercel.app/api/npc-followup</span><br><span class="line">Status: 404</span><br></pre></td></tr></table></figure>
 
 <p>这说明线上环境并没有正确暴露 <code>/api/npc-followup</code> 接口。</p>
 <h2 id="二、原因分析"><a href="#二、原因分析" class="headerlink" title="二、原因分析"></a>二、原因分析</h2><p>项目原本的后端接口写在：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">server/index.js</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">server/index.js</span><br></pre></td></tr></table></figure>
 
 <p>里面使用 Express 定义了：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">app.<span class="title function_">post</span>(<span class="string">&#x27;/api/npc-followup&#x27;</span>, <span class="title function_">async</span> (req, res) =&gt; &#123;</span><br><span class="line">  <span class="comment">// 调用 DeepSeek API</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">app.<span class="title function_">post</span>(<span class="string">&#x27;/api/npc-followup&#x27;</span>, <span class="title function_">async</span> (req, res) =&gt; &#123;</span><br><span class="line">  <span class="comment">// 调用 DeepSeek API</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
 <p>本地如果同时启动前端和后端，这种写法可以工作。</p>
 <p>但线上部署到 Vercel 时，当前配置主要是构建前端：</p>
@@ -339,17 +507,17 @@
 
 <p>也就是说，Vercel 会部署前端静态构建产物，但不会自动把 <code>server/index.js</code> 里的 Express 路由变成线上 API。</p>
 <p>同时，<code>vite.config.js</code> 里的代理：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server</span>: &#123;</span><br><span class="line">  <span class="attr">proxy</span>: &#123;</span><br><span class="line">    <span class="string">&#x27;/api&#x27;</span>: <span class="string">&#x27;http://localhost:3001&#x27;</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server</span>: &#123;</span><br><span class="line">  <span class="attr">proxy</span>: &#123;</span><br><span class="line">    <span class="string">&#x27;/api&#x27;</span>: <span class="string">&#x27;http://localhost:3001&#x27;</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>只在本地开发环境生效，线上 Vercel 不会使用这个代理。</p>
 <p>所以最终结果就是：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">前端请求 /api/npc-followup</span><br><span class="line">  -&gt; 本地 Express 里有这个路由</span><br><span class="line">  -&gt; 但 Vercel 线上没有这个路由</span><br><span class="line">  -&gt; 线上请求直接返回 404</span><br><span class="line">  -&gt; 自由回复无法真正调用 DeepSeek</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">前端请求 /api/npc-followup</span><br><span class="line">本地 Express 里有这个路由</span><br><span class="line">但 Vercel 线上没有这个路由</span><br><span class="line">线上请求直接返回 404</span><br><span class="line">自由回复无法真正调用 DeepSeek</span><br></pre></td></tr></table></figure>
 
 <h2 id="三、修复方案"><a href="#三、修复方案" class="headerlink" title="三、修复方案"></a>三、修复方案</h2><p>修复方式是新增 Vercel Serverless Function：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api/npc-followup.js</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api/npc-followup.js</span><br></pre></td></tr></table></figure>
 
 <p>Vercel 会自动把 <code>api/</code> 目录下的文件部署成 API 路由。因此新增这个文件后，线上会有：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/api/npc-followup</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/api/npc-followup</span><br></pre></td></tr></table></figure>
 
 <p>新的接口负责：</p>
 <ol>
@@ -359,25 +527,25 @@
 <li>根据当前场景和 NPC 人设生成回复。</li>
 <li>返回 <code>npcReply</code> 和 <code>nextQuestion</code>。</li>
 </ol>
-<p>同时也顺手修了一个细节：前端传给后端的是中文 NPC 名字，比如”莉娅””盖亚”，所以新的 API 同时兼容中文名和英文 key，避免人设映射失效。</p>
+<p>同时也顺手修了一个细节：前端传给后端的是中文 NPC 名字，比如“莉娅”“盖亚”，所以新的 API 同时兼容中文名和英文 key，避免人设映射失效。</p>
 <h2 id="四、环境变量与部署问题"><a href="#四、环境变量与部署问题" class="headerlink" title="四、环境变量与部署问题"></a>四、环境变量与部署问题</h2><p>修复接口之后，还需要在 Vercel 项目里配置环境变量：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEEPSEEK_API_KEY</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEEPSEEK_API_KEY</span><br></pre></td></tr></table></figure>
 
 <p>这个 key 必须放在 Vercel 服务端环境变量里，不能放进前端的 Vite 环境变量中，否则会有泄露风险。</p>
 <p>配置完成后，尝试重新部署时遇到了 Vercel 的提示：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Prebuilt deployments cannot be redeployed because they will not use the latest environment variables and project settings.</span><br><span class="line">Please create a new deployment instead.</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Prebuilt deployments cannot be redeployed because they will not use the latest environment variables and project settings.</span><br><span class="line">Please create a new deployment instead.</span><br></pre></td></tr></table></figure>
 
 <p>这是因为当前项目使用的是 GitHub Actions + Vercel prebuilt deployment。旧的 prebuilt 部署不能直接 redeploy，否则不会使用最新的环境变量和项目设置。</p>
 <p>正确做法是：提交新的代码并 push 到 <code>main</code>，让 GitHub Actions 创建一个新的 Vercel deployment。</p>
 <h2 id="五、提交与验证"><a href="#五、提交与验证" class="headerlink" title="五、提交与验证"></a>五、提交与验证</h2><p>本次新增了：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api/npc-followup.js</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api/npc-followup.js</span><br></pre></td></tr></table></figure>
 
 <p>然后进行了本地验证：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">node --check api/npc-followup.js</span><br><span class="line">npm run build</span><br></pre></td></tr></table></figure>
 
 <p>语法检查和前端构建都通过。</p>
 <p>之后提交并推送到 GitHub，触发新的 Vercel 部署。部署成功后，再次测试线上接口：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">POST https://let-him-survive.vercel.app/api/npc-followup</span><br><span class="line">Status: 200</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">POST https://let-him-survive.vercel.app/api/npc-followup</span><br><span class="line">Status: 200</span><br></pre></td></tr></table></figure>
 
 <p>返回结果示例：</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;npcReply&quot;</span><span class="punctuation">:</span> <span class="string">&quot;你终于来了。这片废墟里，你看到了什么？&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;nextQuestion&quot;</span><span class="punctuation">:</span> <span class="string">&quot;如果必须放弃一样东西才能离开，你会选择什么？&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
@@ -385,7 +553,7 @@
 <p>这说明线上 <code>/api/npc-followup</code> 已经不再是 404，并且可以正常调用 DeepSeek 生成 NPC 动态回复。</p>
 <h2 id="六、今日结论"><a href="#六、今日结论" class="headerlink" title="六、今日结论"></a>六、今日结论</h2><p>今天的问题本质不是 DeepSeek API 本身坏了，而是线上部署时没有正确暴露后端接口。</p>
 <p>这次修复后，项目的 AI NPC 自由回复链路变成了：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">前端自由输入</span><br><span class="line">  -&gt; /api/npc-followup</span><br><span class="line">  -&gt; Vercel Serverless Function</span><br><span class="line">  -&gt; DeepSeek API</span><br><span class="line">  -&gt; 返回 npcReply / nextQuestion</span><br><span class="line">  -&gt; 前端展示 NPC 回复</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">前端自由输入</span><br><span class="line">  -&gt; /api/npc-followup</span><br><span class="line">  -&gt; Vercel Serverless Function</span><br><span class="line">  -&gt; DeepSeek API</span><br><span class="line">  -&gt; 返回 npcReply / nextQuestion</span><br><span class="line">  -&gt; 前端展示 NPC 回复</span><br></pre></td></tr></table></figure>
 
 <p>今天的主要收获是：</p>
 <ol>
@@ -405,11 +573,11 @@
     </div>
     
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/31/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-31-%E7%AC%AC139%E6%AC%A1%E5%B4%A9%E5%A1%8C-AI-NPC%E6%8E%A5%E5%8F%A3%E4%BF%AE%E5%A4%8D/" data-id="cmq1xn5g6001bo83g8hgrfr8m" data-title="今日总结-2026-05-31-第139次崩塌-AI-NPC接口修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/31/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-31-%E7%AC%AC139%E6%AC%A1%E5%B4%A9%E5%A1%8C-AI-NPC%E6%8E%A5%E5%8F%A3%E4%BF%AE%E5%A4%8D/" data-id="cmr07f5hx0020zc3ge55f9nk0" data-title="今日总结-2026-05-31-第139次崩塌 AI NPC 接口修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI-NPC/" rel="tag">AI NPC</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DeepSeek/" rel="tag">DeepSeek</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/H5%E6%B8%B8%E6%88%8F/" rel="tag">H5游戏</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vercel/" rel="tag">Vercel</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI-NPC/" rel="tag">AI NPC</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DeepSeek/" rel="tag">DeepSeek</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/H5-%E6%B8%B8%E6%88%8F/" rel="tag">H5 游戏</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vercel/" rel="tag">Vercel</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li></ul>
 
     </footer>
   </div>
@@ -590,7 +758,7 @@
     </div>
     
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/" data-id="cmq1xn5g50019o83gh5ifhme7" data-title="今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/" data-id="cmr07f5hq001rzc3gb8351rfh" data-title="今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -773,11 +941,172 @@
     </div>
     
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/" data-id="cmq1xn5g7001co83gbjqm15z2" data-title="今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/" data-id="cmr07f5hr001szc3gcmghbk2y" data-title="今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-今日总结-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-部署与发版" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/" class="article-date">
+  <time class="dt-published" datetime="2026-05-07T16:00:00.000Z" itemprop="datePublished">2026-05-08</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/">今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版</a>
+    </h1>
+  
+
+      </header>
+    
+    
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
+      <div class="article-collapsed-preview">
+        <h1 id="今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索"><a href="#今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索" class="headerlink" title="今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索"></a>今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索</h1><p>今天主要做了三条线的事情：</p>
+<ol>
+<li>部署 <code>qtadmin</code> 到阿里云 OSS。</li>
+<li>联调 <code>qtconsult</code> 前后端并发布三个版本。</li>
+<li>部署 <code>qtcloud-asset</code>，重点探索 <code>provider</code> 服务端上 FaaS。</li>
+</ol>
+<h2 id="一、QtAdmin-部署到阿里云"><a href="#一、QtAdmin-部署到阿里云" class="headerlink" title="一、QtAdmin 部署到阿里云"></a>一、QtAdmin 部署到阿里云</h2><p>一开始先克隆了 <code>qtadmin</code> 仓库，然后参考昨天 <code>qtconsult</code> 的 Terraform + GitHub Actions 流程，把 <code>qtadmin</code> 的 Studio 前端部署到阿里云 OSS。</p>
+<p>整体流程是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Flutter Web build -&gt; OSS bucket -&gt; DNS CNAME -&gt; GitHub Actions 自动部署</span><br></pre></td></tr></table></figure>
+
+<p>部署过程中遇到过 Flutter Web build 失败的问题。后面修复了构建相关配置，让 GitHub Actions 可以成功构建并上传到 OSS。最终 <code>qtadmin</code> 的 OSS 静态站点部署跑通，域名绑定也完成了。</p>
+<p>这部分学到的是：<code>qtadmin</code> 和 <code>qtconsult studio</code> 这类前端应用，只要本质是 Flutter Web 静态资源，就适合走 OSS。GitHub 仓库有变更后，只要 workflow 配好，push 到指定分支就会自动构建并同步到阿里云 OSS。</p>
+<h2 id="二、QtConsult-前后端联调与版本发布"><a href="#二、QtConsult-前后端联调与版本发布" class="headerlink" title="二、QtConsult 前后端联调与版本发布"></a>二、QtConsult 前后端联调与版本发布</h2><p>老板给的方向是：<code>qtconsult-provider -&gt; qtconsult-archive</code>，并且提到了 <code>docs/dev/storage.md</code> 里的归档机制。核心目标不是单纯发版，而是通过前后端联调理解系统架构，把 provider、studio 和整体应用串起来。</p>
+<p>今天在 <code>qtconsult</code> 里完成了这些事情：</p>
+<ol>
+<li>适配 provider 的 S3/OSS 风格存储配置。</li>
+<li>补 provider 测试。</li>
+<li>让 studio 通过 <code>ProviderService</code> 访问 provider。</li>
+<li>修复 Web 端缓存兼容问题。</li>
+<li>增加 fixture fallback，保证前端在 provider 不可用时也能有可展示数据。</li>
+<li>修复 OSS2 相关 Studio 部署问题。</li>
+</ol>
+<p>之后发布了三个版本：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">provider/v0.1.0</span><br><span class="line">studio/v0.1.0</span><br><span class="line">v0.1.0</span><br></pre></td></tr></table></figure>
+
+<p>对应 GitHub Releases 也创建好了，release notes 后来改成了中文说明。</p>
+<p>这部分最重要的收获是：<code>qtconsult</code> 不是一个孤立前端，也不是一个孤立 provider，而是要把应用层产品和领域层能力接起来。老板提到的看板方法，其实是在推动几个产品在工作流定义上统一：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">量潮咨询</span><br><span class="line">量潮数据</span><br><span class="line">量潮项目云</span><br></pre></td></tr></table></figure>
+
+<p>比如咨询可以被定义为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">调研 -&gt; 分析 -&gt; 决策 -&gt; 执行</span><br></pre></td></tr></table></figure>
+
+<p>而数据、项目也有类似的 workflow 定义。GitHub Projects 比较贴合老板的工作习惯，但在复杂项目结构组织上不好用，所以后续产品要吸收它的优点，同时解决它的不足。</p>
+<h2 id="三、GitHub-Token-与权限问题"><a href="#三、GitHub-Token-与权限问题" class="headerlink" title="三、GitHub Token 与权限问题"></a>三、GitHub Token 与权限问题</h2><p>中间遇到了 GitHub 登录失败的问题。一开始怀疑是网络问题，后来改用 token。token 用完后，我也意识到：一旦把 GitHub PAT 贴到对话里，就应该立刻删除或 revoke。</p>
+<p>后续更好的做法是：</p>
+<ol>
+<li>尽量用 <code>gh auth login</code> 在本机授权。</li>
+<li>或者用 GitHub Secrets。</li>
+<li>不要在聊天窗口直接长期暴露 PAT。</li>
+</ol>
+<h2 id="四、QtCloud-Asset-部署"><a href="#四、QtCloud-Asset-部署" class="headerlink" title="四、QtCloud Asset 部署"></a>四、QtCloud Asset 部署</h2><p>老板说服务端用 FaaS 部署，所以先判断了 <code>qtcloud-asset</code> 的结构：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src/studio   -&gt; 前端静态站点，部署到 OSS</span><br><span class="line">src/provider -&gt; 服务端 API，部署到 Function Compute</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-Studio-部署到-OSS"><a href="#1-Studio-部署到-OSS" class="headerlink" title="1. Studio 部署到 OSS"></a>1. Studio 部署到 OSS</h3><p><code>studio</code> 先沿用 OSS 流程。创建和使用的资源包括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bucket: qtcloud-asset-studio</span><br><span class="line">domain: asset.quanttide.com</span><br></pre></td></tr></table></figure>
+
+<p>这里遇到了 OSS 官方 CLI 下载问题。前几次下载到的不是正确二进制，而是 XML 错误页或错误格式文件，导致 GitHub Actions 报错：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">syntax error near unexpected token `newline&#x27;</span><br><span class="line">gzip: stdin: not in gzip format</span><br></pre></td></tr></table></figure>
+
+<p>后来改成阿里云官方 <code>ossutil v2</code> 的正确 zip 包地址：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://gosspublic.alicdn.com/ossutil/v2/2.2.1/ossutil-2.2.1-linux-amd64.zip</span><br></pre></td></tr></table></figure>
+
+<p>并用官方 CLI 上传，最终 Studio 部署流程跑通。</p>
+<h3 id="2-Provider-容器路线探索"><a href="#2-Provider-容器路线探索" class="headerlink" title="2. Provider 容器路线探索"></a>2. Provider 容器路线探索</h3><p>接着处理 <code>provider</code>。先补了一个最小 FastAPI 服务：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GET /</span><br><span class="line">GET /health</span><br></pre></td></tr></table></figure>
+
+<p>并写了 Dockerfile，准备走：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Docker image -&gt; ACR -&gt; FC custom-container</span><br></pre></td></tr></table></figure>
+
+<p>最开始镜像推到了个人版 ACR：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crpi-uorshhk4a32pmmio.cn-hangzhou.personal.cr.aliyuncs.com/quanttide/qtcloud-asset-provider</span><br></pre></td></tr></table></figure>
+
+<p>GitHub Actions 能推送成功，但 Terraform 创建 FC 函数失败：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Image not stored in ACR is not supported yet</span><br><span class="line">Image and function must be in the same region</span><br></pre></td></tr></table></figure>
+
+<p>之后尝试过：</p>
+<ol>
+<li>FC v2。</li>
+<li>FC v3。</li>
+<li>关闭镜像加速。</li>
+<li>配置 <code>acr_instance_id</code>。</li>
+<li>改用 <code>registry.cn-hangzhou.aliyuncs.com</code>。</li>
+<li>手动在 FC 控制台创建函数。</li>
+</ol>
+<p>最后确认：FC 控制台也不接受这个 <code>crpi</code> 镜像地址，报 <code>InvalidImageFormat</code>。所以问题不是 Terraform 写错，而是 FC 当前不认这个新版个人版 ACR 域名。</p>
+<p>标准 ACR 地址理论上更适合 FC：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">registry.cn-hangzhou.aliyuncs.com/quanttide/qtcloud-asset-provider</span><br></pre></td></tr></table></figure>
+
+<p>但 GitHub Actions 登录时报：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">403 Forbidden</span><br></pre></td></tr></table></figure>
+
+<p>说明当前 registry 账号密码不能登录这个标准地址。企业版 ACR 可以解决，但会产生费用，所以今天没有继续走企业版路线。</p>
+<h3 id="3-改为-FC-代码包部署"><a href="#3-改为-FC-代码包部署" class="headerlink" title="3. 改为 FC 代码包部署"></a>3. 改为 FC 代码包部署</h3><p>最后把方案调整为：不用容器镜像，改用 FC 代码包部署。这仍然是 FaaS，但绕开 ACR：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">GitHub Actions 在 Ubuntu 上安装 provider 依赖</span><br><span class="line">打包 FastAPI 代码为 zip</span><br><span class="line">上传 zip 到 OSS</span><br><span class="line">Terraform 用 custom.debian12 创建 FC 函数</span><br><span class="line">启动命令 uvicorn</span><br><span class="line">端口 9000</span><br><span class="line">健康检查 /health</span><br></pre></td></tr></table></figure>
+
+<p>这部分已经提交了一版基础改造：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fix: deploy asset provider as fc package</span><br></pre></td></tr></table></figure>
+
+<p>不过最后一轮 workflow 还没有完全跑通。当前还有一个待处理的小改动：把打包命令从系统 <code>zip</code> 改成 Python 自带 <code>zipfile</code>，减少 GitHub Actions 环境依赖。</p>
+<h2 id="五、今天学到的东西"><a href="#五、今天学到的东西" class="headerlink" title="五、今天学到的东西"></a>五、今天学到的东西</h2><p>今天最重要的是把三类部署方式区分清楚了：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">静态前端：Flutter Web -&gt; OSS</span><br><span class="line">服务端容器：Docker -&gt; ACR -&gt; FC custom-container</span><br><span class="line">服务端代码包：Python/FastAPI -&gt; zip -&gt; OSS -&gt; FC custom runtime</span><br></pre></td></tr></table></figure>
+
+<p><code>qtadmin</code>、<code>qtconsult studio</code>、<code>qtcloud-asset studio</code> 都属于第一类，所以 OSS 很合适。</p>
+<p><code>qtcloud-asset provider</code> 是服务端，不能简单当成静态站点上传 OSS。老板说 FaaS，所以应该用 FC。但 FC custom-container 又引入 ACR 镜像兼容问题。今天证明了新版个人版 <code>crpi</code> 域名目前在这个场景不顺，所以改走代码包部署更省钱、更现实。</p>
+<p>另一个经验是：遇到云产品集成问题时，要区分三类错误：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 代码错误：服务本身不能启动</span><br><span class="line">2. CI/CD 错误：构建、上传、登录失败</span><br><span class="line">3. 云产品约束：控制台和 API 都不接受某种资源组合</span><br></pre></td></tr></table></figure>
+
+<p>今天 <code>provider</code> 容器部署的问题最终属于第三类，不是简单改代码能解决的。</p>
+<h2 id="六、下次继续做什么"><a href="#六、下次继续做什么" class="headerlink" title="六、下次继续做什么"></a>六、下次继续做什么</h2><p>下次建议从这里继续：</p>
+<ol>
+<li>提交 provider workflow 的 <code>zipfile</code> 修正。</li>
+<li>推送后观察 <code>Deploy Provider Package</code> workflow。</li>
+<li>如果失败，查看 GitHub Actions 具体红色日志。</li>
+<li>workflow 成功上传 zip 到 OSS 后，运行 <code>terraform apply</code>。</li>
+<li>创建 FC custom runtime provider 函数。</li>
+<li>测试 <code>/health</code> 和 <code>/</code>。</li>
+<li>把最终 provider 公网地址写入 README 或部署文档。</li>
+</ol>
+<h2 id="当前状态"><a href="#当前状态" class="headerlink" title="当前状态"></a>当前状态</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">qtadmin：已部署</span><br><span class="line">qtconsult：已联调并发布 provider/v0.1.0、studio/v0.1.0、v0.1.0</span><br><span class="line">qtcloud-asset studio：OSS 流程已跑通</span><br><span class="line">qtcloud-asset provider：容器路线已确认受 ACR/FC 限制，正在切换为 FC 代码包部署</span><br></pre></td></tr></table></figure>
+
+<p>今天的结论是：前端部署流程已经比较稳定，服务端 FaaS 部署的关键不在代码，而在云产品的镜像和运行时约束。后续继续把 provider 的代码包部署跑通，就能避开 ACR 企业版成本，同时满足“服务端用 FaaS”的要求。</p>
+
+      </div>
+      <div class="article-collapsed-mask"></div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
+    </div>
+    
+    <footer class="article-footer">
+      <a data-url="https://raojiacui.github.io/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/" data-id="cmr07f5ht001uzc3g74mse6j4" data-title="今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
 
     </footer>
   </div>
@@ -941,172 +1270,11 @@
     </div>
     
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/08/Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmq1xn5fn0004o83ggeumam73" data-title="Hexo博客部署到GitHub Pages流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/08/Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmr07f5hu001vzc3ggdcb64on" data-title="Hexo博客部署到GitHub Pages流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-今日总结-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-部署与发版" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/" class="article-date">
-  <time class="dt-published" datetime="2026-05-07T16:00:00.000Z" itemprop="datePublished">2026-05-08</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/">今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版</a>
-    </h1>
-  
-
-      </header>
-    
-    
-    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
-      <div class="article-collapsed-preview">
-        <h1 id="今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索"><a href="#今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索" class="headerlink" title="今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索"></a>今日总结：从 QtAdmin 部署，到 QtConsult 发版，再到 QtCloud Asset FaaS 部署探索</h1><p>今天主要做了三条线的事情：</p>
-<ol>
-<li>部署 <code>qtadmin</code> 到阿里云 OSS。</li>
-<li>联调 <code>qtconsult</code> 前后端并发布三个版本。</li>
-<li>部署 <code>qtcloud-asset</code>，重点探索 <code>provider</code> 服务端上 FaaS。</li>
-</ol>
-<h2 id="一、QtAdmin-部署到阿里云"><a href="#一、QtAdmin-部署到阿里云" class="headerlink" title="一、QtAdmin 部署到阿里云"></a>一、QtAdmin 部署到阿里云</h2><p>一开始先克隆了 <code>qtadmin</code> 仓库，然后参考昨天 <code>qtconsult</code> 的 Terraform + GitHub Actions 流程，把 <code>qtadmin</code> 的 Studio 前端部署到阿里云 OSS。</p>
-<p>整体流程是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Flutter Web build -&gt; OSS bucket -&gt; DNS CNAME -&gt; GitHub Actions 自动部署</span><br></pre></td></tr></table></figure>
-
-<p>部署过程中遇到过 Flutter Web build 失败的问题。后面修复了构建相关配置，让 GitHub Actions 可以成功构建并上传到 OSS。最终 <code>qtadmin</code> 的 OSS 静态站点部署跑通，域名绑定也完成了。</p>
-<p>这部分学到的是：<code>qtadmin</code> 和 <code>qtconsult studio</code> 这类前端应用，只要本质是 Flutter Web 静态资源，就适合走 OSS。GitHub 仓库有变更后，只要 workflow 配好，push 到指定分支就会自动构建并同步到阿里云 OSS。</p>
-<h2 id="二、QtConsult-前后端联调与版本发布"><a href="#二、QtConsult-前后端联调与版本发布" class="headerlink" title="二、QtConsult 前后端联调与版本发布"></a>二、QtConsult 前后端联调与版本发布</h2><p>老板给的方向是：<code>qtconsult-provider -&gt; qtconsult-archive</code>，并且提到了 <code>docs/dev/storage.md</code> 里的归档机制。核心目标不是单纯发版，而是通过前后端联调理解系统架构，把 provider、studio 和整体应用串起来。</p>
-<p>今天在 <code>qtconsult</code> 里完成了这些事情：</p>
-<ol>
-<li>适配 provider 的 S3/OSS 风格存储配置。</li>
-<li>补 provider 测试。</li>
-<li>让 studio 通过 <code>ProviderService</code> 访问 provider。</li>
-<li>修复 Web 端缓存兼容问题。</li>
-<li>增加 fixture fallback，保证前端在 provider 不可用时也能有可展示数据。</li>
-<li>修复 OSS2 相关 Studio 部署问题。</li>
-</ol>
-<p>之后发布了三个版本：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">provider/v0.1.0</span><br><span class="line">studio/v0.1.0</span><br><span class="line">v0.1.0</span><br></pre></td></tr></table></figure>
-
-<p>对应 GitHub Releases 也创建好了，release notes 后来改成了中文说明。</p>
-<p>这部分最重要的收获是：<code>qtconsult</code> 不是一个孤立前端，也不是一个孤立 provider，而是要把应用层产品和领域层能力接起来。老板提到的看板方法，其实是在推动几个产品在工作流定义上统一：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">量潮咨询</span><br><span class="line">量潮数据</span><br><span class="line">量潮项目云</span><br></pre></td></tr></table></figure>
-
-<p>比如咨询可以被定义为：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">调研 -&gt; 分析 -&gt; 决策 -&gt; 执行</span><br></pre></td></tr></table></figure>
-
-<p>而数据、项目也有类似的 workflow 定义。GitHub Projects 比较贴合老板的工作习惯，但在复杂项目结构组织上不好用，所以后续产品要吸收它的优点，同时解决它的不足。</p>
-<h2 id="三、GitHub-Token-与权限问题"><a href="#三、GitHub-Token-与权限问题" class="headerlink" title="三、GitHub Token 与权限问题"></a>三、GitHub Token 与权限问题</h2><p>中间遇到了 GitHub 登录失败的问题。一开始怀疑是网络问题，后来改用 token。token 用完后，我也意识到：一旦把 GitHub PAT 贴到对话里，就应该立刻删除或 revoke。</p>
-<p>后续更好的做法是：</p>
-<ol>
-<li>尽量用 <code>gh auth login</code> 在本机授权。</li>
-<li>或者用 GitHub Secrets。</li>
-<li>不要在聊天窗口直接长期暴露 PAT。</li>
-</ol>
-<h2 id="四、QtCloud-Asset-部署"><a href="#四、QtCloud-Asset-部署" class="headerlink" title="四、QtCloud Asset 部署"></a>四、QtCloud Asset 部署</h2><p>老板说服务端用 FaaS 部署，所以先判断了 <code>qtcloud-asset</code> 的结构：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src/studio   -&gt; 前端静态站点，部署到 OSS</span><br><span class="line">src/provider -&gt; 服务端 API，部署到 Function Compute</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-Studio-部署到-OSS"><a href="#1-Studio-部署到-OSS" class="headerlink" title="1. Studio 部署到 OSS"></a>1. Studio 部署到 OSS</h3><p><code>studio</code> 先沿用 OSS 流程。创建和使用的资源包括：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bucket: qtcloud-asset-studio</span><br><span class="line">domain: asset.quanttide.com</span><br></pre></td></tr></table></figure>
-
-<p>这里遇到了 OSS 官方 CLI 下载问题。前几次下载到的不是正确二进制，而是 XML 错误页或错误格式文件，导致 GitHub Actions 报错：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">syntax error near unexpected token `newline&#x27;</span><br><span class="line">gzip: stdin: not in gzip format</span><br></pre></td></tr></table></figure>
-
-<p>后来改成阿里云官方 <code>ossutil v2</code> 的正确 zip 包地址：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://gosspublic.alicdn.com/ossutil/v2/2.2.1/ossutil-2.2.1-linux-amd64.zip</span><br></pre></td></tr></table></figure>
-
-<p>并用官方 CLI 上传，最终 Studio 部署流程跑通。</p>
-<h3 id="2-Provider-容器路线探索"><a href="#2-Provider-容器路线探索" class="headerlink" title="2. Provider 容器路线探索"></a>2. Provider 容器路线探索</h3><p>接着处理 <code>provider</code>。先补了一个最小 FastAPI 服务：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GET /</span><br><span class="line">GET /health</span><br></pre></td></tr></table></figure>
-
-<p>并写了 Dockerfile，准备走：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Docker image -&gt; ACR -&gt; FC custom-container</span><br></pre></td></tr></table></figure>
-
-<p>最开始镜像推到了个人版 ACR：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crpi-uorshhk4a32pmmio.cn-hangzhou.personal.cr.aliyuncs.com/quanttide/qtcloud-asset-provider</span><br></pre></td></tr></table></figure>
-
-<p>GitHub Actions 能推送成功，但 Terraform 创建 FC 函数失败：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Image not stored in ACR is not supported yet</span><br><span class="line">Image and function must be in the same region</span><br></pre></td></tr></table></figure>
-
-<p>之后尝试过：</p>
-<ol>
-<li>FC v2。</li>
-<li>FC v3。</li>
-<li>关闭镜像加速。</li>
-<li>配置 <code>acr_instance_id</code>。</li>
-<li>改用 <code>registry.cn-hangzhou.aliyuncs.com</code>。</li>
-<li>手动在 FC 控制台创建函数。</li>
-</ol>
-<p>最后确认：FC 控制台也不接受这个 <code>crpi</code> 镜像地址，报 <code>InvalidImageFormat</code>。所以问题不是 Terraform 写错，而是 FC 当前不认这个新版个人版 ACR 域名。</p>
-<p>标准 ACR 地址理论上更适合 FC：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">registry.cn-hangzhou.aliyuncs.com/quanttide/qtcloud-asset-provider</span><br></pre></td></tr></table></figure>
-
-<p>但 GitHub Actions 登录时报：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">403 Forbidden</span><br></pre></td></tr></table></figure>
-
-<p>说明当前 registry 账号密码不能登录这个标准地址。企业版 ACR 可以解决，但会产生费用，所以今天没有继续走企业版路线。</p>
-<h3 id="3-改为-FC-代码包部署"><a href="#3-改为-FC-代码包部署" class="headerlink" title="3. 改为 FC 代码包部署"></a>3. 改为 FC 代码包部署</h3><p>最后把方案调整为：不用容器镜像，改用 FC 代码包部署。这仍然是 FaaS，但绕开 ACR：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">GitHub Actions 在 Ubuntu 上安装 provider 依赖</span><br><span class="line">打包 FastAPI 代码为 zip</span><br><span class="line">上传 zip 到 OSS</span><br><span class="line">Terraform 用 custom.debian12 创建 FC 函数</span><br><span class="line">启动命令 uvicorn</span><br><span class="line">端口 9000</span><br><span class="line">健康检查 /health</span><br></pre></td></tr></table></figure>
-
-<p>这部分已经提交了一版基础改造：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fix: deploy asset provider as fc package</span><br></pre></td></tr></table></figure>
-
-<p>不过最后一轮 workflow 还没有完全跑通。当前还有一个待处理的小改动：把打包命令从系统 <code>zip</code> 改成 Python 自带 <code>zipfile</code>，减少 GitHub Actions 环境依赖。</p>
-<h2 id="五、今天学到的东西"><a href="#五、今天学到的东西" class="headerlink" title="五、今天学到的东西"></a>五、今天学到的东西</h2><p>今天最重要的是把三类部署方式区分清楚了：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">静态前端：Flutter Web -&gt; OSS</span><br><span class="line">服务端容器：Docker -&gt; ACR -&gt; FC custom-container</span><br><span class="line">服务端代码包：Python/FastAPI -&gt; zip -&gt; OSS -&gt; FC custom runtime</span><br></pre></td></tr></table></figure>
-
-<p><code>qtadmin</code>、<code>qtconsult studio</code>、<code>qtcloud-asset studio</code> 都属于第一类，所以 OSS 很合适。</p>
-<p><code>qtcloud-asset provider</code> 是服务端，不能简单当成静态站点上传 OSS。老板说 FaaS，所以应该用 FC。但 FC custom-container 又引入 ACR 镜像兼容问题。今天证明了新版个人版 <code>crpi</code> 域名目前在这个场景不顺，所以改走代码包部署更省钱、更现实。</p>
-<p>另一个经验是：遇到云产品集成问题时，要区分三类错误：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 代码错误：服务本身不能启动</span><br><span class="line">2. CI/CD 错误：构建、上传、登录失败</span><br><span class="line">3. 云产品约束：控制台和 API 都不接受某种资源组合</span><br></pre></td></tr></table></figure>
-
-<p>今天 <code>provider</code> 容器部署的问题最终属于第三类，不是简单改代码能解决的。</p>
-<h2 id="六、下次继续做什么"><a href="#六、下次继续做什么" class="headerlink" title="六、下次继续做什么"></a>六、下次继续做什么</h2><p>下次建议从这里继续：</p>
-<ol>
-<li>提交 provider workflow 的 <code>zipfile</code> 修正。</li>
-<li>推送后观察 <code>Deploy Provider Package</code> workflow。</li>
-<li>如果失败，查看 GitHub Actions 具体红色日志。</li>
-<li>workflow 成功上传 zip 到 OSS 后，运行 <code>terraform apply</code>。</li>
-<li>创建 FC custom runtime provider 函数。</li>
-<li>测试 <code>/health</code> 和 <code>/</code>。</li>
-<li>把最终 provider 公网地址写入 README 或部署文档。</li>
-</ol>
-<h2 id="当前状态"><a href="#当前状态" class="headerlink" title="当前状态"></a>当前状态</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">qtadmin：已部署</span><br><span class="line">qtconsult：已联调并发布 provider/v0.1.0、studio/v0.1.0、v0.1.0</span><br><span class="line">qtcloud-asset studio：OSS 流程已跑通</span><br><span class="line">qtcloud-asset provider：容器路线已确认受 ACR/FC 限制，正在切换为 FC 代码包部署</span><br></pre></td></tr></table></figure>
-
-<p>今天的结论是：前端部署流程已经比较稳定，服务端 FaaS 部署的关键不在代码，而在云产品的镜像和运行时约束。后续继续把 provider 的代码包部署跑通，就能避开 ACR 企业版成本，同时满足“服务端用 FaaS”的要求。</p>
-
-      </div>
-      <div class="article-collapsed-mask"></div>
-      <div class="article-expand-btn" onclick="toggleArticle(this)">
-        <span class="expand-icon">▾</span> 阅读全文
-      </div>
-    </div>
-    
-    <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/" data-id="cmq1xn5g9001eo83ggewa3u5a" data-title="今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版" class="article-share-link"><span class="fa fa-share">分享</span></a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
 
     </footer>
   </div>
@@ -1324,7 +1492,7 @@
     </div>
     
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/07/QtConsult%E9%83%A8%E7%BD%B2%E5%88%B0%E9%98%BF%E9%87%8C%E4%BA%91OSS%E5%85%A8%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmq1xn5fe0000o83g2mvghcrt" data-title="QtConsult部署到阿里云OSS全流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/07/QtConsult%E9%83%A8%E7%BD%B2%E5%88%B0%E9%98%BF%E9%87%8C%E4%BA%91OSS%E5%85%A8%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/" data-id="cmr07f5g90001zc3g06pee2wq" data-title="QtConsult部署到阿里云OSS全流程教程" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -1400,7 +1568,7 @@
     </div>
     
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/05/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-05-%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E4%BF%AE%E5%A4%8D/" data-id="cmq1xn5fo0005o83g96u49g7j" data-title="今日总结-2026-05-05-博客部署问题修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/05/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-05-%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E4%BF%AE%E5%A4%8D/" data-id="cmr07f5go0005zc3g71ne3gq9" data-title="今日总结-2026-05-05-博客部署问题修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -1492,7 +1660,7 @@
     </div>
     
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/05/04/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-04-%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92%E9%A2%98%E7%9B%AE%E8%AE%BE%E8%AE%A1-%E5%8D%9A%E5%AE%A2AccessKey%E4%BF%AE%E5%A4%8D/" data-id="cmq1xn5g40018o83gbefq7rtx" data-title="今日总结-2026-05-04-进阶规划题目设计-博客AccessKey修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/05/04/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-04-%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92%E9%A2%98%E7%9B%AE%E8%AE%BE%E8%AE%A1-%E5%8D%9A%E5%AE%A2AccessKey%E4%BF%AE%E5%A4%8D/" data-id="cmr07f5gh0004zc3gahwu5c8b" data-title="今日总结-2026-05-04-进阶规划题目设计-博客AccessKey修复" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -1506,136 +1674,12 @@
 
 
   
-    <article id="post-今日总结-2026-04-23-议事档案标本契约v0.0.3-术语统一" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2026/04/23/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-04-23-%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6v0.0.3-%E6%9C%AF%E8%AF%AD%E7%BB%9F%E4%B8%80/" class="article-date">
-  <time class="dt-published" datetime="2026-04-22T16:00:00.000Z" itemprop="datePublished">2026-04-23</time>
-</a>
+
+
+  <nav id="page-nav">
     
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95/">开发记录</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2026/04/23/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-04-23-%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6v0.0.3-%E6%9C%AF%E8%AF%AD%E7%BB%9F%E4%B8%80/">今日总结-2026-04-23-议事档案标本契约v0.0.3-术语统一</a>
-    </h1>
-  
-
-      </header>
-    
-    
-    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
-      <div class="article-collapsed-preview">
-        <h1 id="今日总结：议事档案标本契约-v0-0-3-与术语统一"><a href="#今日总结：议事档案标本契约-v0-0-3-与术语统一" class="headerlink" title="今日总结：议事档案标本契约 v0.0.3 与术语统一"></a>今日总结：议事档案标本契约 v0.0.3 与术语统一</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-标本契约-v0-0-3"><a href="#1-标本契约-v0-0-3" class="headerlink" title="1. 标本契约 v0.0.3"></a>1. 标本契约 v0.0.3</h3><ul>
-<li>议事档案标本契约已提交到仓库</li>
-<li>commit: <code>443ed05</code></li>
-<li>路径: <code>examples/feishu-wiki/contracts/议事档案-specimen.yaml</code></li>
-</ul>
-<h3 id="2-术语统一：lifecycle-→-workflow"><a href="#2-术语统一：lifecycle-→-workflow" class="headerlink" title="2. 术语统一：lifecycle → workflow"></a>2. 术语统一：lifecycle → workflow</h3><ul>
-<li><strong>lifecycle</strong>: 资产自己的生命周期（被动的）</li>
-<li><strong>workflow</strong>: 能力编排的流程（主动的、高内聚的）</li>
-</ul>
-<h3 id="3-架构理念：资产即服务-Asset-as-a-Service"><a href="#3-架构理念：资产即服务-Asset-as-a-Service" class="headerlink" title="3. 架构理念：资产即服务 (Asset as a Service)"></a>3. 架构理念：资产即服务 (Asset as a Service)</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">资产不是&quot;东西&quot;，是&quot;服务&quot;</span><br><span class="line">├── 它暴露什么能力？  → skills</span><br><span class="line">└── 这些能力怎么触发？→ workflow（状态+顺序）</span><br></pre></td></tr></table></figure>
-
-<h3 id="4-标本验证"><a href="#4-标本验证" class="headerlink" title="4. 标本验证"></a>4. 标本验证</h3><ul>
-<li>从实际文档提炼结构（议事规则、决策、复盘研讨各一个样本）</li>
-<li>用标本验证实际文档，发现建模漏洞：<ul>
-<li>元数据区、个人心得等字段已补充到标本</li>
-<li>辩论区在实际中不运转，已移除</li>
-<li>决议区改为可选</li>
-</ul>
-</li>
-</ul>
-<h3 id="5-确认文档"><a href="#5-确认文档" class="headerlink" title="5. 确认文档"></a>5. 确认文档</h3><ul>
-<li>议事档案标本说明.md 已提交</li>
-<li>发给 @黄梓姗 @朱彦真 确认业务细节</li>
-</ul>
-<h3 id="6-scanner-py-miner-py"><a href="#6-scanner-py-miner-py" class="headerlink" title="6. scanner.py + miner.py"></a>6. scanner.py + miner.py</h3><ul>
-<li>扫描器和挖掘器写好了</li>
-<li>暂未提交，待后续完善</li>
-<li>路径: <code>examples/feishu-wiki/app/</code></li>
-</ul>
-<h3 id="7-QtCloud-开发架构师-Skill"><a href="#7-QtCloud-开发架构师-Skill" class="headerlink" title="7. QtCloud 开发架构师 Skill"></a>7. QtCloud 开发架构师 Skill</h3><ul>
-<li>创建了 <code>qtcloud-developer-architect</code> skill</li>
-<li>用于跟进项目进度和状态追踪</li>
-</ul>
-<hr>
-<h2 id="开发阶段"><a href="#开发阶段" class="headerlink" title="开发阶段"></a>开发阶段</h2><table>
-<thead>
-<tr>
-<th>阶段</th>
-<th>状态</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1. 标本契约设计</td>
-<td>✅ DONE</td>
-</tr>
-<tr>
-<td>2. 标本验证（团队确认）</td>
-<td>🔄 进行中</td>
-</tr>
-<tr>
-<td>3. scanner.py + miner.py</td>
-<td>⏳ 待做</td>
-</tr>
-<tr>
-<td>4. 重写 src/cli</td>
-<td>⏳ 待做</td>
-</tr>
-<tr>
-<td>5. 集成到 src</td>
-<td>⏳ 待做</td>
-</tr>
-<tr>
-<td>6. 平台化开发</td>
-<td>⏳ 待做</td>
-</tr>
-</tbody></table>
-<hr>
-<h2 id="明日计划"><a href="#明日计划" class="headerlink" title="明日计划"></a>明日计划</h2><ol>
-<li>完善 scanner.py + miner.py</li>
-<li>重写 src/cli 代码</li>
-<li>集成到 src</li>
-</ol>
-<hr>
-<h2 id="仓库信息"><a href="#仓库信息" class="headerlink" title="仓库信息"></a>仓库信息</h2><ul>
-<li>QtCloud Asset: <a target="_blank" rel="noopener" href="https://github.com/quanttide/qtcloud-asset">https://github.com/quanttide/qtcloud-asset</a></li>
-<li>本地路径: <code>C:\Users\雨下雨停\q-tech\apps\qtcloud-asset</code></li>
-</ul>
-<hr>
-<p><em>由 qtcloud-developer-architect skill 生成</em></p>
-
-      </div>
-      <div class="article-collapsed-mask"></div>
-      <div class="article-expand-btn" onclick="toggleArticle(this)">
-        <span class="expand-icon">▾</span> 阅读全文
-      </div>
-    </div>
-    
-    <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/04/23/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-04-23-%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6v0.0.3-%E6%9C%AF%E8%AF%AD%E7%BB%9F%E4%B8%80/" data-id="cmq1xn5fi0001o83gg9n7000p" data-title="今日总结-2026-04-23-议事档案标本契约v0.0.3-术语统一" class="article-share-link"><span class="fa fa-share">分享</span></a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">下一页 &raquo;</a>
+  </nav>
 
 </section>
         
@@ -1655,7 +1699,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-NPC/" rel="tag">AI NPC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DeepSeek/" rel="tag">DeepSeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/H5%E6%B8%B8%E6%88%8F/" rel="tag">H5游戏</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Prompt-Lens/" rel="tag">Prompt Lens</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Serverless/" rel="tag">Serverless</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TalentsAI/" rel="tag">TalentsAI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel/" rel="tag">Vercel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel-Blob/" rel="tag">Vercel Blob</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" rel="tag">大文件上传</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" rel="tag">进阶规划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-NPC/" rel="tag">AI NPC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cookie/" rel="tag">Cookie</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DeepSeek/" rel="tag">DeepSeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Drizzle/" rel="tag">Drizzle</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/H5-%E6%B8%B8%E6%88%8F/" rel="tag">H5 游戏</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Prompt-Lens/" rel="tag">Prompt Lens</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Serverless/" rel="tag">Serverless</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TalentsAI/" rel="tag">TalentsAI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel/" rel="tag">Vercel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel-Blob/" rel="tag">Vercel Blob</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/i18n/" rel="tag">i18n</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/next-intl/" rel="tag">next-intl</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" rel="tag">大文件上传</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" rel="tag">进阶规划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
     </div>
   </div>
 
@@ -1665,7 +1709,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签云</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AI-NPC/" style="font-size: 10px;">AI NPC</a> <a href="/tags/DeepSeek/" style="font-size: 10px;">DeepSeek</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Function-Compute/" style="font-size: 15px;">Function Compute</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/GitHub-Actions/" style="font-size: 17.5px;">GitHub Actions</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/H5%E6%B8%B8%E6%88%8F/" style="font-size: 10px;">H5游戏</a> <a href="/tags/Hexo/" style="font-size: 12.5px;">Hexo</a> <a href="/tags/Kubernetes/" style="font-size: 10px;">Kubernetes</a> <a href="/tags/Next-js/" style="font-size: 10px;">Next.js</a> <a href="/tags/OSS/" style="font-size: 12.5px;">OSS</a> <a href="/tags/Prompt-Lens/" style="font-size: 10px;">Prompt Lens</a> <a href="/tags/QtAdmin/" style="font-size: 10px;">QtAdmin</a> <a href="/tags/QtCloud/" style="font-size: 10px;">QtCloud</a> <a href="/tags/QtCloud-Asset/" style="font-size: 15px;">QtCloud Asset</a> <a href="/tags/QtConsult/" style="font-size: 12.5px;">QtConsult</a> <a href="/tags/Serverless/" style="font-size: 10px;">Serverless</a> <a href="/tags/TalentsAI/" style="font-size: 10px;">TalentsAI</a> <a href="/tags/Vercel/" style="font-size: 12.5px;">Vercel</a> <a href="/tags/Vercel-Blob/" style="font-size: 10px;">Vercel Blob</a> <a href="/tags/workflow/" style="font-size: 10px;">workflow</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 12.5px;">博客</a> <a href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" style="font-size: 10px;">大文件上传</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 20px;">工作总结</a> <a href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" style="font-size: 10px;">数字资产</a> <a href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" style="font-size: 10px;">标本契约</a> <a href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" style="font-size: 10px;">议事档案</a> <a href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" style="font-size: 10px;">进阶规划</a> <a href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" style="font-size: 10px;">部署教程</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 17.5px;">阿里云</a>
+      <a href="/tags/AI-NPC/" style="font-size: 10px;">AI NPC</a> <a href="/tags/Cookie/" style="font-size: 10px;">Cookie</a> <a href="/tags/DeepSeek/" style="font-size: 10px;">DeepSeek</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Drizzle/" style="font-size: 10px;">Drizzle</a> <a href="/tags/Function-Compute/" style="font-size: 15px;">Function Compute</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/GitHub-Actions/" style="font-size: 17.5px;">GitHub Actions</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/H5-%E6%B8%B8%E6%88%8F/" style="font-size: 10px;">H5 游戏</a> <a href="/tags/Hexo/" style="font-size: 12.5px;">Hexo</a> <a href="/tags/Kubernetes/" style="font-size: 10px;">Kubernetes</a> <a href="/tags/Next-js/" style="font-size: 12.5px;">Next.js</a> <a href="/tags/OSS/" style="font-size: 12.5px;">OSS</a> <a href="/tags/Prompt-Lens/" style="font-size: 12.5px;">Prompt Lens</a> <a href="/tags/QtAdmin/" style="font-size: 10px;">QtAdmin</a> <a href="/tags/QtCloud/" style="font-size: 10px;">QtCloud</a> <a href="/tags/QtCloud-Asset/" style="font-size: 15px;">QtCloud Asset</a> <a href="/tags/QtConsult/" style="font-size: 12.5px;">QtConsult</a> <a href="/tags/Serverless/" style="font-size: 10px;">Serverless</a> <a href="/tags/TalentsAI/" style="font-size: 10px;">TalentsAI</a> <a href="/tags/Vercel/" style="font-size: 12.5px;">Vercel</a> <a href="/tags/Vercel-Blob/" style="font-size: 10px;">Vercel Blob</a> <a href="/tags/i18n/" style="font-size: 10px;">i18n</a> <a href="/tags/next-intl/" style="font-size: 10px;">next-intl</a> <a href="/tags/workflow/" style="font-size: 10px;">workflow</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 10px;">前端</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 12.5px;">博客</a> <a href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" style="font-size: 10px;">大文件上传</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 20px;">工作总结</a> <a href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" style="font-size: 10px;">数字资产</a> <a href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" style="font-size: 10px;">标本契约</a> <a href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" style="font-size: 10px;">议事档案</a> <a href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" style="font-size: 10px;">进阶规划</a> <a href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" style="font-size: 10px;">部署教程</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 17.5px;">阿里云</a>
     </div>
   </div>
 
@@ -1687,11 +1731,15 @@
       <ul>
         
           <li>
+            <a href="/2026/06/30/2026-06-30-Next.js-cookie-i18n-%E8%B8%A9%E5%9D%91%E5%AE%9E%E5%BD%95/">2026-06-30-Next.js 纯 Cookie 模式 i18n 实战与踩坑实录</a>
+          </li>
+        
+          <li>
             <a href="/2026/06/12/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-06-12-Vercel%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0413%E4%B8%8EBlob%E7%9B%B4%E4%BC%A0%E4%BF%AE%E5%A4%8D/">今日总结-2026-06-12-Vercel 大文件上传 413 与 Blob 直传修复</a>
           </li>
         
           <li>
-            <a href="/2026/05/31/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-31-%E7%AC%AC139%E6%AC%A1%E5%B4%A9%E5%A1%8C-AI-NPC%E6%8E%A5%E5%8F%A3%E4%BF%AE%E5%A4%8D/">今日总结-2026-05-31-第139次崩塌-AI-NPC接口修复</a>
+            <a href="/2026/05/31/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-31-%E7%AC%AC139%E6%AC%A1%E5%B4%A9%E5%A1%8C-AI-NPC%E6%8E%A5%E5%8F%A3%E4%BF%AE%E5%A4%8D/">今日总结-2026-05-31-第139次崩塌 AI NPC 接口修复</a>
           </li>
         
           <li>
@@ -1700,10 +1748,6 @@
         
           <li>
             <a href="/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/">今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通</a>
-          </li>
-        
-          <li>
-            <a href="/2026/05/08/Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/">Hexo博客部署到GitHub Pages流程教程</a>
           </li>
         
       </ul>
