@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://raojiacui.github.io/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/</loc>
+    
+    <lastmod>2026-07-11</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://raojiacui.github.io/2026/07/11/2026-07-11-Win7%E8%99%9A%E6%8B%9F%E6%9C%BAPython3810-HeroBuddy%E9%85%8D%E7%BD%AE%E5%AE%9E%E5%BD%95/</loc>
     
     <lastmod>2026-07-11</lastmod>
@@ -386,6 +395,41 @@
   
   <url>
     <loc>https://raojiacui.github.io/tags/VirtualBox/</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://raojiacui.github.io/tags/AI%E8%A7%86%E9%A2%91/</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://raojiacui.github.io/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://raojiacui.github.io/tags/ReactFlow/</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://raojiacui.github.io/tags/Veo/</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://raojiacui.github.io/tags/D1/</loc>
     <lastmod>2026-07-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
