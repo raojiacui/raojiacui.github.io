@@ -48,10 +48,13 @@ npm run deploy
 
 ## 分支约定
 
-- `source`：唯一的源码分支，后续写文章只提交这里。
-- `gh-pages`：唯一的静态站点发布分支，由 GitHub Actions 或 `npm run deploy` 生成。
-- `main`：旧的手动 Hexo 静态部署分支，后续不再使用。
-- `master`：旧的源码/历史分支，后续不再使用。
-- `main-backup`：历史备份分支，后续不再使用。
+- `source`：唯一的源码分支，也是 GitHub 默认分支。后续写文章只提交这里。
+- `gh-pages`：唯一的静态站点发布分支，也是 GitHub Pages 发布源。
 
-不要直接在 `gh-pages` 上手改文件，因为下次部署会覆盖它。
+历史上的 `main`、`master`、`main-backup` 已清理。不要直接在 `gh-pages` 上手改文件，因为下次部署会覆盖它。
+
+## 主题定制
+
+线上构建会先克隆官方 `hexo-theme-landscape`，再把 `theme-overrides/landscape/` 覆盖进去。文章首页折叠效果就放在这里。
+
+不要直接提交 `themes/landscape/`。它是本地构建/预览用的主题目录，里面可能带有嵌套 Git 仓库，已经在 `.gitignore` 中忽略。

@@ -29,8 +29,10 @@ jobs:
 
       - name: Setup theme
         run: |
+          rm -rf themes/landscape
           mkdir -p themes
           git clone --depth 1 https://github.com/hexojs/hexo-theme-landscape.git themes/landscape
+          cp -R theme-overrides/landscape/. themes/landscape/
 
       - name: Build
         run: npm run build

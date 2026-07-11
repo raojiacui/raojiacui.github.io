@@ -6,3 +6,5 @@ public/
 .deploy_git_bak/
 node_modules/
 .omc/
+themes/
+debug.log
