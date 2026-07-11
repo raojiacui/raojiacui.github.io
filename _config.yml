@@ -89,5 +89,6 @@ theme: landscape
 deploy:
   type: git
   repo: https://github.com/raojiacui/raojiacui.github.io.git
-  branch: main
-  message: "Site updated: YYYY-MM-DD HH:mm:ss"
+  # Keep manual hexo deploy aligned with the GitHub Actions target.
+  branch: gh-pages
+  message: "deploy: site update"
