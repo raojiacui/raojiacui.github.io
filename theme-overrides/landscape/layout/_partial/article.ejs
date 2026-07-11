@@ -10,7 +10,6 @@
         <%- partial('post/title', {class_name: 'p-name article-title'}) %>
       </header>
     <% } %>
-    <% if (index){ %>
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       <div class="article-collapsed-preview">
         <%- post.content %>
@@ -20,11 +19,6 @@
         <span class="expand-icon">▾</span> 阅读全文
       </div>
     </div>
-    <% } else { %>
-    <div class="e-content article-entry" itemprop="articleBody">
-      <%- post.content %>
-    </div>
-    <% } %>
     <footer class="article-footer">
       <a data-url="<%- post.permalink %>" data-id="<%= post._id %>" data-title="<%= post.title %>" class="article-share-link"><span class="fa fa-share"><%= __('share') %></span></a>
       <% if (post.comments && theme.disqus_shortname){ %>
