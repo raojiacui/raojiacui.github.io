@@ -335,3 +335,857 @@ $article-share-link
     display: none
   .article-expand-btn
     display: none
+/* Blog home redesign */
+html.blog-loading,
+html.blog-loading body
+  overflow: hidden
+
+html.blog-loading #container
+  opacity: 0
+
+html.blog-ready #container
+  opacity: 1
+
+.blog-loader
+  position: fixed
+  inset: 0
+  z-index: 9999
+  display: grid
+  place-items: center
+  opacity: 0
+  visibility: hidden
+  pointer-events: none
+  background: linear-gradient(135deg, #f7f4ec 0%, #e5f2ee 42%, #edf0fb 100%)
+
+.blog-loader:before
+  content: ""
+  position: absolute
+  inset: 0
+  opacity: 0.52
+  background: repeating-linear-gradient(90deg, rgba(31, 37, 34, 0.055) 0 1px, transparent 1px 46px), repeating-linear-gradient(0deg, rgba(31, 37, 34, 0.05) 0 1px, transparent 1px 46px)
+
+html.blog-loading .blog-loader,
+html.blog-ready .blog-loader
+  opacity: 1
+  visibility: visible
+
+html.blog-ready .blog-loader
+  animation: blogLoaderExit 360ms ease forwards
+
+.blog-loader-stack
+  position: relative
+  z-index: 1
+  display: grid
+  gap: 12px
+  justify-items: center
+  transform: translateY(-6px)
+
+.blog-loader-clapper
+  position: relative
+  width: 112px
+  height: 92px
+
+.blog-clapper-top
+  position: absolute
+  top: 2px
+  right: 0
+  left: 0
+  z-index: 4
+  display: grid
+  height: 26px
+  grid-template-columns: repeat(5, 1fr)
+  overflow: hidden
+  border: 2px solid #1f2522
+  background: #1f2522
+  transform: rotate(-17deg) translateY(-9px)
+  transform-origin: 0 100%
+  animation: blogMiniClap 860ms cubic-bezier(0.2, 0.95, 0.15, 1) forwards
+
+.blog-clapper-top span
+  border-left: 2px solid #1f2522
+  background: #fbf7ed
+  transform: skewX(-24deg) scaleX(1.25)
+
+.blog-clapper-top span:first-child
+  border-left: 0
+
+.blog-clapper-top span:nth-child(even)
+  background: #2c302d
+
+.blog-clapper-body
+  position: absolute
+  right: 0
+  bottom: 0
+  left: 0
+  height: 66px
+  padding: 28px 13px 10px 31px
+  border: 2px solid #1f2522
+  border-radius: 2px 2px 5px 5px
+  background: #313633
+
+.blog-clapper-body:before
+  content: ""
+  position: absolute
+  top: 0
+  right: 0
+  left: 20px
+  height: 18px
+  border-bottom: 2px solid #1f2522
+  background: repeating-linear-gradient(125deg, #fbf7ed 0 15px, #fbf7ed 15px 27px, #2c302d 27px 39px, #2c302d 39px 51px)
+
+.blog-clapper-body i
+  display: block
+  height: 2px
+  margin-bottom: 8px
+  background: rgba(251, 247, 237, 0.78)
+
+.blog-clapper-body i:nth-child(2)
+  width: 76%
+
+.blog-clapper-body i:nth-child(3)
+  width: 58%
+
+.blog-clapper-hinge
+  position: absolute
+  bottom: 0
+  left: 0
+  z-index: 5
+  width: 34px
+  height: 66px
+  border: 2px solid #1f2522
+  border-radius: 5px 0 0 5px
+  background: #292e2b
+  clip-path: polygon(0 0, 62% 0, 100% 32%, 100% 100%, 0 100%)
+
+.blog-clapper-hinge:before,
+.blog-clapper-hinge:after
+  content: ""
+  position: absolute
+  left: 8px
+  width: 8px
+  height: 8px
+  border: 1px solid rgba(31, 37, 34, 0.65)
+  border-radius: 50%
+  background: #fbf7ed
+
+.blog-clapper-hinge:before
+  top: 10px
+
+.blog-clapper-hinge:after
+  bottom: 10px
+
+.blog-loader-progress
+  width: 116px
+  height: 3px
+  overflow: hidden
+  background: rgba(31, 37, 34, 0.16)
+
+.blog-loader-progress span
+  display: block
+  width: 0
+  height: 100%
+  background: #1f2522
+  animation: blogLoaderProgress 920ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards
+
+body.is-blog-home
+  min-height: 100%
+  overflow-x: hidden
+  color: #132221
+  background: #eef8fa
+
+body.is-blog-home:before
+  content: ""
+  position: fixed
+  inset: 0
+  z-index: 0
+  pointer-events: none
+  background: url(images/blog-glass-bg.svg) center / cover no-repeat
+
+body.is-blog-home:after
+  content: ""
+  position: fixed
+  inset: 0
+  z-index: 0
+  pointer-events: none
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.05) 44%, rgba(25, 80, 92, 0.08)), repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 46px)
+
+body.is-blog-home #container
+  height: auto
+  min-height: 100%
+
+body.is-blog-home #wrap
+  position: relative
+  z-index: 1
+  height: auto
+  min-height: 100%
+  background: transparent
+
+body.is-blog-home #header,
+body.is-blog-home #sidebar
+  display: none
+
+body.is-blog-home .outer
+  max-width: none
+  padding: 0
+
+body.is-blog-home #main
+  float: none
+  display: block
+  width: auto
+  margin: 0
+
+body.is-blog-home #footer
+  position: relative
+  z-index: 1
+  padding: 28px 0 42px
+  border-top: 0
+  background: transparent
+  color: rgba(19, 34, 33, 0.66)
+
+body.is-blog-home #footer .outer
+  max-width: 1220px
+  margin: 0 auto
+  padding: 0 24px
+
+body.is-blog-home #footer a
+  color: #176b7a
+
+.blog-home
+  position: relative
+  z-index: 2
+  box-sizing: border-box
+  width: calc(100% - 48px)
+  max-width: 1220px
+  margin: 0 auto
+  padding: 24px 0 64px
+
+.blog-home *,
+.blog-home *:before,
+.blog-home *:after
+  box-sizing: border-box
+
+.home-shell
+  display: grid
+  grid-template-columns: 250px minmax(0, 920px)
+  gap: 22px
+  align-items: start
+  justify-content: center
+
+.home-reader-hero,
+.home-readable-article,
+.home-empty
+  border: 1px solid rgba(255, 255, 255, 0.62)
+  background: rgba(255, 255, 255, 0.14)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), inset 0 -1px 0 rgba(255, 255, 255, 0.14), 0 26px 80px rgba(31, 91, 105, 0.1)
+  backdrop-filter: blur(38px) saturate(1.58)
+  -webkit-backdrop-filter: blur(38px) saturate(1.58)
+
+.home-section-sidebar
+  position: sticky
+  top: 56px
+  margin-top: 28px
+  transform: translateX(-24px)
+  display: grid
+  gap: 20px
+  min-height: auto
+  padding: 16px
+  border-radius: 24px
+  border: 1px solid rgba(255, 255, 255, 0.68)
+  background: rgba(255, 255, 255, 0.13)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), inset 0 -1px 0 rgba(255, 255, 255, 0.12), 0 16px 46px rgba(31, 91, 105, 0.055)
+  backdrop-filter: blur(36px) saturate(1.54)
+  -webkit-backdrop-filter: blur(36px) saturate(1.54)
+
+.home-brand
+  display: inline-flex
+  align-items: center
+  gap: 12px
+  min-width: 0
+  color: #13201f
+  text-decoration: none
+
+.home-brand-mark
+  display: grid
+  flex: 0 0 44px
+  width: 44px
+  height: 44px
+  place-items: center
+  border: 1px solid rgba(255, 255, 255, 0.62)
+  border-radius: 16px
+  color: #f7fbfb
+  font-weight: 800
+  background: linear-gradient(135deg, rgba(24, 77, 88, 0.86), rgba(49, 142, 130, 0.68))
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42), 0 12px 26px rgba(16, 60, 65, 0.16)
+
+.home-brand strong,
+.home-brand small
+  display: block
+  line-height: 1.2
+
+.home-brand strong
+  font-size: 16px
+
+.home-brand small
+  margin-top: 4px
+  color: rgba(19, 32, 31, 0.58)
+  font-size: 12px
+.home-github-card
+  display: flex
+  align-items: center
+  gap: 12px
+  min-width: 0
+  padding: 10px
+  border: 1px solid rgba(255, 255, 255, 0.56)
+  border-radius: 24px
+  color: #13201f
+  text-decoration: none
+  background: rgba(255, 255, 255, 0.12)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 26px rgba(31, 91, 105, 0.045)
+  backdrop-filter: blur(26px) saturate(1.45)
+  -webkit-backdrop-filter: blur(26px) saturate(1.45)
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease
+
+.home-github-card:hover
+  transform: translateY(-2px)
+  background: rgba(255, 255, 255, 0.22)
+  border-color: rgba(255, 255, 255, 0.82)
+
+.home-github-card img
+  flex: 0 0 52px
+  width: 52px
+  height: 52px
+  border: 1px solid rgba(255, 255, 255, 0.7)
+  border-radius: 18px
+  background: rgba(255, 255, 255, 0.2)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48), 0 10px 28px rgba(31, 91, 105, 0.1)
+
+.home-github-card strong,
+.home-github-card small
+  display: block
+  line-height: 1.2
+
+.home-github-card strong
+  color: #102120
+  font-size: 18px
+
+.home-github-card small
+  margin-top: 4px
+  color: rgba(19, 32, 31, 0.58)
+  font-size: 12px
+
+.home-section-nav
+  display: grid
+  gap: 12px
+
+.home-section-tab
+  position: relative
+  display: grid
+  grid-template-columns: auto minmax(0, 1fr) auto
+  align-items: center
+  gap: 12px
+  width: 100%
+  min-height: 76px
+  overflow: hidden
+  padding: 12px
+  border: 1px solid rgba(255, 255, 255, 0.54)
+  border-radius: 24px
+  color: #13201f
+  text-align: left
+  cursor: pointer
+  background: rgba(255, 255, 255, 0.1)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.64), 0 10px 26px rgba(31, 91, 105, 0.045)
+  backdrop-filter: blur(26px) saturate(1.45)
+  -webkit-backdrop-filter: blur(26px) saturate(1.45)
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease
+
+.home-section-tab:before
+  content: ""
+  position: absolute
+  inset: 0
+  pointer-events: none
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.05) 58%, rgba(23, 107, 122, 0.06))
+
+.home-section-tab:hover,
+.home-section-tab.is-active
+  transform: translateY(-3px)
+  background: rgba(255, 255, 255, 0.2)
+  border-color: rgba(255, 255, 255, 0.82)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 14px 36px rgba(31, 91, 105, 0.07)
+
+.home-section-tab:focus-visible
+  outline: 3px solid rgba(23, 107, 122, 0.3)
+  outline-offset: 3px
+
+.section-label,
+.section-tab-copy,
+.section-meta
+  position: relative
+  z-index: 1
+
+.section-label
+  display: inline-grid
+  width: 38px
+  height: 38px
+  place-items: center
+  border: 1px solid rgba(255, 255, 255, 0.5)
+  border-radius: 999px
+  color: #fff
+  font-size: 11px
+  font-weight: 800
+  letter-spacing: 0
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38)
+
+.tone-cyan .section-label
+  background: rgba(16, 111, 132, 0.62)
+
+.tone-green .section-label
+  background: rgba(62, 126, 90, 0.6)
+
+.tone-rose .section-label
+  background: rgba(173, 82, 108, 0.6)
+
+.section-tab-copy strong,
+.section-tab-copy small
+  display: block
+
+.section-tab-copy strong
+  color: #102120
+  font-size: 17px
+  line-height: 1.25
+
+.section-tab-copy small
+  margin-top: 4px
+  color: rgba(19, 32, 31, 0.6)
+  font-size: 12px
+  line-height: 1.45
+
+.section-meta
+  display: grid
+  min-width: 32px
+  height: 32px
+  place-items: center
+  border: 1px solid rgba(255, 255, 255, 0.45)
+  border-radius: 999px
+  color: rgba(19, 32, 31, 0.66)
+  background: rgba(255, 255, 255, 0.16)
+  font-size: 13px
+  font-weight: 800
+
+.home-sidebar-links
+  display: flex
+  gap: 10px
+  align-self: end
+  flex-wrap: wrap
+
+.home-sidebar-links a
+  display: inline-flex
+  align-items: center
+  min-height: 36px
+  padding: 0 14px
+  border: 1px solid rgba(255, 255, 255, 0.5)
+  border-radius: 999px
+  color: #13201f
+  text-decoration: none
+  background: rgba(255, 255, 255, 0.12)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62)
+  backdrop-filter: blur(22px) saturate(1.35)
+  -webkit-backdrop-filter: blur(22px) saturate(1.35)
+  transition: background 0.18s ease, transform 0.18s ease
+
+.home-sidebar-links a:hover
+  transform: translateY(-1px)
+  background: rgba(255, 255, 255, 0.26)
+
+.home-reader-main
+  min-width: 0
+
+html.blog-ready body.is-blog-home .home-reader-main
+  animation: blogPageEnter 420ms ease both
+
+.home-reader-hero
+  margin-bottom: 22px
+  padding: 30px
+  border-radius: 32px
+
+.home-eyebrow
+  display: inline-flex
+  margin-bottom: 14px
+  color: #176b7a
+  font-size: 12px
+  font-weight: 800
+  letter-spacing: 0
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.48)
+
+.home-reader-hero h1
+  max-width: 780px
+  margin: 0
+  color: #101b1a
+  font-size: 42px
+  line-height: 1.13
+  font-weight: 800
+  letter-spacing: 0
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.44)
+
+.home-reader-hero p
+  max-width: 680px
+  margin: 16px 0 0
+  color: rgba(16, 27, 26, 0.66)
+  font-size: 16px
+  line-height: 1.75
+
+.home-section-panel[hidden]
+  display: none
+
+.home-section-panel.is-active
+  display: block
+  animation: homePanelEnter 280ms ease both
+
+.home-panel-heading
+  margin: 0 0 16px
+  padding: 0 4px
+
+.home-panel-heading span
+  color: #176b7a
+  font-size: 12px
+  font-weight: 800
+  letter-spacing: 0
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.48)
+
+.home-panel-heading h2
+  margin: 8px 0 10px
+  color: #101b1a
+  font-size: 30px
+  line-height: 1.18
+  letter-spacing: 0
+
+.home-panel-heading p
+  max-width: 640px
+  margin: 0
+  color: rgba(16, 27, 26, 0.64)
+  font-size: 14px
+  line-height: 1.7
+
+.home-article-list
+  display: grid
+  gap: 12px
+
+.home-readable-article
+  position: relative
+  overflow: hidden
+  padding: 16px
+  border-radius: 22px
+
+.home-readable-article:before
+  content: ""
+  position: absolute
+  inset: 0
+  pointer-events: none
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.05) 58%, rgba(23, 107, 122, 0.07))
+
+.home-readable-header,
+.home-article-body,
+.home-article-actions
+  position: relative
+  z-index: 1
+
+.home-readable-header
+  margin-bottom: 8px
+
+.home-readable-header time
+  display: inline-flex
+  margin-bottom: 6px
+  color: #176b7a
+  font-size: 12px
+  font-weight: 800
+
+.home-readable-header h3
+  margin: 0
+  color: #101b1a
+  font-size: 21px
+  line-height: 1.24
+  letter-spacing: 0
+
+.home-readable-header h3 a
+  color: inherit
+  text-decoration: none
+
+.home-readable-header h3 a:hover
+  color: #176b7a
+
+.home-article-body
+  position: relative
+  max-height: 96px
+  overflow: hidden
+  color: rgba(19, 32, 31, 0.74)
+  font-size: 14px
+  line-height: 1.65
+
+.home-readable-article:not(.is-expanded) .home-article-body:after
+  content: ""
+  position: absolute
+  right: 0
+  bottom: 0
+  left: 0
+  height: 48px
+  pointer-events: none
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(239, 249, 250, 0.78))
+
+.home-readable-article.is-expanded .home-article-body
+  max-height: none
+
+.home-readable-article.is-expanded .home-article-body:after
+  display: none
+
+.home-article-body h1,
+.home-article-body h2,
+.home-article-body h3,
+.home-article-body h4,
+.home-article-body h5,
+.home-article-body h6
+  color: #102120
+  line-height: 1.35
+  letter-spacing: 0
+
+.home-article-body h1,
+.home-article-body h2,
+.home-article-body h3
+  margin: 1.4em 0 0.7em
+
+.home-article-body p,
+.home-article-body ul,
+.home-article-body ol,
+.home-article-body table,
+.home-article-body blockquote,
+.home-article-body pre
+  margin: 1em 0
+
+.home-article-body a
+  color: #176b7a
+  text-decoration: none
+
+.home-article-body a:hover
+  text-decoration: underline
+
+.home-article-body img,
+.home-article-body video
+  display: block
+  max-width: 100%
+  height: auto
+  margin: 18px auto
+  border-radius: 20px
+
+.home-article-body pre
+  overflow: auto
+  padding: 16px
+  border: 1px solid rgba(255, 255, 255, 0.42)
+  border-radius: 18px
+  background: rgba(12, 28, 31, 0.78)
+  color: rgba(255, 255, 255, 0.88)
+
+.home-article-body code
+  font-family: font-mono
+
+.home-article-body :not(pre) > code
+  padding: 2px 6px
+  border-radius: 7px
+  color: #0f5360
+  background: rgba(255, 255, 255, 0.42)
+
+.home-article-body table
+  width: 100%
+  border-collapse: collapse
+  overflow-wrap: anywhere
+
+.home-article-body th,
+.home-article-body td
+  border-bottom: 1px solid rgba(19, 32, 31, 0.12)
+  padding: 10px 8px
+  text-align: left
+
+.home-article-actions
+  display: flex
+  align-items: center
+  gap: 10px
+  flex-wrap: wrap
+  margin-top: 10px
+
+.home-article-toggle,
+.home-read-link
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  min-height: 38px
+  padding: 0 15px
+  border: 1px solid rgba(255, 255, 255, 0.54)
+  border-radius: 999px
+  color: #13201f
+  text-decoration: none
+  background: rgba(255, 255, 255, 0.16)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62)
+  cursor: pointer
+  font: inherit
+  font-size: 13px
+  font-weight: 700
+  transition: transform 0.18s ease, background 0.18s ease
+
+.home-article-toggle:hover,
+.home-read-link:hover
+  transform: translateY(-1px)
+  background: rgba(255, 255, 255, 0.3)
+
+.home-empty
+  margin: 0
+  padding: 24px
+  border-radius: 24px
+  color: rgba(19, 32, 31, 0.66)
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)))
+  .home-section-sidebar,
+  .home-reader-hero,
+  .home-readable-article,
+  .home-empty,
+  .home-section-tab,
+  .home-sidebar-links a,
+  .home-github-card,
+  .home-article-toggle,
+  .home-read-link
+    background: rgba(246, 252, 251, 0.78)
+
+@keyframes blogMiniClap
+  0%, 48%
+    transform: rotate(-17deg) translateY(-9px)
+  70%
+    transform: rotate(4deg) translateY(0)
+  100%
+    transform: rotate(0deg) translateY(0)
+
+@keyframes blogLoaderProgress
+  0%
+    width: 0
+  76%
+    width: 82%
+  100%
+    width: 100%
+
+@keyframes blogLoaderExit
+  to
+    opacity: 0
+    visibility: hidden
+
+@keyframes blogPageEnter
+  from
+    opacity: 0
+  to
+    opacity: 1
+
+@keyframes homePanelEnter
+  from
+    opacity: 0
+    transform: translateY(14px)
+  to
+    opacity: 1
+    transform: translateY(0)
+
+@media screen and (max-width: 960px)
+  .blog-home
+    width: calc(100% - 28px)
+    max-width: 760px
+    padding-top: 14px
+
+  .home-shell
+    grid-template-columns: 1fr
+    gap: 14px
+    transform: none
+
+  .home-section-sidebar
+    position: relative
+    top: auto
+    transform: none
+    margin-top: 0
+    min-height: 0
+    padding: 16px
+    border-radius: 26px
+
+  .home-section-nav
+    grid-template-columns: 1fr
+
+  .home-sidebar-links
+    align-self: auto
+
+  .home-reader-hero
+    padding: 24px
+    border-radius: 28px
+
+  .home-reader-hero h1
+    font-size: 34px
+
+  .home-readable-article
+    padding: 18px
+    border-radius: 22px
+
+@media screen and (max-width: 520px)
+  .blog-loader-clapper
+    width: 96px
+    height: 80px
+
+  .blog-clapper-top
+    height: 23px
+
+  .blog-clapper-body
+    height: 58px
+    padding: 25px 11px 9px 28px
+
+  .blog-clapper-hinge
+    width: 30px
+    height: 58px
+
+  .blog-loader-progress
+    width: 100px
+
+  .blog-home
+    width: calc(100% - 22px)
+
+  .home-brand strong
+    font-size: 15px
+
+  .home-section-tab
+    grid-template-columns: auto minmax(0, 1fr)
+
+  .home-section-tab .section-meta
+    grid-column: 2
+    justify-self: start
+    height: 28px
+    min-width: 28px
+
+  .home-reader-hero h1
+    font-size: 28px
+
+  .home-readable-header h3
+    font-size: 21px
+
+  .home-article-body
+    max-height: 92px
+    font-size: 14px
+
+  .home-article-actions
+    align-items: stretch
+    flex-direction: column
+
+@media (prefers-reduced-motion: reduce)
+  .blog-clapper-top,
+  .blog-loader-progress span,
+  html.blog-ready body.is-blog-home .home-reader-main,
+  html.blog-ready .blog-loader,
+  .home-section-panel.is-active
+    animation-duration: 0.001ms !important
+
+  .home-section-tab,
+  .home-sidebar-links a,
+  .home-github-card,
+  .home-article-toggle,
+  .home-read-link
+    transition-duration: 0.001ms !important
+
+.home-reader-hero,
+.home-section-sidebar > .home-brand
+  display: none

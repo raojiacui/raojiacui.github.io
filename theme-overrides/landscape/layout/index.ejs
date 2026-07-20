@@ -1,0 +1,155 @@
+<%
+var sectionDefs = [
+  {
+    key: 'notes',
+    title: '学习笔记',
+    tone: 'cyan',
+    label: 'NOTE',
+    description: '课程、教程、配置实录和可复用知识沉淀。'
+  },
+  {
+    key: 'work',
+    title: '工作记录',
+    tone: 'green',
+    label: 'WORK',
+    description: '每日开发进展、项目推进和阶段性结果。'
+  },
+  {
+    key: 'pitfalls',
+    title: '踩坑复盘',
+    tone: 'rose',
+    label: 'FIX',
+    description: '报错、兼容、依赖、部署问题的原因和修复路径。'
+  }
+];
+var defaultSection = 'work';
+
+function collectNames(collection) {
+  var names = [];
+  if (!collection || !collection.length) return names;
+  if (typeof collection.each === 'function') {
+    collection.each(function(item) {
+      if (item && item.name) names.push(item.name);
+    });
+  } else if (Array.isArray(collection.data)) {
+    collection.data.forEach(function(item) {
+      if (item && item.name) names.push(item.name);
+    });
+  } else if (Array.isArray(collection)) {
+    collection.forEach(function(item) {
+      if (item && item.name) names.push(item.name);
+    });
+  }
+  return names;
+}
+
+function hasWord(text, words) {
+  return words.some(function(word) {
+    return text.indexOf(word.toLowerCase()) !== -1;
+  });
+}
+
+function classifyPost(post) {
+  var title = String(post.title || post.slug || '').toLowerCase();
+  var categories = collectNames(post.categories);
+  var tags = collectNames(post.tags);
+  var categoryText = categories.join(' ').toLowerCase();
+  var text = [title, categoryText, tags.join(' ').toLowerCase()].join(' ');
+
+  if (categoryText.indexOf('学习笔记') !== -1) return 'notes';
+  if (categoryText.indexOf('踩坑复盘') !== -1) return 'pitfalls';
+  if (hasWord(text, ['踩坑', '复盘', '报错', '错误', '问题', '修复', '故障', '413', '兼容', 'cookie', 'cdn', '依赖'])) return 'pitfalls';
+  if (hasWord(text, ['学习', '笔记', '教程', '全流程', '流程教程', '配置实录', '指南', '课程'])) return 'notes';
+  return 'work';
+}
+
+function postDate(post) {
+  return post.date ? post.date.format(config.date_format || 'YYYY-MM-DD') : '';
+}
+
+function articleBody(post) {
+  return post.excerpt || post.content || '<p>打开文章查看完整记录。</p>';
+}
+
+var posts = site.posts.toArray ? site.posts.toArray() : (site.posts.data || []);
+posts = posts.slice().sort(function(a, b) {
+  var left = a.date && a.date.valueOf ? a.date.valueOf() : 0;
+  var right = b.date && b.date.valueOf ? b.date.valueOf() : 0;
+  return right - left;
+});
+
+var groups = { notes: [], work: [], pitfalls: [] };
+posts.forEach(function(post) {
+  groups[classifyPost(post)].push(post);
+});
+%>
+
+<div class="blog-home" data-blog-home data-default-section="<%= defaultSection %>">
+  <div class="home-shell">
+    <aside class="home-section-sidebar" aria-label="文章分区">
+      <a class="home-github-card" href="https://github.com/raojiacui" target="_blank" rel="noopener noreferrer" aria-label="raojiacui 的 GitHub 主页">
+        <img src="https://github.com/raojiacui.png" alt="" loading="lazy" decoding="async">
+        <span>
+          <strong>raojiacui</strong>
+          <small>GitHub</small>
+        </span>
+      </a>
+
+      <nav class="home-section-nav" aria-label="文章分区筛选">
+        <% sectionDefs.forEach(function(section) { %>
+          <% var sectionPosts = groups[section.key] || []; %>
+          <% var isDefault = section.key === defaultSection; %>
+          <button class="home-section-tab tone-<%= section.tone %><%= isDefault ? ' is-active' : '' %>" type="button" data-section-button="<%= section.key %>" aria-controls="section-<%= section.key %>" aria-expanded="<%= isDefault ? 'true' : 'false' %>">
+            <span class="section-label"><%= section.label %></span>
+            <span class="section-tab-copy">
+              <strong><%= section.title %></strong>
+              <small><%= section.description %></small>
+            </span>
+            <span class="section-meta"><%= sectionPosts.length %></span>
+          </button>
+        <% }) %>
+      </nav>
+
+      <div class="home-sidebar-links" aria-label="快速导航">
+        <a href="<%- url_for('archives') %>">归档</a>
+      </div>
+    </aside>
+
+    <main class="home-reader-main" data-home-reader aria-live="polite">
+
+      <% sectionDefs.forEach(function(section) { %>
+        <% var sectionPosts = groups[section.key] || []; %>
+        <% var isDefault = section.key === defaultSection; %>
+        <section class="home-section-panel<%= isDefault ? ' is-active' : '' %>" id="section-<%= section.key %>" data-section-panel="<%= section.key %>"<% if (!isDefault) { %> hidden<% } %>>
+          <div class="home-panel-heading">
+            <span><%= section.label %></span>
+            <h2><%= section.title %></h2>
+            <p><%= section.description %></p>
+          </div>
+
+          <% if (sectionPosts.length) { %>
+            <div class="home-article-list">
+              <% sectionPosts.forEach(function(post) { %>
+                <article class="home-readable-article" id="post-<%= post.slug %>">
+                  <header class="home-readable-header">
+                    <time datetime="<%= post.date ? post.date.toISOString() : '' %>"><%= postDate(post) %></time>
+                    <h3><a href="<%- url_for(post.path) %>"><%= post.title || post.slug %></a></h3>
+                  </header>
+                  <div class="home-article-body">
+                    <%- articleBody(post) %>
+                  </div>
+                  <div class="home-article-actions">
+                    <button type="button" class="home-article-toggle" data-article-toggle aria-expanded="false">展开阅读</button>
+                    <a class="home-read-link" href="<%- url_for(post.path) %>">打开全文</a>
+                  </div>
+                </article>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <p class="home-empty">这个分区还没有文章。</p>
+          <% } %>
+        </section>
+      <% }) %>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1200" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f9fdff"/>
+      <stop offset="0.42" stop-color="#dff3f8"/>
+      <stop offset="0.72" stop-color="#f7f0ec"/>
+      <stop offset="1" stop-color="#d8edf1"/>
+    </linearGradient>
+    <linearGradient id="pane" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.62"/>
+      <stop offset="0.48" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#78bccc" stop-opacity="0.22"/>
+    </linearGradient>
+    <filter id="softNoise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.045"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="1800" height="1200" fill="url(#sky)"/>
+  <path d="M-120 1160 L540 -90 L860 -90 L180 1260 Z" fill="url(#pane)"/>
+  <path d="M410 1240 L1110 -120 L1420 -120 L760 1280 Z" fill="#ffffff" opacity="0.24"/>
+  <path d="M1030 1240 L1700 -80 L1980 -80 L1330 1260 Z" fill="#b8e6ee" opacity="0.18"/>
+  <path d="M-160 420 H1960" stroke="#ffffff" stroke-opacity="0.28" stroke-width="2"/>
+  <path d="M-160 760 H1960" stroke="#ffffff" stroke-opacity="0.22" stroke-width="2"/>
+  <path d="M280 -80 L-80 580" stroke="#ffffff" stroke-opacity="0.34" stroke-width="2"/>
+  <path d="M840 -120 L250 1200" stroke="#ffffff" stroke-opacity="0.24" stroke-width="2"/>
+  <path d="M1500 -100 L900 1240" stroke="#ffffff" stroke-opacity="0.22" stroke-width="2"/>
+  <rect width="1800" height="1200" filter="url(#softNoise)" opacity="0.55"/>
+</svg>

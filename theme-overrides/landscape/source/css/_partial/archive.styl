@@ -1,0 +1,272 @@
+body:not(.is-blog-home)
+  color: #132221
+  background: #eef8fa
+
+body:not(.is-blog-home):before
+  content: ""
+  position: fixed
+  inset: 0
+  z-index: 0
+  pointer-events: none
+  background: url(images/blog-glass-bg.svg) center / cover no-repeat
+
+body:not(.is-blog-home):after
+  content: ""
+  position: fixed
+  inset: 0
+  z-index: 0
+  pointer-events: none
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.04) 44%, rgba(25, 80, 92, 0.08)), repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px 46px)
+
+body:not(.is-blog-home) #wrap
+  position: relative
+  z-index: 1
+  background: transparent
+
+body:not(.is-blog-home) #header,
+body:not(.is-blog-home) #sidebar
+  display: none
+
+body:not(.is-blog-home) .outer
+  max-width: 980px
+  padding: 36px 24px 64px
+
+body:not(.is-blog-home) #main
+  float: none
+  width: auto
+  margin: 0 auto
+
+body:not(.is-blog-home) #footer
+  position: relative
+  z-index: 1
+  border-top: 0
+  background: transparent
+  color: rgba(19, 34, 33, 0.66)
+
+body:not(.is-blog-home) #footer a
+  color: #176b7a
+
+.archives-wrap
+  position: relative
+  margin: 0 0 44px
+  padding-left: 148px
+
+.archives-wrap:before
+  content: ""
+  position: absolute
+  top: 50px
+  bottom: 0
+  left: 96px
+  width: 2px
+  border-radius: 999px
+  background: linear-gradient(to bottom, rgba(23, 107, 122, 0.48), rgba(255, 255, 255, 0.1))
+  box-shadow: 0 0 24px rgba(23, 107, 122, 0.14)
+
+.archive-year-wrap
+  position: relative
+  margin: 0 0 16px -148px
+  padding-left: 0
+
+.archive-year-wrap:before
+  content: ""
+  position: absolute
+  left: 86px
+  top: 50%
+  width: 22px
+  height: 22px
+  margin-top: -11px
+  border: 1px solid rgba(255, 255, 255, 0.74)
+  border-radius: 999px
+  background: rgba(23, 107, 122, 0.62)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48), 0 0 0 8px rgba(255, 255, 255, 0.22), 0 18px 38px rgba(31, 91, 105, 0.12)
+
+.archive-year
+  display: inline-flex
+  min-height: 44px
+  align-items: center
+  padding: 0 18px
+  border: 1px solid rgba(255, 255, 255, 0.62)
+  border-radius: 999px
+  color: #102120
+  text-decoration: none
+  font-size: 22px
+  font-weight: 800
+  background: rgba(255, 255, 255, 0.16)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78), 0 20px 56px rgba(31, 91, 105, 0.1)
+  backdrop-filter: blur(34px) saturate(1.5)
+  -webkit-backdrop-filter: blur(34px) saturate(1.5)
+
+.archives
+  display: grid
+  gap: 12px
+  column-count: auto
+  column-gap: 0
+
+.archive-article
+  position: relative
+  break-inside: auto
+  page-break-inside: auto
+
+.archive-article:before
+  content: ""
+  position: absolute
+  left: -61px
+  top: 26px
+  width: 13px
+  height: 13px
+  border: 1px solid rgba(255, 255, 255, 0.76)
+  border-radius: 999px
+  background: rgba(23, 107, 122, 0.72)
+  box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.2), 0 12px 26px rgba(31, 91, 105, 0.1)
+
+.archive-article:after
+  content: ""
+  position: absolute
+  left: -48px
+  top: 32px
+  width: 38px
+  height: 1px
+  background: rgba(255, 255, 255, 0.52)
+
+.archive-article-inner
+  position: relative
+  overflow: hidden
+  margin: 0
+  padding: 16px 18px
+  border: 1px solid rgba(255, 255, 255, 0.58)
+  border-radius: 24px
+  background: rgba(255, 255, 255, 0.13)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78), inset 0 -1px 0 rgba(255, 255, 255, 0.12), 0 22px 62px rgba(31, 91, 105, 0.09)
+  backdrop-filter: blur(34px) saturate(1.52)
+  -webkit-backdrop-filter: blur(34px) saturate(1.52)
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease
+
+.archive-article-inner:before
+  content: ""
+  position: absolute
+  inset: 0
+  pointer-events: none
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.05) 58%, rgba(23, 107, 122, 0.06))
+
+.archive-article-inner:hover
+  transform: translateY(-3px)
+  border-color: rgba(255, 255, 255, 0.84)
+  background: rgba(255, 255, 255, 0.2)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84), 0 28px 72px rgba(31, 91, 105, 0.13)
+
+.archive-article-header
+  position: relative
+  z-index: 1
+  display: grid
+  grid-template-columns: 72px minmax(0, 1fr)
+  align-items: center
+  gap: 14px
+
+.archive-article-date
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  min-height: 34px
+  margin: 0
+  padding: 0 10px
+  border: 1px solid rgba(255, 255, 255, 0.52)
+  border-radius: 999px
+  color: #176b7a
+  text-decoration: none
+  background: rgba(255, 255, 255, 0.18)
+  font-size: 12px
+  font-weight: 800
+  line-height: 1
+
+.archive-article-title
+  color: #102120
+  text-decoration: none
+  font-size: 17px
+  font-weight: 800
+  line-height: 1.35
+  transition: color 0.18s ease
+  &:hover
+    color: #176b7a
+
+#page-nav
+  margin: 28px auto
+  overflow: hidden
+  border: 1px solid rgba(255, 255, 255, 0.58)
+  border-radius: 999px
+  color: rgba(19, 32, 31, 0.66)
+  text-align: center
+  background: rgba(255, 255, 255, 0.14)
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 18px 44px rgba(31, 91, 105, 0.08)
+  backdrop-filter: blur(26px) saturate(1.42)
+  -webkit-backdrop-filter: blur(26px) saturate(1.42)
+  a, span
+    padding: 10px 20px
+    line-height: 1
+  a
+    color: #176b7a
+    text-decoration: none
+    &:hover
+      background: rgba(255, 255, 255, 0.28)
+      color: #102120
+  .prev
+    float: left
+  .next
+    float: right
+  .page-number
+    display: inline-block
+  .current
+    color: #102120
+    font-weight: 800
+  .space
+    color: rgba(19, 32, 31, 0.28)
+
+@media screen and (max-width: 760px)
+  body:not(.is-blog-home) .outer
+    padding: 22px 14px 52px
+
+  .archives-wrap
+    padding-left: 42px
+    margin-bottom: 34px
+
+  .archives-wrap:before
+    left: 14px
+    top: 46px
+
+  .archive-year-wrap
+    margin-left: -42px
+    padding-left: 42px
+
+  .archive-year-wrap:before
+    left: 5px
+    width: 18px
+    height: 18px
+    margin-top: -9px
+
+  .archive-year
+    min-height: 40px
+    font-size: 20px
+
+  .archive-article:before
+    left: -34px
+    top: 24px
+    width: 11px
+    height: 11px
+
+  .archive-article:after
+    left: -23px
+    top: 29px
+    width: 21px
+
+  .archive-article-inner
+    padding: 14px
+    border-radius: 20px
+
+  .archive-article-header
+    grid-template-columns: 1fr
+    gap: 8px
+
+  .archive-article-date
+    justify-self: start
+
+  .archive-article-title
+    font-size: 16px
