@@ -4,24 +4,25 @@
   <meta charset="utf-8">
   
   
-  <title>今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘 | 我的技术博客</title>
+  <title>今日总结-2026-07-13-HeroBuddy多Agent协作开发复盘 | 我的技术博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="今天主要复盘无限画布 AI 视频模板功能的开发过程，包括多幕合一视频工作流、Veo 3.1 Lite 接入、浏览器渲染错误排查、D1 测试修复，以及功能上线前必须补齐测试的经验教训。">
+  <meta name="description" content="今天用主 Agent 加多个 Worker Agent 的方式推进 HeroBuddy MVP，从运行主循环、Provider 协议、工具安全、Session、Checkpoint、Context Budget，到 CLI Smoke 和 MCP&#x2F;Skills 设计，完整体验了一次多 Agent 并行开发、审查、返工和合并流程。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘">
-<meta property="og:url" content="https://raojiacui.github.io/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/index.html">
+<meta property="og:title" content="今日总结-2026-07-13-HeroBuddy多Agent协作开发复盘">
+<meta property="og:url" content="https://raojiacui.github.io/2026/07/13/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-07-13-HeroBuddy%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C%E5%BC%80%E5%8F%91%E5%A4%8D%E7%9B%98/index.html">
 <meta property="og:site_name" content="我的技术博客">
-<meta property="og:description" content="今天主要复盘无限画布 AI 视频模板功能的开发过程，包括多幕合一视频工作流、Veo 3.1 Lite 接入、浏览器渲染错误排查、D1 测试修复，以及功能上线前必须补齐测试的经验教训。">
+<meta property="og:description" content="今天用主 Agent 加多个 Worker Agent 的方式推进 HeroBuddy MVP，从运行主循环、Provider 协议、工具安全、Session、Checkpoint、Context Budget，到 CLI Smoke 和 MCP&#x2F;Skills 设计，完整体验了一次多 Agent 并行开发、审查、返工和合并流程。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-07-05T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-11T14:59:30.904Z">
+<meta property="article:published_time" content="2026-07-13T15:30:00.000Z">
+<meta property="article:modified_time" content="2026-07-13T09:13:38.601Z">
 <meta property="article:author" content="雨下雨停">
 <meta property="article:tag" content="工作总结">
-<meta property="article:tag" content="AI视频">
-<meta property="article:tag" content="无限画布">
-<meta property="article:tag" content="ReactFlow">
-<meta property="article:tag" content="Veo">
-<meta property="article:tag" content="D1">
+<meta property="article:tag" content="HeroBuddy">
+<meta property="article:tag" content="Codex">
+<meta property="article:tag" content="多Agent协作">
+<meta property="article:tag" content="AI编程">
+<meta property="article:tag" content="MCP">
+<meta property="article:tag" content="Skills">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="我的技术博客" type="application/atom+xml">
@@ -104,10 +105,10 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-daily-summary-2026-07-06-infinite-canvas-ai-video-template" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-今日总结-2026-07-13-HeroBuddy多Agent协作开发复盘" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/" class="article-date">
-  <time class="dt-published" datetime="2026-07-05T16:00:00.000Z" itemprop="datePublished">2026-07-06</time>
+    <a href="/2026/07/13/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-07-13-HeroBuddy%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C%E5%BC%80%E5%8F%91%E5%A4%8D%E7%9B%98/" class="article-date">
+  <time class="dt-published" datetime="2026-07-13T15:30:00.000Z" itemprop="datePublished">2026-07-13</time>
 </a>
     
   <div class="article-category">
@@ -122,7 +123,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘
+      今日总结-2026-07-13-HeroBuddy多Agent协作开发复盘
     </h1>
   
 
@@ -130,46 +131,111 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       <div class="article-collapsed-preview">
-        <h1 id="从“能跑”到“能上线”：一次无限画布-AI-视频功能开发复盘"><a href="#从“能跑”到“能上线”：一次无限画布-AI-视频功能开发复盘" class="headerlink" title="从“能跑”到“能上线”：一次无限画布 AI 视频功能开发复盘"></a>从“能跑”到“能上线”：一次无限画布 AI 视频功能开发复盘</h1><p>今天主要做的是一个具体功能的完整开发：让无限画布支持 AI 生成 1 分钟左右的视频模板。这个功能看起来像是“点一下生成视频”，但真正做下来才发现，它其实不是一个简单按钮，而是一整条工作流。</p>
-<h2 id="一、今天做了什么"><a href="#一、今天做了什么" class="headerlink" title="一、今天做了什么"></a>一、今天做了什么</h2><p>今天实现的是“多幕合一视频”的基础能力。整体流程是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">用户输入视频想法</span><br><span class="line">  -&gt; AI 生成多幕分镜</span><br><span class="line">  -&gt; 每一幕变成一个画布 Scene 节点</span><br><span class="line">  -&gt; 每个节点生成一段短视频</span><br><span class="line">  -&gt; 最后按顺序合成为一个完整视频</span><br></pre></td></tr></table></figure>
+        <h1 id="今天第一次真实体验了多-Agent-协作开发"><a href="#今天第一次真实体验了多-Agent-协作开发" class="headerlink" title="今天第一次真实体验了多 Agent 协作开发"></a>今天第一次真实体验了多 Agent 协作开发</h1><p>今天 HeroBuddy 的开发方式挺有意思：不再是一个 AI Agent 从头写到尾，而是把它当成一个小团队来用。</p>
+<p>我像项目负责人一样，先让主 Agent 看完整个项目，拆模块、写文档、定验收标准，然后让多个 Worker Agent 分别在自己的分支上开发。最后再由主 Agent 审查、跑测试、要求返工、合并到集成分支。</p>
+<p>多 Agent 协作方式感觉大大提高了干活的效率</p>
+<h2 id="一、今天的目标"><a href="#一、今天的目标" class="headerlink" title="一、今天的目标"></a>一、今天的目标</h2><p>HeroBuddy 是一个本地 AI 编程助手，目标不是简单调用大模型，而是逐步做成一个能安全读写项目、执行工具、保留上下文、支持回滚，并最终接入 MCP 和 Skills 的开发伙伴。</p>
+<p>今天是在补 MVP 的底层骨架：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Agent 主循环</span><br><span class="line">Provider 协议</span><br><span class="line">工具调用</span><br><span class="line">审批策略</span><br><span class="line">Workspace 安全</span><br><span class="line">Session 记录</span><br><span class="line">Checkpoint 回滚</span><br><span class="line">Context Budget</span><br><span class="line">CLI Smoke</span><br><span class="line">MCP / Skills 设计</span><br></pre></td></tr></table></figure>
 
-<p>也就是说，它不是让 AI 一次性生成一个 60 秒视频，而是先生成多个短片段，再把这些片段拼接起来。默认方案改成了使用 Veo 3.1 Lite 测试：8 幕，每幕约 8 秒，合计约 64 秒，更适合本地测试和成本控制。</p>
-<h2 id="二、今天接触到的核心模块"><a href="#二、今天接触到的核心模块" class="headerlink" title="二、今天接触到的核心模块"></a>二、今天接触到的核心模块</h2><p>这次工作是偏全栈的，但重心更偏后端、AI 集成和工程化。前端部分主要是无限画布编辑器，包括 Scene 节点、Composition 合成节点、AI 模板弹窗、生成所有片段按钮和合成最终视频按钮。</p>
-<p>后端部分包括生成 AI 模板的 server action、保存节点和连线数据、提交视频任务、轮询任务状态、webhook 接收生成结果，以及把合成结果写回数据库。</p>
-<p>AI 集成部分包括用聊天模型生成分镜 prompt、用 KIE 的 Veo 3.1 Lite 生成视频、适配 Veo 专用接口、处理不同模型的 payload 和状态返回。数据库部分则涉及 Canvas 项目表、视频任务表、D1 migration 和本地 D1 测试。</p>
-<h2 id="三、最大的问题：浏览器渲染错误"><a href="#三、最大的问题：浏览器渲染错误" class="headerlink" title="三、最大的问题：浏览器渲染错误"></a>三、最大的问题：浏览器渲染错误</h2><p>今天最折磨人的问题是浏览器不断报这个错：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Failed to execute &#x27;insertBefore&#x27; on &#x27;Node&#x27;:</span><br><span class="line">The node before which the new node is to be inserted is not a child of this node.</span><br></pre></td></tr></table></figure>
+<p>虽然这些东西用户表面上看不太出来，但它们决定了后面 HeroBuddy 能不能真的长期工作。</p>
+<h2 id="二、今天的多-Agent-分工"><a href="#二、今天的多-Agent-分工" class="headerlink" title="二、今天的多 Agent 分工"></a>二、今天的多 Agent 分工</h2><p>今天把任务拆成了 A 到 H 8个 worker：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">A：runtime-events</span><br><span class="line">B：provider-protocol</span><br><span class="line">C：policy-approvals</span><br><span class="line">D：tools-workspace</span><br><span class="line">E：storage-checkpoints</span><br><span class="line">F：context-budget</span><br><span class="line">G：e2e-smoke</span><br><span class="line">H：mcp-skills-design</span><br></pre></td></tr></table></figure>
 
-<p>一开始以为是弹窗组件写法有问题，于是先排查 Dialog。后来发现即使不用 Dialog，还是可能报错。继续排查后发现，Radix 的 Select 也会用 Portal 插入 DOM。为了降低风险，把 AI 模板弹窗里的 Radix Dialog 和 Select 都移除了，改成普通 fixed 弹窗和原生 select。</p>
-<p>但最后错误仍然可能出现在页面挂载点，这说明问题不一定是业务代码本身，而可能是浏览器插件在修改 DOM。这个错误非常像浏览器翻译插件导致的 React DOM 不一致，比如 Chrome 自动翻译、沉浸式翻译、划词翻译、双语网页翻译插件。</p>
-<p>这些插件可能会把 React 管理的文本节点拆开、替换、包一层 span。React 下一次更新时，以为某个节点还在原来的父节点下面，结果已经被插件改了，于是 insertBefore 就崩了。最后给 Canvas 页面和编辑器根节点都加了 notranslate 和 translate=”no”。</p>
-<p>这件事给我的教训是：高动态 React 页面，尤其是 ReactFlow、Portal、拖拽、弹窗这些场景，开发时一定要关掉网页翻译插件。不然很容易把浏览器插件的问题误判成业务代码问题。</p>
-<h2 id="四、测试不能只跑类型检查"><a href="#四、测试不能只跑类型检查" class="headerlink" title="四、测试不能只跑类型检查"></a>四、测试不能只跑类型检查</h2><p>今天一开始只跑了类型检查。类型检查通过了，但这不代表功能完整可靠。后来补了测试，才发现测试链路本身也有问题。</p>
-<p>新增了 Canvas 场景排序测试，以及 KIE Veo Lite payload 和状态映射测试，覆盖 Scene 节点拓扑排序、Composition 节点查找、Veo Lite payload、参考图转视频 payload、Veo 状态码映射，以及 Veo 模型是否走专用 record-info 查询接口。</p>
-<p>后来完整跑测试时，D1 测试失败，错误是 Wrangler returned no JSON output。排查后发现不是数据库本身的问题，而是测试 helper 在 Windows 下直接执行 wrangler.cmd 会失败，导致没有 stdout，所以自然解析不到 JSON。最终修复方式是不用 .cmd，改成直接用 Node 执行 Wrangler 的 JS 入口。</p>
-<p>修完后，完整测试和类型检查都通过了。这件事的教训很直接：以后推送前不能只跑类型检查，必须跑完整测试。测试没过就不能说完成，更不能推。</p>
-<h2 id="五、今天真正学到的东西"><a href="#五、今天真正学到的东西" class="headerlink" title="五、今天真正学到的东西"></a>五、今天真正学到的东西</h2><p>今天最大的收获不是写了多少代码，而是理解了一个完整功能上线背后的链路。一个 AI 视频功能不是只有“调用模型”这么简单，它至少包括用户输入、prompt 规划、节点数据结构、任务提交、异步生成、webhook 回调、数据库存储、文件转存、最终合成、错误恢复、测试验证。</p>
-<p>以前我可能会觉得“AI 生成视频”就是调一个 API。但今天做完之后会发现，真正难的是把它稳定地接进产品工作流里。</p>
-<h2 id="六、我需要补的知识点"><a href="#六、我需要补的知识点" class="headerlink" title="六、我需要补的知识点"></a>六、我需要补的知识点</h2><ol>
-<li>React DOM 和浏览器插件冲突：理解为什么翻译插件会导致 React 的 insertBefore 报错。</li>
-<li>ReactFlow 的 nodes / edges：画布不是普通列表，而是图结构，播放顺序应该由 edges 决定。</li>
-<li>拓扑排序：多幕视频合成前，必须从连接关系里推导出正确顺序。</li>
-<li>Webhook 异步任务：视频生成不是同步返回结果，而是先提交任务，完成后由平台回调。</li>
-<li>Cloudflare D1：D1 是 Cloudflare 的 SQLite 数据库服务，本地测试依赖 Wrangler。</li>
-<li>测试意识：tsc 只能证明类型没错，不能证明功能没错。以后必须完整跑测试。</li>
+<p>每个 worker 都在自己的分支上开发，主 Agent 不直接相信它们的结论，而是做几件事：</p>
+<ol>
+<li>看 diff</li>
+<li>跑测试</li>
+<li>找边界问题</li>
+<li>要求返工</li>
+<li>再审查</li>
+<li>最后合并</li>
 </ol>
-<h2 id="七、今天最值得手写的函数"><a href="#七、今天最值得手写的函数" class="headerlink" title="七、今天最值得手写的函数"></a>七、今天最值得手写的函数</h2><p>今天最适合自己手写一遍的是场景排序函数。需求是：输入 nodes 和 edges，输出按播放顺序排列的 Scene 节点。</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scene-1 -&gt; scene-2 -&gt; scene-3 -&gt; composition</span><br><span class="line">输出：scene-1, scene-2, scene-3</span><br></pre></td></tr></table></figure>
+<p>这个流程和真人团队开发很像。区别是 worker 都是 AI，速度很快，但也会犯很典型的工程错误。</p>
+<h2 id="三、返工其实很正常"><a href="#三、返工其实很正常" class="headerlink" title="三、返工其实很正常"></a>三、返工其实很正常</h2><p>今天有几个 worker 被打回返工。</p>
+<p>比如 D 做 workspace 工具安全时，读文件、列文件、搜索文件已经会避开 <code>.git</code>、<code>.herobuddy</code> 这些目录，但写文件路径一开始没有完全走同一套安全门禁。也就是说，读是安全的，写却可能绕过去。</p>
+<p>这个问题如果不审查，后面就会变成很危险的漏洞。</p>
+<p>E 的问题更像流程问题：代码曾经在 stash 里，而且混了别的 worker 的改动。这个不是功能能力问题，而是交付形态不合格。多 Agent 开发里，交付必须是干净分支、干净 commit，不能用 stash 当成果。</p>
+<p>H 也返工了一次。它做 MCP 和 Skills 的设计与 skeleton，测试本来是过的，但手工边界检查发现两个问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. SKILL.md 的 front matter 不支持 Windows CRLF</span><br><span class="line">2. skill trigger 匹配太宽，review 会误匹配 preview</span><br></pre></td></tr></table></figure>
 
-<p>这个函数能帮助我真正理解为什么 Canvas 是图、为什么连线决定播放顺序、为什么 Composition 是出口、为什么多幕视频可以合成为一个完整视频。如果我能自己写出这个函数，就说明我不是只知道“点按钮生成”，而是真的理解了这个功能的数据结构。</p>
-<h2 id="八、今天的经验教训"><a href="#八、今天的经验教训" class="headerlink" title="八、今天的经验教训"></a>八、今天的经验教训</h2><ol>
-<li>开发时不要被“页面能打开”骗了。能打开不代表功能完整，必须跑测试。</li>
-<li>浏览器环境也会制造 bug。以后遇到奇怪的 React DOM 错误，要第一时间用无痕窗口、关闭插件验证。</li>
-<li>AI 功能不是只调模型。真正上线时，模型只是其中一环，后面还有任务管理、回调、存储、合成、测试和错误处理。</li>
-</ol>
-<h2 id="九、总结"><a href="#九、总结" class="headerlink" title="九、总结"></a>九、总结</h2><p>今天做的事情让我意识到，一个看似简单的 AI 视频模板功能，背后其实是完整的工程系统。它包含前端画布、后端 action、数据库、AI 模型、第三方 API、webhook、R2 存储、测试和浏览器兼容问题。</p>
-<p>今天最大的进步不是“功能写完了”，而是开始意识到：功能上线不是写完代码，而是能解释清楚它怎么工作、能测、能排错、能复盘。</p>
+<p>这两个问题现在看起来很小，但 Skills 系统一旦接入主流程，就会放大成误触发和上下文污染。所以提前修掉是值得的。</p>
+<h2 id="四、今天真正完成了什么"><a href="#四、今天真正完成了什么" class="headerlink" title="四、今天真正完成了什么"></a>四、今天真正完成了什么</h2><p>今天最后 A-H 都合进了 <code>feat/mvp</code>。</p>
+<p>比较重要的新增能力包括：</p>
+<h3 id="1-工具安全加固"><a href="#1-工具安全加固" class="headerlink" title="1. 工具安全加固"></a>1. 工具安全加固</h3><p>HeroBuddy 现在对 workspace 有更明确的安全边界：</p>
+<ul>
+<li>防止路径逃逸</li>
+<li>防止读写敏感文件</li>
+<li>跳过 <code>.git</code>、<code>.herobuddy</code>、<code>node_modules</code> 等目录</li>
+<li>写入前生成 diff</li>
+<li>写入类操作走审批策略</li>
+<li>command 执行有超时和输出截断</li>
+</ul>
+<p>这个能力非常关键。Agent 如果能写文件，就必须先学会“不该写什么”。</p>
+<h3 id="2-Session-和-Checkpoint"><a href="#2-Session-和-Checkpoint" class="headerlink" title="2. Session 和 Checkpoint"></a>2. Session 和 Checkpoint</h3><p>今天加上了 session 记录和 checkpoint 回滚。</p>
+<p>这意味着 HeroBuddy 不只是一次性执行命令，而是开始有“记忆”和“撤销能力”：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">用户输入</span><br><span class="line">工具调用</span><br><span class="line">审批记录</span><br><span class="line">写入前快照</span><br><span class="line">输出结果</span><br><span class="line">停止原因</span><br></pre></td></tr></table></figure>
+
+<p>这些都可以进入 session。写文件前生成 checkpoint，后面可以 rewind。</p>
+<h3 id="3-Context-Budget"><a href="#3-Context-Budget" class="headerlink" title="3. Context Budget"></a>3. Context Budget</h3><p>上下文预算也补上了。</p>
+<p>Agent 工作久了以后，历史消息、工具结果、文件引用都会越来越长。如果不压缩，prompt 很快就会失控。</p>
+<p>今天加的 Context Budget 做了几件事：</p>
+<ul>
+<li>解析 <code>@文件</code> 引用</li>
+<li>支持中文路径和带空格路径</li>
+<li>控制引用内容长度</li>
+<li>压缩旧对话</li>
+<li>保留最近消息</li>
+<li>避免敏感内容进入 prompt</li>
+</ul>
+<p>这一步是后面 Skills 能用起来的前提。</p>
+<h3 id="4-CLI-E2E-Smoke"><a href="#4-CLI-E2E-Smoke" class="headerlink" title="4. CLI E2E Smoke"></a>4. CLI E2E Smoke</h3><p>今天还加了一个端到端 smoke 脚本，验证 fake provider 下的真实 CLI 路径：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">ask</span><br><span class="line">ask --continue</span><br><span class="line">ask --resume</span><br><span class="line">chat /resume</span><br><span class="line">chat /rewind</span><br><span class="line">read_file</span><br><span class="line">write_file</span><br><span class="line">audit</span><br><span class="line">session</span><br><span class="line">checkpoint</span><br><span class="line">context budget</span><br></pre></td></tr></table></figure>
+
+<p>这一步很重要，因为单元测试只能说明局部功能对，smoke 才能说明几个模块合在一起没有互相打架。</p>
+<h3 id="5-MCP-Skills-设计和骨架"><a href="#5-MCP-Skills-设计和骨架" class="headerlink" title="5. MCP / Skills 设计和骨架"></a>5. MCP / Skills 设计和骨架</h3><p>今天没有直接做完整 MCP，也没有做完整 Skills 系统，而是先写了设计文档和最小 skeleton。</p>
+<p>这点我觉得是对的。</p>
+<p>MCP 和 Skills 都是会影响权限、安全、上下文和工具调用的大模块。如果一上来就完整实现，很容易变成“能跑但不安全”。</p>
+<p>现在先把边界定清楚：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">MCP tool 不能绕过 policy / approval / audit / session</span><br><span class="line">Skills 只能提供上下文和流程建议，不能授予权限</span><br><span class="line">unknown effect 默认 fail closed</span><br><span class="line">skill 注入必须受 context budget 控制</span><br></pre></td></tr></table></figure>
+
+<p>这样后面实现时就不会乱。</p>
+<h2 id="五、最终验证结果"><a href="#五、最终验证结果" class="headerlink" title="五、最终验证结果"></a>五、最终验证结果</h2><p>今天最后的集成分支是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">feat/mvp</span><br></pre></td></tr></table></figure>
+
+<p>最终验证结果：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">python -m unittest -v</span><br><span class="line">58 tests OK, 1 skipped</span><br><span class="line"></span><br><span class="line">python scripts/check_compat.py</span><br><span class="line">passed</span><br><span class="line"></span><br><span class="line">python scripts/smoke_cli.py</span><br><span class="line">passed</span><br><span class="line"></span><br><span class="line">git diff --check</span><br><span class="line">passed</span><br></pre></td></tr></table></figure>
+
+<p>最后把今天成果推到了远端：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">origin/feat/mvp</span><br></pre></td></tr></table></figure>
+
+<p>没有直接推 <code>main</code>。现在 <code>main</code> 还是稳定基线，<code>feat/mvp</code> 是当前 MVP 集成线。</p>
+<h2 id="六、这套协作方式的优点"><a href="#六、这套协作方式的优点" class="headerlink" title="六、这套协作方式的优点"></a>六、这套协作方式的优点</h2><p>今天最大的感受是：多 Agent 协作确实能提高开发速度。</p>
+<p>一个 Agent 做全部事情时，很容易上下文太长，也容易陷入一个模块里反复修。拆成多个 worker 后，每个 worker 只关心自己的模块，速度明显快很多。</p>
+<p>但真正让它有效的不是“开很多窗口”，而是主 Agent 要像负责人一样做管理：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">拆任务</span><br><span class="line">定边界</span><br><span class="line">写验收标准</span><br><span class="line">审查 diff</span><br><span class="line">跑测试</span><br><span class="line">要求返工</span><br><span class="line">控制合并顺序</span><br></pre></td></tr></table></figure>
+
+<p>否则多个 Agent 只会同时制造混乱。</p>
+<h2 id="七、今天学到的流程经验"><a href="#七、今天学到的流程经验" class="headerlink" title="七、今天学到的流程经验"></a>七、今天学到的流程经验</h2><p>今天也暴露出一些流程问题。</p>
+<p>一开始给 worker 的约束还不够硬，比如只说“做 workspace 安全”，但没有明确说：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">read_file / write_file / replace_text / move_path / delete_path</span><br><span class="line">必须共用同一套路径门禁</span><br></pre></td></tr></table></figure>
+
+<p>结果 worker 做了大方向，但漏了危险边界。</p>
+<p>后面我意识到，多 Agent 任务不能写成普通需求，而要写成工程合同：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">你能改哪些文件</span><br><span class="line">你不能改哪些文件</span><br><span class="line">必须补哪些测试</span><br><span class="line">必须跑哪些命令</span><br><span class="line">最终报告格式是什么</span><br><span class="line">不能用 stash 交付</span><br><span class="line">git status 必须干净</span><br></pre></td></tr></table></figure>
+
+<p>这套规则一旦清楚，返工就会少很多。</p>
+<h2 id="八、明天准备做什么"><a href="#八、明天准备做什么" class="headerlink" title="八、明天准备做什么"></a>八、明天准备做什么</h2><p>今天已经把 MVP 骨架收口到一个比较稳定的状态。</p>
+<p>明天计划开始把 MCP 和 Skills 从设计推进到最小可用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Skills v0：本地 SKILL.md discovery、选择、prompt 注入</span><br><span class="line">MCP v0：fake/local adapter、tool schema 注册、fail-closed policy</span><br><span class="line">CLI / doctor / smoke：把 MCP 和 Skills 状态纳入检查</span><br></pre></td></tr></table></figure>
+
+<p>但明天不应该一上来就做完整 MCP client，也不应该急着支持真实 server 管理。先做本地 fake adapter 和稳定测试路径更合理。</p>
+<h2 id="九、总结"><a href="#九、总结" class="headerlink" title="九、总结"></a>九、总结</h2><p>今天的开发不像是在“写一个功能”，更像是在搭一个 AI 工程团队的工作方式。</p>
+<p>HeroBuddy 的代码在进步，但更重要的是开发流程也在成型：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">主 Agent 负责架构、审查和合并</span><br><span class="line">Worker Agent 负责局部实现</span><br><span class="line">测试和 smoke 作为合并门禁</span><br><span class="line">文档记录下一步计划</span><br></pre></td></tr></table></figure>
+
+<p>这种方式很适合做模块比较清晰，依赖性不强的项目。因为它本身就是一个 Agent 工具，而开发它的过程，也刚好可以用 Agent 协作来验证未来的使用方式</p>
+<p>今天算是一个很好的节点：MVP 骨架基本站起来了，明天可以开始往 MCP 和 Skills 走。</p>
 
       </div>
       <div class="article-collapsed-mask"></div>
@@ -178,11 +244,11 @@
       </div>
     </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/" data-id="cmrxo3bg8002mg83ga8jt3p1l" data-title="今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/07/13/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-07-13-HeroBuddy%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C%E5%BC%80%E5%8F%91%E5%A4%8D%E7%9B%98/" data-id="cmrxo3bga002wg83g3pyzdb6n" data-title="今日总结-2026-07-13-HeroBuddy多Agent协作开发复盘" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI%E8%A7%86%E9%A2%91/" rel="tag">AI视频</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/D1/" rel="tag">D1</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ReactFlow/" rel="tag">ReactFlow</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Veo/" rel="tag">Veo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" rel="tag">无限画布</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI%E7%BC%96%E7%A8%8B/" rel="tag">AI编程</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Codex/" rel="tag">Codex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/HeroBuddy/" rel="tag">HeroBuddy</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MCP/" rel="tag">MCP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Skills/" rel="tag">Skills</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" rel="tag">多Agent协作</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li></ul>
 
     </footer>
   </div>
@@ -190,19 +256,19 @@
     
 <nav id="article-nav">
   
-    <a href="/2026/07/11/2026-07-11-Win7%E8%99%9A%E6%8B%9F%E6%9C%BAPython3810-HeroBuddy%E9%85%8D%E7%BD%AE%E5%AE%9E%E5%BD%95/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2026/07/16/2026-07-16-KIE-Gemini-API%E6%8E%A5%E5%85%A5%E8%B8%A9%E5%9D%91%E5%A4%8D%E7%9B%98/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption">前一篇</strong>
       <div class="article-nav-title">
         
-          从 ISO 到可用：Win7 虚拟机安装 Python 3.8.10
+          KIE Gemini API 接入踩坑复盘：OpenAI-compatible 不等于完全兼容
         
       </div>
     </a>
   
   
-    <a href="/2026/06/30/2026-06-30-Next.js-cookie-i18n-%E8%B8%A9%E5%9D%91%E5%AE%9E%E5%BD%95/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2026/07/11/2026-07-11-Win7%E8%99%9A%E6%8B%9F%E6%9C%BAPython3810-HeroBuddy%E9%85%8D%E7%BD%AE%E5%AE%9E%E5%BD%95/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">后一篇</strong>
-      <div class="article-nav-title">2026-06-30-Next.js 纯 Cookie 模式 i18n 实战与踩坑实录</div>
+      <div class="article-nav-title">从 ISO 到可用：Win7 虚拟机安装 Python 3.8.10</div>
     </a>
   
 </nav>

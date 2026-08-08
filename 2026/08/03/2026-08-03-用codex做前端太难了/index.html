@@ -4,24 +4,23 @@
   <meta charset="utf-8">
   
   
-  <title>今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘 | 我的技术博客</title>
+  <title>用codex做前端太难了 | 我的技术博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="今天主要复盘无限画布 AI 视频模板功能的开发过程，包括多幕合一视频工作流、Veo 3.1 Lite 接入、浏览器渲染错误排查、D1 测试修复，以及功能上线前必须补齐测试的经验教训。">
+  <meta name="description" content="这个月连续做了很多 AI 工具类落地页。 一开始我对落地页的理解还比较传统：有一个好看的 hero，有价值主张，有一些功能介绍，再加几个案例和 FAQ，最后放一个 CTA。这个结构当然没错，但做多了之后会发现，AI 工具类产品的落地页和普通 SaaS 官网不太一样。 普通 SaaS 落地页更像是在说服用户：“这个产品值得你了解”。 AI 工具落地页更应该让用户立刻感觉：“我现在就可以试一下”。 所">
 <meta property="og:type" content="article">
-<meta property="og:title" content="今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘">
-<meta property="og:url" content="https://raojiacui.github.io/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/index.html">
+<meta property="og:title" content="用codex做前端太难了">
+<meta property="og:url" content="https://raojiacui.github.io/2026/08/03/2026-08-03-%E7%94%A8codex%E5%81%9A%E5%89%8D%E7%AB%AF%E5%A4%AA%E9%9A%BE%E4%BA%86/index.html">
 <meta property="og:site_name" content="我的技术博客">
-<meta property="og:description" content="今天主要复盘无限画布 AI 视频模板功能的开发过程，包括多幕合一视频工作流、Veo 3.1 Lite 接入、浏览器渲染错误排查、D1 测试修复，以及功能上线前必须补齐测试的经验教训。">
+<meta property="og:description" content="这个月连续做了很多 AI 工具类落地页。 一开始我对落地页的理解还比较传统：有一个好看的 hero，有价值主张，有一些功能介绍，再加几个案例和 FAQ，最后放一个 CTA。这个结构当然没错，但做多了之后会发现，AI 工具类产品的落地页和普通 SaaS 官网不太一样。 普通 SaaS 落地页更像是在说服用户：“这个产品值得你了解”。 AI 工具落地页更应该让用户立刻感觉：“我现在就可以试一下”。 所">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-07-05T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-11T14:59:30.904Z">
+<meta property="article:published_time" content="2026-08-03T10:30:00.000Z">
+<meta property="article:modified_time" content="2026-08-03T13:27:44.333Z">
 <meta property="article:author" content="雨下雨停">
-<meta property="article:tag" content="工作总结">
-<meta property="article:tag" content="AI视频">
-<meta property="article:tag" content="无限画布">
-<meta property="article:tag" content="ReactFlow">
-<meta property="article:tag" content="Veo">
-<meta property="article:tag" content="D1">
+<meta property="article:tag" content="落地页">
+<meta property="article:tag" content="前端设计">
+<meta property="article:tag" content="AI工具">
+<meta property="article:tag" content="产品复盘">
+<meta property="article:tag" content="Remotion skills">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="我的技术博客" type="application/atom+xml">
@@ -104,10 +103,10 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-daily-summary-2026-07-06-infinite-canvas-ai-video-template" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-2026-08-03-用codex做前端太难了" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/" class="article-date">
-  <time class="dt-published" datetime="2026-07-05T16:00:00.000Z" itemprop="datePublished">2026-07-06</time>
+    <a href="/2026/08/03/2026-08-03-%E7%94%A8codex%E5%81%9A%E5%89%8D%E7%AB%AF%E5%A4%AA%E9%9A%BE%E4%BA%86/" class="article-date">
+  <time class="dt-published" datetime="2026-08-03T10:30:00.000Z" itemprop="datePublished">2026-08-03</time>
 </a>
     
   <div class="article-category">
@@ -122,7 +121,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘
+      用codex做前端太难了
     </h1>
   
 
@@ -130,46 +129,208 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       <div class="article-collapsed-preview">
-        <h1 id="从“能跑”到“能上线”：一次无限画布-AI-视频功能开发复盘"><a href="#从“能跑”到“能上线”：一次无限画布-AI-视频功能开发复盘" class="headerlink" title="从“能跑”到“能上线”：一次无限画布 AI 视频功能开发复盘"></a>从“能跑”到“能上线”：一次无限画布 AI 视频功能开发复盘</h1><p>今天主要做的是一个具体功能的完整开发：让无限画布支持 AI 生成 1 分钟左右的视频模板。这个功能看起来像是“点一下生成视频”，但真正做下来才发现，它其实不是一个简单按钮，而是一整条工作流。</p>
-<h2 id="一、今天做了什么"><a href="#一、今天做了什么" class="headerlink" title="一、今天做了什么"></a>一、今天做了什么</h2><p>今天实现的是“多幕合一视频”的基础能力。整体流程是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">用户输入视频想法</span><br><span class="line">  -&gt; AI 生成多幕分镜</span><br><span class="line">  -&gt; 每一幕变成一个画布 Scene 节点</span><br><span class="line">  -&gt; 每个节点生成一段短视频</span><br><span class="line">  -&gt; 最后按顺序合成为一个完整视频</span><br></pre></td></tr></table></figure>
+        <p>这个月连续做了很多 AI 工具类落地页。</p>
+<p>一开始我对落地页的理解还比较传统：有一个好看的 hero，有价值主张，有一些功能介绍，再加几个案例和 FAQ，最后放一个 CTA。这个结构当然没错，但做多了之后会发现，AI 工具类产品的落地页和普通 SaaS 官网不太一样。</p>
+<p>普通 SaaS 落地页更像是在说服用户：“这个产品值得你了解”。</p>
+<p>AI 工具落地页更应该让用户立刻感觉：“我现在就可以试一下”。</p>
+<p>所以这个月最明显的一个感受是：工具页的入口要尽量前置，甚至直接放在落地页第一屏里。</p>
+<h2 id="工具应该成为落地页的一部分"><a href="#工具应该成为落地页的一部分" class="headerlink" title="工具应该成为落地页的一部分"></a>工具应该成为落地页的一部分</h2><p>以前很容易把落地页和功能页分得很开。</p>
+<p>落地页负责介绍：</p>
+<ul>
+<li>这个产品是什么</li>
+<li>能解决什么问题</li>
+<li>有哪些功能</li>
+<li>为什么比别人好</li>
+</ul>
+<p>功能页负责使用：</p>
+<ul>
+<li>上传文件</li>
+<li>输入 prompt</li>
+<li>选择模型</li>
+<li>点击生成</li>
+<li>查看结果</li>
+</ul>
+<p>但如果用户已经带着明确需求进来，比如想把参考视频变成同款 AI 视频，或者想把图片变成 PPT，那他最想看到的不是长篇介绍，而是一个可以操作的入口。</p>
+<p>所以后来我们开始把工具本身放到落地页上。</p>
+<p>第一屏不是只放一个按钮，而是直接放：</p>
+<ul>
+<li>输入框</li>
+<li>上传区域</li>
+<li>示例 prompt</li>
+<li>生成按钮</li>
+<li>模板入口</li>
+</ul>
+<p>用户一进来就知道这个页面能干什么，也能马上开始试。</p>
+<p>这个变化很重要。因为 AI 工具的价值不是靠描述建立的，而是靠“我点一下看看会发生什么”建立的。</p>
+<p>当然，落地页上的工具入口不一定真的要完整执行生成流程。很多情况下，未登录用户点击生成、Try it now、Create，都可以先跳登录页。关键是交互路径要统一：用户从任何地方表达“我要开始”，都应该进入登录，然后再进入功能页继续使用。</p>
+<p>这比把 CTA 散落在不同页面、不同逻辑里要清楚很多。</p>
+<h2 id="产品落地页的基本组成"><a href="#产品落地页的基本组成" class="headerlink" title="产品落地页的基本组成"></a>产品落地页的基本组成</h2><p>做多了之后，AI 工具类落地页大概可以总结成一套比较稳定的结构。</p>
+<h3 id="1-H1-价值主张"><a href="#1-H1-价值主张" class="headerlink" title="1. H1 + 价值主张"></a>1. H1 + 价值主张</h3><p>H1 要直接说清楚产品类别或核心结果。</p>
+<p>不要太抽象，也不要为了高级感写得很虚。比如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">How to generate AI videos from a reference</span><br></pre></td></tr></table></figure>
 
-<p>也就是说，它不是让 AI 一次性生成一个 60 秒视频，而是先生成多个短片段，再把这些片段拼接起来。默认方案改成了使用 Veo 3.1 Lite 测试：8 幕，每幕约 8 秒，合计约 64 秒，更适合本地测试和成本控制。</p>
-<h2 id="二、今天接触到的核心模块"><a href="#二、今天接触到的核心模块" class="headerlink" title="二、今天接触到的核心模块"></a>二、今天接触到的核心模块</h2><p>这次工作是偏全栈的，但重心更偏后端、AI 集成和工程化。前端部分主要是无限画布编辑器，包括 Scene 节点、Composition 合成节点、AI 模板弹窗、生成所有片段按钮和合成最终视频按钮。</p>
-<p>后端部分包括生成 AI 模板的 server action、保存节点和连线数据、提交视频任务、轮询任务状态、webhook 接收生成结果，以及把合成结果写回数据库。</p>
-<p>AI 集成部分包括用聊天模型生成分镜 prompt、用 KIE 的 Veo 3.1 Lite 生成视频、适配 Veo 专用接口、处理不同模型的 payload 和状态返回。数据库部分则涉及 Canvas 项目表、视频任务表、D1 migration 和本地 D1 测试。</p>
-<h2 id="三、最大的问题：浏览器渲染错误"><a href="#三、最大的问题：浏览器渲染错误" class="headerlink" title="三、最大的问题：浏览器渲染错误"></a>三、最大的问题：浏览器渲染错误</h2><p>今天最折磨人的问题是浏览器不断报这个错：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Failed to execute &#x27;insertBefore&#x27; on &#x27;Node&#x27;:</span><br><span class="line">The node before which the new node is to be inserted is not a child of this node.</span><br></pre></td></tr></table></figure>
+<p>这种标题就很好，用户不用思考。</p>
+<p>价值主张放在副标题里，解释它为什么有用，比如可以保留动作、构图、镜头语言、风格一致性。</p>
+<h3 id="2-可直接使用的工具"><a href="#2-可直接使用的工具" class="headerlink" title="2. 可直接使用的工具"></a>2. 可直接使用的工具</h3><p>这是 AI 工具落地页最重要的部分。</p>
+<p>第一屏最好能有真实输入框、上传框、生成按钮，或者至少是一个非常像真实工具的体验入口。</p>
+<p>用户不是来看品牌故事的，他是来解决一个任务的</p>
+<h3 id="3-输入-输出示例"><a href="#3-输入-输出示例" class="headerlink" title="3. 输入/输出示例"></a>3. 输入/输出示例</h3><p>AI 产品很需要示例。</p>
+<p>因为用户经常不知道该输入什么，也不知道产品输出会长什么样。</p>
+<p>所以页面里要有：</p>
+<ul>
+<li>示例 prompt</li>
+<li>参考图或参考视频</li>
+<li>生成结果</li>
+<li>模板案例</li>
+</ul>
+<p>这些内容会降低用户的理解成本。</p>
+<h3 id="4-真实效果展示"><a href="#4-真实效果展示" class="headerlink" title="4. 真实效果展示"></a>4. 真实效果展示</h3><p>只放静态图不够。</p>
+<p>视频类工具就应该展示视频，PPT 类工具就应该展示生成过程或最终页面。真实效果越靠前，用户越容易判断这个工具是不是他想要的。</p>
+<p>这里我们也用到了 Remotion skills($ npx skills add remotion-dev/skills) 来做演示动画。相比直接录屏，Remotion 更适合做可控的产品演示：</p>
+<ul>
+<li>镜头节奏可控</li>
+<li>文案和 UI 状态可控</li>
+<li>可以模拟点击、上传、生成、结果显现</li>
+<li>后续改文案和画面也更容易</li>
+</ul>
+<p>这对 AI 工具很有用，因为很多生成过程很难稳定复现，做成可编排动画会更适合落地页展示。</p>
+<h3 id="5-核心功能与差异点"><a href="#5-核心功能与差异点" class="headerlink" title="5. 核心功能与差异点"></a>5. 核心功能与差异点</h3><p>功能模块不能只是堆 feature。</p>
+<p>每个功能点都应该回答一个问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">这个功能为什么对用户有用？</span><br></pre></td></tr></table></figure>
 
-<p>一开始以为是弹窗组件写法有问题，于是先排查 Dialog。后来发现即使不用 Dialog，还是可能报错。继续排查后发现，Radix 的 Select 也会用 Portal 插入 DOM。为了降低风险，把 AI 模板弹窗里的 Radix Dialog 和 Select 都移除了，改成普通 fixed 弹窗和原生 select。</p>
-<p>但最后错误仍然可能出现在页面挂载点，这说明问题不一定是业务代码本身，而可能是浏览器插件在修改 DOM。这个错误非常像浏览器翻译插件导致的 React DOM 不一致，比如 Chrome 自动翻译、沉浸式翻译、划词翻译、双语网页翻译插件。</p>
-<p>这些插件可能会把 React 管理的文本节点拆开、替换、包一层 span。React 下一次更新时，以为某个节点还在原来的父节点下面，结果已经被插件改了，于是 insertBefore 就崩了。最后给 Canvas 页面和编辑器根节点都加了 notranslate 和 translate=”no”。</p>
-<p>这件事给我的教训是：高动态 React 页面，尤其是 ReactFlow、Portal、拖拽、弹窗这些场景，开发时一定要关掉网页翻译插件。不然很容易把浏览器插件的问题误判成业务代码问题。</p>
-<h2 id="四、测试不能只跑类型检查"><a href="#四、测试不能只跑类型检查" class="headerlink" title="四、测试不能只跑类型检查"></a>四、测试不能只跑类型检查</h2><p>今天一开始只跑了类型检查。类型检查通过了，但这不代表功能完整可靠。后来补了测试，才发现测试链路本身也有问题。</p>
-<p>新增了 Canvas 场景排序测试，以及 KIE Veo Lite payload 和状态映射测试，覆盖 Scene 节点拓扑排序、Composition 节点查找、Veo Lite payload、参考图转视频 payload、Veo 状态码映射，以及 Veo 模型是否走专用 record-info 查询接口。</p>
-<p>后来完整跑测试时，D1 测试失败，错误是 Wrangler returned no JSON output。排查后发现不是数据库本身的问题，而是测试 helper 在 Windows 下直接执行 wrangler.cmd 会失败，导致没有 stdout，所以自然解析不到 JSON。最终修复方式是不用 .cmd，改成直接用 Node 执行 Wrangler 的 JS 入口。</p>
-<p>修完后，完整测试和类型检查都通过了。这件事的教训很直接：以后推送前不能只跑类型检查，必须跑完整测试。测试没过就不能说完成，更不能推。</p>
-<h2 id="五、今天真正学到的东西"><a href="#五、今天真正学到的东西" class="headerlink" title="五、今天真正学到的东西"></a>五、今天真正学到的东西</h2><p>今天最大的收获不是写了多少代码，而是理解了一个完整功能上线背后的链路。一个 AI 视频功能不是只有“调用模型”这么简单，它至少包括用户输入、prompt 规划、节点数据结构、任务提交、异步生成、webhook 回调、数据库存储、文件转存、最终合成、错误恢复、测试验证。</p>
-<p>以前我可能会觉得“AI 生成视频”就是调一个 API。但今天做完之后会发现，真正难的是把它稳定地接进产品工作流里。</p>
-<h2 id="六、我需要补的知识点"><a href="#六、我需要补的知识点" class="headerlink" title="六、我需要补的知识点"></a>六、我需要补的知识点</h2><ol>
-<li>React DOM 和浏览器插件冲突：理解为什么翻译插件会导致 React 的 insertBefore 报错。</li>
-<li>ReactFlow 的 nodes / edges：画布不是普通列表，而是图结构，播放顺序应该由 edges 决定。</li>
-<li>拓扑排序：多幕视频合成前，必须从连接关系里推导出正确顺序。</li>
-<li>Webhook 异步任务：视频生成不是同步返回结果，而是先提交任务，完成后由平台回调。</li>
-<li>Cloudflare D1：D1 是 Cloudflare 的 SQLite 数据库服务，本地测试依赖 Wrangler。</li>
-<li>测试意识：tsc 只能证明类型没错，不能证明功能没错。以后必须完整跑测试。</li>
+<p>比如参考视频生成，不只是“支持 reference video”，而是“能保留镜头运动、动作结构和画面节奏”。</p>
+<p>差异点也不要写成空泛的 better、faster、smarter，而是要说具体差异：</p>
+<ul>
+<li>支持参考视频和替换图</li>
+<li>可以复用模板 prompt</li>
+<li>可以从案例直接创作同款</li>
+<li>支持不同风格、场景和镜头运动</li>
+</ul>
+<h3 id="6-使用步骤"><a href="#6-使用步骤" class="headerlink" title="6. 使用步骤"></a>6. 使用步骤</h3><p>步骤模块要简单，最好 3 到 4 步。</p>
+<p>用户需要知道流程，但不需要被教程淹没。</p>
+<p>常见结构是：</p>
+<ol>
+<li>Upload reference</li>
+<li>Describe the change</li>
+<li>Generate video</li>
+<li>Download or iterate</li>
 </ol>
-<h2 id="七、今天最值得手写的函数"><a href="#七、今天最值得手写的函数" class="headerlink" title="七、今天最值得手写的函数"></a>七、今天最值得手写的函数</h2><p>今天最适合自己手写一遍的是场景排序函数。需求是：输入 nodes 和 edges，输出按播放顺序排列的 Scene 节点。</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scene-1 -&gt; scene-2 -&gt; scene-3 -&gt; composition</span><br><span class="line">输出：scene-1, scene-2, scene-3</span><br></pre></td></tr></table></figure>
+<p>步骤区适合配一段视频或截图，但布局要注意对齐。之前我们就反复调整过标题、视频和步骤之间的位置关系。标题应该独立成一行，视频和步骤再在下面对齐，否则页面会显得拥挤。</p>
+<h3 id="7-使用场景"><a href="#7-使用场景" class="headerlink" title="7. 使用场景"></a>7. 使用场景</h3><p>使用场景不是功能重复，而是帮用户把产品放进自己的工作里。</p>
+<p>比如：</p>
+<ul>
+<li>广告短片</li>
+<li>角色动作</li>
+<li>电商产品视频</li>
+<li>社媒内容</li>
+<li>游戏角色展示</li>
+<li>分镜预演</li>
+</ul>
+<p>用户看到场景之后，才会觉得这个工具和自己有关。</p>
+<h3 id="8-不同用户的解决方案"><a href="#8-不同用户的解决方案" class="headerlink" title="8. 不同用户的解决方案"></a>8. 不同用户的解决方案</h3><p>同一个工具对不同用户的价值不一样。</p>
+<p>设计师关心视觉一致性，营销人员关心转化，创作者关心效率，开发者可能关心流程自动化。</p>
+<p>所以可以做一组“适合谁”的模块，让不同用户都能找到自己。</p>
+<h3 id="9-用户评价或信任数据"><a href="#9-用户评价或信任数据" class="headerlink" title="9. 用户评价或信任数据"></a>9. 用户评价或信任数据</h3><p>用户反馈、头像、评价、使用数据这些内容可以增强可信度。</p>
+<p>但这部分不能太假。宁愿少一点，也不要写得像模板。</p>
+<p>如果没有真实数据，至少可以写成具体的使用反馈，比如：</p>
+<ul>
+<li>省去了重新写 prompt 的时间</li>
+<li>更容易复现某种镜头</li>
+<li>模板可以快速启动创作</li>
+</ul>
+<h3 id="10-相关工具和内链"><a href="#10-相关工具和内链" class="headerlink" title="10. 相关工具和内链"></a>10. 相关工具和内链</h3><p>AI 工具网站通常不是单页产品，而是一组工具矩阵。</p>
+<p>所以落地页里应该有相关工具入口：</p>
+<ul>
+<li>image to video</li>
+<li>text to video</li>
+<li>reference to video</li>
+<li>AI video generator</li>
+<li>prompt generator</li>
+</ul>
+<p>这些内链既帮助 SEO，也帮助用户继续探索。</p>
+<h3 id="11-FAQ"><a href="#11-FAQ" class="headerlink" title="11. FAQ"></a>11. FAQ</h3><p>FAQ 不是为了凑页面长度，而是回答用户最后的顾虑。</p>
+<p>比如：</p>
+<ul>
+<li>需要上传什么格式？</li>
+<li>生成需要多久？</li>
+<li>可以商用吗？</li>
+<li>没有参考视频可以用吗？</li>
+<li>登录后才能使用吗？</li>
+<li>模板会不会自动填 prompt？</li>
+</ul>
+<p>FAQ 写得好，可以减少用户在点击前的犹豫。</p>
+<h3 id="12-再次行动按钮"><a href="#12-再次行动按钮" class="headerlink" title="12. 再次行动按钮"></a>12. 再次行动按钮</h3><p>页面底部一定要有再次行动按钮。</p>
+<p>用户看完整页后，不应该还要滚回顶部。底部 CTA 要和前面的逻辑一致：Try it now、Generate、Create，统一先跳登录，登录后进入功能页。</p>
+<h2 id="视觉设计上反复踩过的点"><a href="#视觉设计上反复踩过的点" class="headerlink" title="视觉设计上反复踩过的点"></a>视觉设计上反复踩过的点</h2><p>其实真正花时间最多的，其实不是写功能，而是调视觉细节。</p>
+<p>落地页这种东西很容易“看起来差不多”，但差一点就会变成模板感很重的页面。</p>
+<h3 id="文字尽量直接写在背景上"><a href="#文字尽量直接写在背景上" class="headerlink" title="文字尽量直接写在背景上"></a>文字尽量直接写在背景上</h3><p>一个很明显的偏好是：hero 文案不要总是放在大卡片里。</p>
+<p>尤其是首屏，如果把标题、副标题、按钮都塞进一个浮起来的大圆角卡片，就会显得很重，也很像后台模板。</p>
+<p>更好的方式是让文字直接写在背景上，用留白、字号、颜色和层级来撑住画面。</p>
+<p>如果需要背景图或视频，就让它成为第一视觉，而不是把它包进一个预览卡片里。</p>
+<h3 id="少用大面积渐变，尤其是紫色霓虹渐变"><a href="#少用大面积渐变，尤其是紫色霓虹渐变" class="headerlink" title="少用大面积渐变，尤其是紫色霓虹渐变"></a>少用大面积渐变，尤其是紫色霓虹渐变</h3><p>很多 AI 网站喜欢紫色、蓝色、霓虹、发光、渐变球。</p>
+<p>刚开始看会觉得“很 AI”，但看多了就很疲劳，而且很容易廉价。</p>
+<p>我们后面更倾向于轻一点的设计：</p>
+<ul>
+<li>背景干净</li>
+<li>色彩克制</li>
+<li>细线条</li>
+<li>微弱阴影</li>
+<li>少量强调色</li>
+<li>按钮可以有颜色，但不要整个页面都在发光</li>
+</ul>
+<p>AI Saas产品不一定要靠霓虹感表达科技感。真正高级的感觉往往来自秩序、留白和内容本身。</p>
+<h3 id="页面要有呼吸感"><a href="#页面要有呼吸感" class="headerlink" title="页面要有呼吸感"></a>页面要有呼吸感</h3><p>落地页很容易堆模块。</p>
+<p>一堆 section 接在一起，如果上下间距不统一，就会显得乱。之前也经常遇到某两个模块太近，和其他模块节奏不一致的问题。</p>
+<p>后来应该更注意：</p>
+<ul>
+<li>section 之间的垂直间距要统一</li>
+<li>标题和内容之间的距离要稳定</li>
+<li>左右布局要对齐</li>
+<li>模块内边距不要忽大忽小</li>
+<li>桌面和移动端都要检查</li>
+</ul>
+<p>“有呼吸感”不是单纯留很多空白，而是让页面节奏稳定。</p>
+<h3 id="字体更适合用干净圆润的无衬线"><a href="#字体更适合用干净圆润的无衬线" class="headerlink" title="字体更适合用干净圆润的无衬线"></a>字体更适合用干净圆润的无衬线</h3><p>这一类工具站，我们经常偏向 <strong>Outfit</strong> 这种字体气质。</p>
+<p>它比默认系统字体更有品牌感，但又不会太夸张。标题可以大一些，正文保持清楚，按钮文字不要太挤。</p>
+<p>字体大小也要根据容器来调。比如标题想放在同一行，如果放不下，可以适当缩小，而不是硬换行导致结构变弱。</p>
+<h3 id="输入框适合灰色细线条"><a href="#输入框适合灰色细线条" class="headerlink" title="输入框适合灰色细线条"></a>输入框适合灰色细线条</h3><p>工具类输入区不需要做得很厚重。</p>
+<p>灰色细边框、浅背景、轻微圆角、明确 placeholder，通常就够了。上传区也是一样，重点是让用户知道可以点、可以拖、可以上传，不要把上传框做成过度装饰的卡片。</p>
+<h3 id="案例卡片要能直接创作同款"><a href="#案例卡片要能直接创作同款" class="headerlink" title="案例卡片要能直接创作同款"></a>案例卡片要能直接创作同款</h3><p>模板和案例不只是展示内容。</p>
+<p>更好的逻辑是：每个模板视频上都有 Create 按钮。用户点击后，把这个模板对应的 prompt、参考视频、方向说明加载到功能页，然后可以直接创作同款。</p>
+<p>如果未登录，就先跳登录；登录后再进入功能页。</p>
+<p>这样案例就从“看看效果”变成了“启动创作”。</p>
+<h2 id="品牌名字和标识也会影响页面气质"><a href="#品牌名字和标识也会影响页面气质" class="headerlink" title="品牌名字和标识也会影响页面气质"></a>品牌名字和标识也会影响页面气质</h2><p>做落地页时，品牌名字和 logo 不只是装饰。</p>
+<p>一个 AI 工具如果名字太泛，页面就会很难记。名字、标识、标题、按钮文案、案例风格，要尽量形成一个整体。</p>
+<p>比如 reference to video 这种工具，核心就是“从参考到生成”。品牌表达不需要复杂，但要让用户一眼知道这是一个视频生成工具，而不是泛泛的 AI 平台。</p>
+<p>logo 也一样，不一定要复杂，但要能在导航栏、favicon、按钮、OG 图里稳定出现。</p>
+<h2 id="博客页面也是产品的一部分"><a href="#博客页面也是产品的一部分" class="headerlink" title="博客页面也是产品的一部分"></a>博客页面也是产品的一部分</h2><p>博客不是另一个独立的内容系统，它本身就是产品的一部分。</p>
+<p>很多 AI 工具的搜索流量不是直接从首页来，而是从某个教程、复盘、案例文章进来。</p>
+<p>所以博客文章也应该和产品页互相连接：</p>
+<ul>
+<li>教程文章引到工具页</li>
+<li>工具页引到相关教程</li>
+<li>案例文章展示 prompt 和成品</li>
+<li>FAQ 可以扩展成博客内容</li>
+<li>产品更新可以沉淀成复盘</li>
+</ul>
+<p>这样网站不是只有几个孤立页面，而是逐渐形成一个内容网络。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>做了这么多落地页之后，我觉得 AI 工具类页面最重要的不是“做得炫”，而是“让用户尽快开始”。</p>
+<p>好的落地页应该做到：</p>
+<ul>
+<li>用户一眼知道这是干什么的</li>
+<li>第一屏就能看到工具入口</li>
+<li>案例能直接变成创作入口</li>
+<li>真实效果比抽象描述更靠前</li>
+<li>CTA 逻辑统一</li>
+<li>页面视觉轻盈，不压迫</li>
+<li>模块节奏稳定</li>
+<li>FAQ 和内链把用户继续往下带</li>
+</ul>
+<p>如果用一句话总结，就是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AI 工具落地页不是产品说明书，而是一个可立即开始的工作台。</span><br></pre></td></tr></table></figure>
 
-<p>这个函数能帮助我真正理解为什么 Canvas 是图、为什么连线决定播放顺序、为什么 Composition 是出口、为什么多幕视频可以合成为一个完整视频。如果我能自己写出这个函数，就说明我不是只知道“点按钮生成”，而是真的理解了这个功能的数据结构。</p>
-<h2 id="八、今天的经验教训"><a href="#八、今天的经验教训" class="headerlink" title="八、今天的经验教训"></a>八、今天的经验教训</h2><ol>
-<li>开发时不要被“页面能打开”骗了。能打开不代表功能完整，必须跑测试。</li>
-<li>浏览器环境也会制造 bug。以后遇到奇怪的 React DOM 错误，要第一时间用无痕窗口、关闭插件验证。</li>
-<li>AI 功能不是只调模型。真正上线时，模型只是其中一环，后面还有任务管理、回调、存储、合成、测试和错误处理。</li>
-</ol>
-<h2 id="九、总结"><a href="#九、总结" class="headerlink" title="九、总结"></a>九、总结</h2><p>今天做的事情让我意识到，一个看似简单的 AI 视频模板功能，背后其实是完整的工程系统。它包含前端画布、后端 action、数据库、AI 模型、第三方 API、webhook、R2 存储、测试和浏览器兼容问题。</p>
-<p>今天最大的进步不是“功能写完了”，而是开始意识到：功能上线不是写完代码，而是能解释清楚它怎么工作、能测、能排错、能复盘。</p>
+<p>它当然需要 H1、价值主张、功能介绍、使用步骤、用户评价、FAQ 和 CTA，但这些内容都应该围绕一个目标展开：降低用户从“我有兴趣”到“我开始用”的距离</p>
+<p>至今尝试过的前端skills有awesome-design-md、frontend-design、design-taste-frontend、impeccable、product-design并参考其他Google排名前列的网站设计截图给codex做，<br>结果都不尽人意，需要花很多时间调整细节，最终的效果也是中规中矩吧，下一步我将尝试先用Figma设计下，还是需要自己的脑海中有一整套设计布局，这样交给ai才最大限度可能达到1:1还原你心中的效果。</p>
 
       </div>
       <div class="article-collapsed-mask"></div>
@@ -178,11 +339,11 @@
       </div>
     </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/" data-id="cmrxo3bg8002mg83ga8jt3p1l" data-title="今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/08/03/2026-08-03-%E7%94%A8codex%E5%81%9A%E5%89%8D%E7%AB%AF%E5%A4%AA%E9%9A%BE%E4%BA%86/" data-id="cmsdbgvh00000io3g16gv98qs" data-title="用codex做前端太难了" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI%E8%A7%86%E9%A2%91/" rel="tag">AI视频</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/D1/" rel="tag">D1</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ReactFlow/" rel="tag">ReactFlow</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Veo/" rel="tag">Veo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" rel="tag">无限画布</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI%E5%B7%A5%E5%85%B7/" rel="tag">AI工具</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Remotion-skills/" rel="tag">Remotion skills</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" rel="tag">产品复盘</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" rel="tag">前端设计</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" rel="tag">落地页</a></li></ul>
 
     </footer>
   </div>
@@ -190,19 +351,19 @@
     
 <nav id="article-nav">
   
-    <a href="/2026/07/11/2026-07-11-Win7%E8%99%9A%E6%8B%9F%E6%9C%BAPython3810-HeroBuddy%E9%85%8D%E7%BD%AE%E5%AE%9E%E5%BD%95/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2026/08/08/2026-08-08-git-push-learning/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption">前一篇</strong>
       <div class="article-nav-title">
         
-          从 ISO 到可用：Win7 虚拟机安装 Python 3.8.10
+          Git 推送学习：从 git status 到 GitHub 大文件限制
         
       </div>
     </a>
   
   
-    <a href="/2026/06/30/2026-06-30-Next.js-cookie-i18n-%E8%B8%A9%E5%9D%91%E5%AE%9E%E5%BD%95/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2026/07/27/2026-07-27-SSE%E7%9C%9F%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90%E6%95%88%E6%9E%9C%E5%AE%9E%E7%8E%B0%E5%A4%8D%E7%9B%98/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">后一篇</strong>
-      <div class="article-nav-title">2026-06-30-Next.js 纯 Cookie 模式 i18n 实战与踩坑实录</div>
+      <div class="article-nav-title">SSE（Server-Sent Events） 真流式生成效果实现复盘</div>
     </a>
   
 </nav>

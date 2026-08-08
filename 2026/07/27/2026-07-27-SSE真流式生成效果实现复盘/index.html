@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html class="blog-loading">
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>SSE（Server-Sent Events） 真流式生成效果实现复盘 | 我的技术博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="背景一开始文生 PPT 和图生 PPT 都已经能接上 KIE API，也能生成 outline、生成 PPT、生成图片和可编辑图层。但实际使用时有一个明显问题：生成过程太像“等结果”，不像 Gamma 那种“有人正在快速帮你搭建页面”。 用户点完生成后，如果只是看到一个静态 loading 或者一张大卡片，会感觉系统卡住了。尤其是 PPT 生成本身耗时比较长，如果每页都串行生成，用户会觉得速度很慢">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SSE（Server-Sent Events） 真流式生成效果实现复盘">
+<meta property="og:url" content="https://raojiacui.github.io/2026/07/27/2026-07-27-SSE%E7%9C%9F%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90%E6%95%88%E6%9E%9C%E5%AE%9E%E7%8E%B0%E5%A4%8D%E7%9B%98/index.html">
+<meta property="og:site_name" content="我的技术博客">
+<meta property="og:description" content="背景一开始文生 PPT 和图生 PPT 都已经能接上 KIE API，也能生成 outline、生成 PPT、生成图片和可编辑图层。但实际使用时有一个明显问题：生成过程太像“等结果”，不像 Gamma 那种“有人正在快速帮你搭建页面”。 用户点完生成后，如果只是看到一个静态 loading 或者一张大卡片，会感觉系统卡住了。尤其是 PPT 生成本身耗时比较长，如果每页都串行生成，用户会觉得速度很慢">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-26T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-27T12:47:50.547Z">
+<meta property="article:author" content="雨下雨停">
+<meta property="article:tag" content="Next.js">
+<meta property="article:tag" content="PPT">
+<meta property="article:tag" content="复盘">
+<meta property="article:tag" content="SSE">
+<meta property="article:tag" content="流式生成">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="我的技术博客" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <noscript><style>html.blog-loading #container{opacity:1}.blog-loader{display:none!important}</style></noscript>
+  <div class="blog-loader" data-blog-loader role="status" aria-live="polite" aria-label="博客正在加载">
+    <div class="blog-loader-stack">
+      <div class="blog-loader-clapper" aria-hidden="true">
+        <div class="blog-clapper-top">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="blog-clapper-body">
+          <i></i>
+          <i></i>
+          <i></i>
+        </div>
+        <div class="blog-clapper-hinge"></div>
+      </div>
+      <div class="blog-loader-progress"><span></span></div>
+    </div>
+  </div>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">我的技术博客</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS 订阅"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="搜索"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://raojiacui.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-2026-07-27-SSE真流式生成效果实现复盘" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/07/27/2026-07-27-SSE%E7%9C%9F%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90%E6%95%88%E6%9E%9C%E5%AE%9E%E7%8E%B0%E5%A4%8D%E7%9B%98/" class="article-date">
+  <time class="dt-published" datetime="2026-07-26T16:00:00.000Z" itemprop="datePublished">2026-07-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      SSE（Server-Sent Events） 真流式生成效果实现复盘
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
+      <div class="article-collapsed-preview">
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>一开始文生 PPT 和图生 PPT 都已经能接上 KIE API，也能生成 outline、生成 PPT、生成图片和可编辑图层。但实际使用时有一个明显问题：生成过程太像“等结果”，不像 Gamma 那种“有人正在快速帮你搭建页面”。</p>
+<p>用户点完生成后，如果只是看到一个静态 loading 或者一张大卡片，会感觉系统卡住了。尤其是 PPT 生成本身耗时比较长，如果每页都串行生成，用户会觉得速度很慢</p>
+<p>所以这次的目标不是单纯把 API 接上，而是把生成过程改成真正的流式体验：</p>
+<ul>
+<li>点击生成后立刻进入 workspace。</li>
+<li>页面先显示全灰骨架。</li>
+<li>后端边生成边推事件。</li>
+<li>前端完成一页显示一页。</li>
+<li>未完成页继续显示动态骨架。</li>
+<li>已完成页停止闪动。</li>
+<li>多页并发生成，而不是一页一页等。</li>
+</ul>
+<h2 id="最初的问题"><a href="#最初的问题" class="headerlink" title="最初的问题"></a>最初的问题</h2><p>最开始的实现有几个误区</p>
+<h3 id="1-先塞假内容再替换"><a href="#1-先塞假内容再替换" class="headerlink" title="1. 先塞假内容再替换"></a>1. 先塞假内容再替换</h3><p>早期 outline 和 PPT 生成时，为了让页面看起来“有东西”，会先生成一批 placeholder 内容。</p>
+<p>比如 outline 里先出现一些假标题、假 bullet：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Why this matters</span><br><span class="line">Key ideas</span><br><span class="line">Main framework</span><br></pre></td></tr></table></figure>
+
+<p>PPT 页面里也会先出现可编辑文字和本地图像占位，然后等 KIE 图片生成后再替换。</p>
+<p>这个逻辑看起来像是“进度很快”，但体验上其实不对。用户会误以为这些内容已经生成好了，后面突然被替换，反而有一种不稳定感。</p>
+<p>真正想要的效果应该是：没生成出来之前就不要显示内容，只显示灰色骨架和动效。生成完了再显现真实内容。</p>
+<h3 id="2-只有一个地方在动"><a href="#2-只有一个地方在动" class="headerlink" title="2. 只有一个地方在动"></a>2. 只有一个地方在动</h3><p>第二个问题是动效范围太小。</p>
+<p>如果只有当前页主画布在闪，左侧缩略图、右侧图层面板、其他页面都静止，用户会感觉生成过程不完整。</p>
+<p>更合理的状态应该是全局进入生成态：</p>
+<ul>
+<li>左侧缩略图显示骨架。</li>
+<li>主画布显示骨架。</li>
+<li>右侧 inspector 显示骨架。</li>
+<li>未完成页持续闪动。</li>
+<li>完成页停止闪动。</li>
+</ul>
+<p>这样用户能清楚看到：整套 PPT 正在被搭建。</p>
+<h3 id="3-后端仍然是串行生成"><a href="#3-后端仍然是串行生成" class="headerlink" title="3. 后端仍然是串行生成"></a>3. 后端仍然是串行生成</h3><p>最明显的速度问题来自后端。</p>
+<p>原来逻辑是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">生成第 1 页</span><br><span class="line">生成第 2 页</span><br><span class="line">生成第 3 页</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>如果一页需要 20 秒，10 页理论上就可能要几分钟。</p>
+<p>但用户预期更接近：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">同时生成第 1、2、3、4 页</span><br><span class="line">谁先完成谁先显示</span><br><span class="line">完成一个再补下一个</span><br></pre></td></tr></table></figure>
+
+<p>所以后面把文生 PPT 和图生 PPT 的生成都改成了并发池，目前先设置为并发 4。</p>
+<h2 id="SSE-真流式的核心思路"><a href="#SSE-真流式的核心思路" class="headerlink" title="SSE 真流式的核心思路"></a>SSE 真流式的核心思路</h2><p>这次实现的核心是 SSE。</p>
+<p>SSE 的全称是 Server-Sent Events。它适合这种“后端持续给前端推状态”的场景。</p>
+<p>普通接口通常是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">前端请求 -&gt; 后端全部生成完 -&gt; 返回完整 JSON</span><br></pre></td></tr></table></figure>
+
+<p>SSE 是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">前端请求 -&gt; 后端立刻建立流 -&gt; 后端边生成边发送事件</span><br></pre></td></tr></table></figure>
+
+<p>流式事件大概分为几类：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> <span class="title class_">StreamEvent</span> =</span><br><span class="line">  | &#123; <span class="attr">type</span>: <span class="string">&quot;stage&quot;</span>; <span class="attr">message</span>: <span class="built_in">string</span> &#125;</span><br><span class="line">  | &#123; <span class="attr">type</span>: <span class="string">&quot;deck&quot;</span>; <span class="attr">deck</span>: <span class="title class_">DeckDocument</span>; <span class="attr">message</span>?: <span class="built_in">string</span> &#125;</span><br><span class="line">  | &#123; <span class="attr">type</span>: <span class="string">&quot;slide-start&quot;</span>; <span class="attr">index</span>: <span class="built_in">number</span>; <span class="attr">message</span>: <span class="built_in">string</span> &#125;</span><br><span class="line">  | &#123; <span class="attr">type</span>: <span class="string">&quot;slide-image&quot;</span>; <span class="attr">index</span>: <span class="built_in">number</span>; <span class="attr">image</span>?: <span class="built_in">string</span>; <span class="attr">warning</span>?: <span class="built_in">string</span> &#125;</span><br><span class="line">  | &#123; <span class="attr">type</span>: <span class="string">&quot;slide&quot;</span>; <span class="attr">index</span>: <span class="built_in">number</span>; <span class="attr">slide</span>: <span class="title class_">DeckDocument</span>[<span class="string">&quot;slides&quot;</span>][<span class="built_in">number</span>] &#125;</span><br><span class="line">  | &#123; <span class="attr">type</span>: <span class="string">&quot;complete&quot;</span>; <span class="attr">message</span>: <span class="built_in">string</span> &#125;</span><br><span class="line">  | &#123; <span class="attr">type</span>: <span class="string">&quot;error&quot;</span>; <span class="attr">message</span>: <span class="built_in">string</span> &#125;;</span><br></pre></td></tr></table></figure>
+
+<p>其中最重要的是两个事件：</p>
+<ul>
+<li><code>deck</code>：先把整套 PPT 的结构推给前端，让 workspace 立刻显示骨架。</li>
+<li><code>slide</code> / <code>slide-image</code>：某一页完成后，只更新这一页。</li>
+</ul>
+<h2 id="文生-PPT-的流式生成"><a href="#文生-PPT-的流式生成" class="headerlink" title="文生 PPT 的流式生成"></a>文生 PPT 的流式生成</h2><p>文生 PPT 主要有两层流式</p>
+<h3 id="1-Outline-流式"><a href="#1-Outline-流式" class="headerlink" title="1. Outline 流式"></a>1. Outline 流式</h3><p>用户输入 prompt 后，先生成 outline。</p>
+<p>之前 outline 生成会先发假内容，现在改成只发 placeholder 事件：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Preparing outline slide 1</span><br><span class="line">Preparing outline slide 2</span><br><span class="line">Preparing outline slide 3</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>前端收到这些事件后，只显示灰色 outline 卡片，不显示假标题和假 bullet。</p>
+<p>等 AI outline 真正返回后，才把卡片切换成可编辑内容。</p>
+<p>这解决了“假内容先出现”的问题。</p>
+<h3 id="2-PPT-流式"><a href="#2-PPT-流式" class="headerlink" title="2. PPT 流式"></a>2. PPT 流式</h3><p>点击生成 PPT 后，workspace 会读取 pending 请求，然后打开：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;/api/text/stream&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>后端先根据 outline 创建一个 deck 结构，并发送：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">send</span>(&#123;</span><br><span class="line">  <span class="attr">type</span>: <span class="string">&quot;deck&quot;</span>,</span><br><span class="line">  <span class="attr">deck</span>: placeholderDeck,</span><br><span class="line">  <span class="attr">message</span>: <span class="string">&quot;Editable slide skeleton is ready&quot;</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>前端收到 <code>deck</code> 后，马上进入 workspace，并显示 10 张灰色骨架页。</p>
+<p>然后后端开始生成每页视觉图。原来是串行：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> index = <span class="number">0</span>; index &lt; outline.<span class="property">slides</span>.<span class="property">length</span>; index += <span class="number">1</span>) &#123;</span><br><span class="line">  <span class="keyword">await</span> <span class="title function_">generateKieSlideImage</span>(outline, index);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在改成并发池，并发数为 4：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="variable constant_">SLIDE_GENERATION_CONCURRENCY</span> = <span class="number">4</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">await</span> <span class="title function_">runWithConcurrency</span>(outline.<span class="property">slides</span>.<span class="property">length</span>, <span class="variable constant_">SLIDE_GENERATION_CONCURRENCY</span>, <span class="title function_">async</span> (index) =&gt; &#123;</span><br><span class="line">  <span class="title function_">send</span>(&#123; <span class="attr">type</span>: <span class="string">&quot;slide-start&quot;</span>, index, <span class="attr">message</span>: <span class="string">`Rendering slide <span class="subst">$&#123;index + <span class="number">1</span>&#125;</span> visual`</span> &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> result = <span class="keyword">await</span> <span class="title function_">generateKieSlideImage</span>(outline, index);</span><br><span class="line"></span><br><span class="line">  <span class="title function_">send</span>(&#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="string">&quot;slide-image&quot;</span>,</span><br><span class="line">    index,</span><br><span class="line">    <span class="attr">image</span>: result.<span class="property">image</span>,</span><br><span class="line">    <span class="attr">provider</span>: result.<span class="property">provider</span>,</span><br><span class="line">    <span class="attr">warning</span>: result.<span class="property">warning</span></span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这样 10 页不会一页一页等，而是最多 4 页同时生成。谁先完成，谁先推给前端。</p>
+<h2 id="图生-PPT-的流式生成"><a href="#图生-PPT-的流式生成" class="headerlink" title="图生 PPT 的流式生成"></a>图生 PPT 的流式生成</h2><p>图生 PPT 的问题更明显。</p>
+<p>用户上传图片后，如果先在 image 页面把所有图片读成 base64，再请求后端，再等后端整批分析完，页面会停在输入框那里很久。</p>
+<p>所以后面做了两步调整。</p>
+<h3 id="1-选图后立刻跳-workspace"><a href="#1-选图后立刻跳-workspace" class="headerlink" title="1. 选图后立刻跳 workspace"></a>1. 选图后立刻跳 workspace</h3><p>image 页面不再等 <code>FileReader</code> 全部读完。</p>
+<p>现在选图后只做很轻的操作：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">images</span>: selected.<span class="title function_">map</span>(<span class="function">(<span class="params">file</span>) =&gt;</span> (&#123;</span><br><span class="line">  <span class="attr">imageObjectUrl</span>: <span class="variable constant_">URL</span>.<span class="title function_">createObjectURL</span>(file),</span><br><span class="line">  <span class="attr">width</span>: <span class="number">1600</span>,</span><br><span class="line">  <span class="attr">height</span>: <span class="number">900</span>,</span><br><span class="line">  <span class="attr">name</span>: file.<span class="property">name</span></span><br><span class="line">&#125;))</span><br></pre></td></tr></table></figure>
+
+<p>然后马上：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">router.<span class="title function_">push</span>(<span class="string">&quot;/workspace&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这样用户不会停在 image-to-PPT 页面看大输入框。</p>
+<h3 id="2-workspace-里再处理图片"><a href="#2-workspace-里再处理图片" class="headerlink" title="2. workspace 里再处理图片"></a>2. workspace 里再处理图片</h3><p>workspace 读取 pending image 请求后，再把 blob URL 转成 data URL，打开：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;/api/image/stream&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>图生 PPT 的 SSE 路由也会先发送 deck：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">send</span>(&#123;</span><br><span class="line">  <span class="attr">type</span>: <span class="string">&quot;deck&quot;</span>,</span><br><span class="line">  <span class="attr">deck</span>: placeholderDeck,</span><br><span class="line">  <span class="attr">message</span>: <span class="string">&quot;Editable slide skeleton is ready&quot;</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>然后开始解析每张图片。</p>
+<p>这里同样从串行改成并发 4：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="variable constant_">IMAGE_GENERATION_CONCURRENCY</span> = <span class="number">4</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">await</span> <span class="title function_">runWithConcurrency</span>(images.<span class="property">length</span>, <span class="variable constant_">IMAGE_GENERATION_CONCURRENCY</span>, <span class="title function_">async</span> (index) =&gt; &#123;</span><br><span class="line">  <span class="title function_">send</span>(&#123; <span class="attr">type</span>: <span class="string">&quot;slide-start&quot;</span>, index, <span class="attr">message</span>: <span class="string">`Recovering slide <span class="subst">$&#123;index + <span class="number">1</span>&#125;</span>`</span> &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> result = <span class="keyword">await</span> <span class="title function_">generateDeckFromImages</span>(&#123;</span><br><span class="line">    <span class="attr">images</span>: [images[index]],</span><br><span class="line">    <span class="attr">provider</span>: parsed.<span class="property">data</span>.<span class="property">provider</span>,</span><br><span class="line">    <span class="attr">title</span>: parsed.<span class="property">data</span>.<span class="property">title</span></span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="title function_">send</span>(&#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="string">&quot;slide&quot;</span>,</span><br><span class="line">    index,</span><br><span class="line">    <span class="attr">slide</span>: slideDeck.<span class="property">slides</span>[<span class="number">0</span>],</span><br><span class="line">    <span class="attr">warnings</span>: <span class="title class_">Array</span>.<span class="title function_">from</span>(<span class="keyword">new</span> <span class="title class_">Set</span>(result.<span class="property">warnings</span>))</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这样图生 PPT 也是谁先解析完成，谁先显示。</p>
+<h2 id="前端如何逐页显现"><a href="#前端如何逐页显现" class="headerlink" title="前端如何逐页显现"></a>前端如何逐页显现</h2><p>前端的关键状态是：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> [completedSlideIndexes, setCompletedSlideIndexes] = useState&lt;<span class="title class_">Set</span>&lt;<span class="built_in">number</span>&gt;&gt;(<span class="keyword">new</span> <span class="title class_">Set</span>());</span><br><span class="line"><span class="keyword">const</span> isDeckBuilding = totalVisuals &gt; <span class="number">0</span> &amp;&amp; renderedVisuals &lt; totalVisuals;</span><br><span class="line"><span class="keyword">const</span> isActiveSlidePending = isDeckBuilding &amp;&amp; !completedSlideIndexes.<span class="title function_">has</span>(activeSlideIndex);</span><br></pre></td></tr></table></figure>
+
+<p>如果某一页还没完成，就只显示 skeleton。</p>
+<p>主画布里不会渲染真实文字、图片和图层内容：</p>
+<figure class="highlight tsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;<span class="title class_">LayerView</span></span><br><span class="line">  layer=&#123;layer&#125;</span><br><span class="line">  isSkeleton=&#123;isActiveSlidePending&#125;</span><br><span class="line">/&gt;</span><br></pre></td></tr></table></figure>
+
+<p>如果 <code>isSkeleton</code> 为 true，<code>LayerView</code> 只画灰色块：</p>
+<figure class="highlight tsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (isSkeleton) &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">className</span>=<span class="string">&#123;</span>`<span class="attr">slide-layer</span> $&#123;<span class="attr">styles.editorLayer</span>&#125; $&#123;<span class="attr">styles.skeletonLayer</span>&#125;`&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">style</span>=<span class="string">&#123;style&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">aria-hidden</span>=<span class="string">&quot;true&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    /&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>等收到某页完成事件：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">setCompletedSlideIndexes</span>(<span class="function">(<span class="params">current</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> next = <span class="keyword">new</span> <span class="title class_">Set</span>(current);</span><br><span class="line">  next.<span class="title function_">add</span>(event.<span class="property">index</span>);</span><br><span class="line">  <span class="title function_">setRenderedVisuals</span>(next.<span class="property">size</span>);</span><br><span class="line">  <span class="keyword">return</span> next;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这一页才从骨架切换成真实内容。</p>
+<h2 id="为什么完成页不能继续闪"><a href="#为什么完成页不能继续闪" class="headerlink" title="为什么完成页不能继续闪"></a>为什么完成页不能继续闪</h2><p>一开始全局生成态下，所有缩略图和主画布都会闪。这个体验也不对。</p>
+<p>因为一页已经完成了，还继续闪，用户会以为它还没生成好。</p>
+<p>后来改成：</p>
+<ul>
+<li>未完成页：继续 skeleton 和扫光动效。</li>
+<li>已完成页：停止闪动，显示真实内容。</li>
+<li>当前页如果已完成，主画布也不再加 <code>canvasBuilding</code>。</li>
+</ul>
+<p>缩略图的动效也只给 pending 页：</p>
+<figure class="highlight tsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">className=&#123;<span class="string">`</span></span><br><span class="line"><span class="string">  <span class="subst">$&#123;styles.thumbnailButton&#125;</span></span></span><br><span class="line"><span class="string">  <span class="subst">$&#123;index === activeSlideIndex ? styles.thumbnailActive : <span class="string">&quot;&quot;</span>&#125;</span></span></span><br><span class="line"><span class="string">  <span class="subst">$&#123;isDeckBuilding &amp;&amp; !completedSlideIndexes.has(index) ? styles.thumbnailPending : <span class="string">&quot;&quot;</span>&#125;</span></span></span><br><span class="line"><span class="string">`</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样完成和未完成状态就更清楚。</p>
+<h2 id="并发数为什么先定为-4"><a href="#并发数为什么先定为-4" class="headerlink" title="并发数为什么先定为 4"></a>并发数为什么先定为 4</h2><p>理论上 10 页可以全部同时生成，但这不一定更快。</p>
+<p>因为 KIE、Gemini、FAL、OCR 这些外部服务都有可能限流。如果一次同时发 10 个任务，可能出现：</p>
+<ul>
+<li>请求失败。</li>
+<li>排队更久。</li>
+<li>被限流。</li>
+<li>总耗时反而更长。</li>
+<li>错误率变高。</li>
+</ul>
+<p>所以先设置并发 4。</p>
+<p>并发 4 的好处是：</p>
+<ul>
+<li>明显比串行快。</li>
+<li>不会一下子打爆外部接口。</li>
+<li>前端仍然能看到多页同时生成。</li>
+<li>谁先完成谁先显示，体验上接近真正流式。</li>
+</ul>
+<p>并发池实现也比较简单：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">runWithConcurrency</span>(<span class="params"></span></span><br><span class="line"><span class="params">  <span class="attr">total</span>: <span class="built_in">number</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">concurrency</span>: <span class="built_in">number</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">worker</span>: (index: <span class="built_in">number</span>) =&gt; <span class="title class_">Promise</span>&lt;<span class="built_in">void</span>&gt;</span></span><br><span class="line"><span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> nextIndex = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">const</span> workerCount = <span class="title class_">Math</span>.<span class="title function_">min</span>(<span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">1</span>, concurrency), total);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>(</span><br><span class="line">    <span class="title class_">Array</span>.<span class="title function_">from</span>(&#123; <span class="attr">length</span>: workerCount &#125;, <span class="title function_">async</span> () =&gt; &#123;</span><br><span class="line">      <span class="keyword">while</span> (nextIndex &lt; total) &#123;</span><br><span class="line">        <span class="keyword">const</span> index = nextIndex;</span><br><span class="line">        nextIndex += <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">await</span> <span class="title function_">worker</span>(index);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个逻辑的含义是：先启动 4 个 worker，每个 worker 做完一页后继续拿下一页，直到全部完成。</p>
+<h2 id="最终效果"><a href="#最终效果" class="headerlink" title="最终效果"></a>最终效果</h2><p>最终想要的生成体验是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">用户点击生成</span><br><span class="line">进入 workspace</span><br><span class="line">显示 10 张灰色骨架</span><br><span class="line">4 页同时开始生成</span><br><span class="line">第 3 页先完成 -&gt; 第 3 页显现</span><br><span class="line">第 1 页完成 -&gt; 第 1 页显现</span><br><span class="line">第 8 页完成 -&gt; 第 8 页显现</span><br><span class="line">未完成页继续闪</span><br><span class="line">完成页停止闪</span><br><span class="line">全部完成后显示 editable PPT</span><br></pre></td></tr></table></figure>
+
+<p>这个效果和普通 loading 最大的区别是：用户能看到 PPT 正在被逐步搭建，而不是只看到一个等待状态。</p>
+<h2 id="感受"><a href="#感受" class="headerlink" title="感受"></a>感受</h2><p>流式生成不只是后端用了 SSE。</p>
+<p>真正的流式体验需要后端、前端和视觉状态一起配合</p>
+<p>后端要做到：</p>
+<ul>
+<li>不等全部完成再返回。</li>
+<li>先推 deck 结构。</li>
+<li>每页完成就推对应事件。</li>
+<li>支持并发生成。</li>
+<li>错误时也能推 error 事件。</li>
+</ul>
+<p>前端要做到：</p>
+<ul>
+<li>读取 SSE stream。</li>
+<li>逐个解析 <code>data:</code> 事件。</li>
+<li>只更新对应 slide。</li>
+<li>维护 completed 状态。</li>
+<li>未完成页不显示半成品内容。</li>
+<li>完成页停止动效。</li>
+</ul>
+<p>视觉上要做到：</p>
+<ul>
+<li>没内容时只显示灰色骨架。</li>
+<li>骨架要有动感。</li>
+<li>完成页要稳定。</li>
+<li>不要用假内容冒充生成结果。</li>
+</ul>
+<h2 id="后续还可以继续优化"><a href="#后续还可以继续优化" class="headerlink" title="后续还可以继续优化"></a>后续还可以继续优化</h2><p>现在的并发 4 只是第一步，后面还可以继续优化。</p>
+<h3 id="1-增加并发配置"><a href="#1-增加并发配置" class="headerlink" title="1. 增加并发配置"></a>1. 增加并发配置</h3><p>可以把并发数做成环境变量：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PPT_GENERATION_CONCURRENCY=4</span><br></pre></td></tr></table></figure>
+
+<p>这样本地、测试环境、线上可以用不同配置。</p>
+<h3 id="2-做任务失败兜底"><a href="#2-做任务失败兜底" class="headerlink" title="2. 做任务失败兜底"></a>2. 做任务失败兜底</h3><p>如果某一页生成失败，不应该让整套 PPT 失败。可以让这一页保留骨架或 fallback 图，同时继续生成其他页。</p>
+<h3 id="3-区分结构生成和视觉生成"><a href="#3-区分结构生成和视觉生成" class="headerlink" title="3. 区分结构生成和视觉生成"></a>3. 区分结构生成和视觉生成</h3><p>文生 PPT 可以先生成可编辑文字结构，再生成视觉图。这样用户更早看到文字版 PPT，图片慢慢补。</p>
+<p>但这个方向要谨慎，因为用户之前已经明确不希望先看到半成品内容。所以需要根据产品体验决定。</p>
+<h3 id="4-增加更细的进度事件"><a href="#4-增加更细的进度事件" class="headerlink" title="4. 增加更细的进度事件"></a>4. 增加更细的进度事件</h3><p>现在主要是页级别进度。后续可以增加：</p>
+<ul>
+<li>task created</li>
+<li>polling</li>
+<li>image ready</li>
+<li>OCR running</li>
+<li>slide composed</li>
+<li>PPTX ready</li>
+</ul>
+<p>这样进度会更细。</p>
+<h3 id="5-观察真实耗时"><a href="#5-观察真实耗时" class="headerlink" title="5. 观察真实耗时"></a>5. 观察真实耗时</h3><p>后续应该记录每页生成时间：</p>
+<ul>
+<li>第几页开始时间。</li>
+<li>第几页完成时间。</li>
+<li>KIE 耗时。</li>
+<li>OCR 耗时。</li>
+<li>导出耗时。</li>
+<li>是否 fallback。</li>
+</ul>
+<p>有了这些数据，才能判断到底是模型慢、网络慢、并发不够，还是某个后处理慢。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这次 SSE 真流式的核心不是“加一个 loading 动画”，而是把生成过程从一次性返回改成事件驱动。</p>
+<p>用户看到的是 PPT 一页一页被搭建起来：</p>
+<ul>
+<li>先有骨架。</li>
+<li>再有完成页。</li>
+<li>未完成继续闪动。</li>
+<li>已完成稳定显示。</li>
+<li>多页并行推进。</li>
+</ul>
+<p>这个体验感觉上是PPT疯狂长出血肉或者有人再快速的帮你搭建，比普通等待更接近真实产品，也更适合 PPT 这种多页、耗时、可逐步完成的生成任务。</p>
+
+      </div>
+      <div class="article-collapsed-mask"></div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://raojiacui.github.io/2026/07/27/2026-07-27-SSE%E7%9C%9F%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90%E6%95%88%E6%9E%9C%E5%AE%9E%E7%8E%B0%E5%A4%8D%E7%9B%98/" data-id="cms384c6w0000gw3g3zprcsqo" data-title="SSE（Server-Sent Events） 真流式生成效果实现复盘" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PPT/" rel="tag">PPT</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SSE/" rel="tag">SSE</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%8D%E7%9B%98/" rel="tag">复盘</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" rel="tag">流式生成</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2026/08/03/2026-08-03-%E7%94%A8codex%E5%81%9A%E5%89%8D%E7%AB%AF%E5%A4%AA%E9%9A%BE%E4%BA%86/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">前一篇</strong>
+      <div class="article-nav-title">
+        
+          用codex做前端太难了
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2026/07/23/2026-07-23-OCR%E8%BD%AC%E5%8F%AF%E7%BC%96%E8%BE%91PPT%E6%96%87%E5%AD%97%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95/">开发记录</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">部署教程</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-NPC/" rel="tag">AI NPC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E5%B7%A5%E5%85%B7/" rel="tag">AI工具</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E7%BC%96%E7%A8%8B/" rel="tag">AI编程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E8%A7%86%E9%A2%91/" rel="tag">AI视频</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/API%E6%8E%A5%E5%85%A5/" rel="tag">API接入</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cookie/" rel="tag">Cookie</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/D1/" rel="tag">D1</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DeepSeek/" rel="tag">DeepSeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Drizzle/" rel="tag">Drizzle</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gemini/" rel="tag">Gemini</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/H5-%E6%B8%B8%E6%88%8F/" rel="tag">H5 游戏</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HeroBuddy/" rel="tag">HeroBuddy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KIE/" rel="tag">KIE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCP/" rel="tag">MCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OCR/" rel="tag">OCR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PPT/" rel="tag">PPT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Prompt-Lens/" rel="tag">Prompt Lens</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReactFlow/" rel="tag">ReactFlow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Remotion-skills/" rel="tag">Remotion skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSE/" rel="tag">SSE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Serverless/" rel="tag">Serverless</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skills/" rel="tag">Skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TalentsAI/" rel="tag">TalentsAI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Veo/" rel="tag">Veo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel/" rel="tag">Vercel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel-Blob/" rel="tag">Vercel Blob</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VirtualBox/" rel="tag">VirtualBox</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-7/" rel="tag">Windows 7</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/amCharts/" rel="tag">amCharts</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/i18n/" rel="tag">i18n</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/next-intl/" rel="tag">next-intl</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" rel="tag">产品复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" rel="tag">前端实践</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" rel="tag">前端设计</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%8D%E7%9B%98/" rel="tag">复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" rel="tag">多Agent协作</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" rel="tag">大文件上传</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" rel="tag">工程复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" rel="tag">无限画布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" rel="tag">流式生成</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" rel="tag">落地页</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" rel="tag">进阶规划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AI-NPC/" style="font-size: 10px;">AI NPC</a> <a href="/tags/AI%E5%B7%A5%E5%85%B7/" style="font-size: 10px;">AI工具</a> <a href="/tags/AI%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">AI编程</a> <a href="/tags/AI%E8%A7%86%E9%A2%91/" style="font-size: 10px;">AI视频</a> <a href="/tags/API%E6%8E%A5%E5%85%A5/" style="font-size: 10px;">API接入</a> <a href="/tags/Codex/" style="font-size: 10px;">Codex</a> <a href="/tags/Cookie/" style="font-size: 10px;">Cookie</a> <a href="/tags/D1/" style="font-size: 10px;">D1</a> <a href="/tags/DeepSeek/" style="font-size: 10px;">DeepSeek</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Drizzle/" style="font-size: 10px;">Drizzle</a> <a href="/tags/Function-Compute/" style="font-size: 14px;">Function Compute</a> <a href="/tags/Gemini/" style="font-size: 10px;">Gemini</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/GitHub/" style="font-size: 10px;">GitHub</a> <a href="/tags/GitHub-Actions/" style="font-size: 16px;">GitHub Actions</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/H5-%E6%B8%B8%E6%88%8F/" style="font-size: 10px;">H5 游戏</a> <a href="/tags/HeroBuddy/" style="font-size: 10px;">HeroBuddy</a> <a href="/tags/Hexo/" style="font-size: 12px;">Hexo</a> <a href="/tags/KIE/" style="font-size: 10px;">KIE</a> <a href="/tags/Kubernetes/" style="font-size: 10px;">Kubernetes</a> <a href="/tags/MCP/" style="font-size: 10px;">MCP</a> <a href="/tags/Next-js/" style="font-size: 18px;">Next.js</a> <a href="/tags/OCR/" style="font-size: 10px;">OCR</a> <a href="/tags/OSS/" style="font-size: 12px;">OSS</a> <a href="/tags/PPT/" style="font-size: 12px;">PPT</a> <a href="/tags/Prompt-Lens/" style="font-size: 14px;">Prompt Lens</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/QtAdmin/" style="font-size: 10px;">QtAdmin</a> <a href="/tags/QtCloud/" style="font-size: 10px;">QtCloud</a> <a href="/tags/QtCloud-Asset/" style="font-size: 14px;">QtCloud Asset</a> <a href="/tags/QtConsult/" style="font-size: 12px;">QtConsult</a> <a href="/tags/ReactFlow/" style="font-size: 10px;">ReactFlow</a> <a href="/tags/Remotion-skills/" style="font-size: 10px;">Remotion skills</a> <a href="/tags/SSE/" style="font-size: 10px;">SSE</a> <a href="/tags/Serverless/" style="font-size: 10px;">Serverless</a> <a href="/tags/Skills/" style="font-size: 10px;">Skills</a> <a href="/tags/TalentsAI/" style="font-size: 10px;">TalentsAI</a> <a href="/tags/Veo/" style="font-size: 10px;">Veo</a> <a href="/tags/Vercel/" style="font-size: 12px;">Vercel</a> <a href="/tags/Vercel-Blob/" style="font-size: 10px;">Vercel Blob</a> <a href="/tags/VirtualBox/" style="font-size: 10px;">VirtualBox</a> <a href="/tags/Windows-7/" style="font-size: 10px;">Windows 7</a> <a href="/tags/amCharts/" style="font-size: 10px;">amCharts</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/i18n/" style="font-size: 10px;">i18n</a> <a href="/tags/next-intl/" style="font-size: 10px;">next-intl</a> <a href="/tags/workflow/" style="font-size: 10px;">workflow</a> <a href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" style="font-size: 10px;">产品复盘</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 10px;">前端</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" style="font-size: 10px;">前端实践</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;">前端设计</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 12px;">博客</a> <a href="/tags/%E5%A4%8D%E7%9B%98/" style="font-size: 12px;">复盘</a> <a href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" style="font-size: 10px;">多Agent协作</a> <a href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" style="font-size: 10px;">大文件上传</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 10px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 20px;">工作总结</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" style="font-size: 12px;">工程复盘</a> <a href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" style="font-size: 10px;">数字资产</a> <a href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" style="font-size: 10px;">无限画布</a> <a href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" style="font-size: 10px;">标本契约</a> <a href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" style="font-size: 10px;">流式生成</a> <a href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" style="font-size: 10px;">落地页</a> <a href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" style="font-size: 10px;">议事档案</a> <a href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" style="font-size: 10px;">进阶规划</a> <a href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" style="font-size: 10px;">部署教程</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 16px;">阿里云</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/08/">八月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/07/">七月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/04/">四月 2026</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/08/08/2026-08-08-git-push-learning/">Git 推送学习：从 git status 到 GitHub 大文件限制</a>
+          </li>
+        
+          <li>
+            <a href="/2026/08/03/2026-08-03-%E7%94%A8codex%E5%81%9A%E5%89%8D%E7%AB%AF%E5%A4%AA%E9%9A%BE%E4%BA%86/">用codex做前端太难了</a>
+          </li>
+        
+          <li>
+            <a href="/2026/07/27/2026-07-27-SSE%E7%9C%9F%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90%E6%95%88%E6%9E%9C%E5%AE%9E%E7%8E%B0%E5%A4%8D%E7%9B%98/">SSE（Server-Sent Events） 真流式生成效果实现复盘</a>
+          </li>
+        
+          <li>
+            <a href="/2026/07/23/2026-07-23-OCR%E8%BD%AC%E5%8F%AF%E7%BC%96%E8%BE%91PPT%E6%96%87%E5%AD%97%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98/">增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘</a>
+          </li>
+        
+          <li>
+            <a href="/2026/07/17/2026-07-17-%E7%99%BB%E5%BD%95%E9%A1%B5%E5%9C%B0%E5%9B%BE%E8%83%8C%E6%99%AF%E4%BC%98%E5%8C%96%E5%A4%8D%E7%9B%98-CDN-vs-%E6%9C%AC%E5%9C%B0%E4%BE%9D%E8%B5%96/">登录页地图背景优化复盘：CDN 动态加载 vs 本地依赖打包</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 雨下雨停<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+
+<script>
+function toggleArticle(btn) {
+  var entry = btn.parentElement;
+  entry.classList.add('expanded');
+}
+</script>
+
+<script>
+(function() {
+  var root = document.documentElement;
+  var loader = document.querySelector('[data-blog-loader]');
+  var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var now = window.performance && window.performance.now ? function() { return window.performance.now(); } : function() { return Date.now(); };
+  var startedAt = now();
+  var minimumDuration = reducedMotion ? 80 : 920;
+  var maximumDuration = reducedMotion ? 160 : 1500;
+  var finished = false;
+
+  function removeClass(node, className) {
+    if (node.classList) {
+      node.classList.remove(className);
+    } else {
+      node.className = node.className.replace(new RegExp('(^|\\s)' + className + '(\\s|$)', 'g'), ' ');
+    }
+  }
+
+  function addClass(node, className) {
+    if (node.classList) {
+      node.classList.add(className);
+    } else if (node.className.indexOf(className) === -1) {
+      node.className += ' ' + className;
+    }
+  }
+
+  function finishLoader() {
+    if (finished) return;
+    finished = true;
+
+    window.setTimeout(function() {
+      addClass(root, 'blog-ready');
+      removeClass(root, 'blog-loading');
+      if (loader) loader.setAttribute('aria-hidden', 'true');
+
+      window.setTimeout(function() {
+        if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+      }, reducedMotion ? 0 : 420);
+    }, Math.max(0, minimumDuration - (now() - startedAt)));
+  }
+
+  if (!loader) {
+    finishLoader();
+  } else if (document.readyState === 'complete') {
+    finishLoader();
+  } else {
+    window.addEventListener('load', finishLoader, { once: true });
+  }
+
+  window.setTimeout(finishLoader, maximumDuration);
+})();
+
+(function() {
+  var home = document.querySelector('[data-blog-home]');
+  if (!home) return;
+
+  var buttons = Array.prototype.slice.call(home.querySelectorAll('[data-section-button]'));
+  var panels = Array.prototype.slice.call(home.querySelectorAll('[data-section-panel]'));
+  var reader = home.querySelector('[data-home-reader]');
+  var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function activateSection(key, shouldScroll) {
+    var activePanel = null;
+
+    buttons.forEach(function(button) {
+      var isActive = button.getAttribute('data-section-button') === key;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+    });
+
+    panels.forEach(function(panel) {
+      var isActive = panel.getAttribute('data-section-panel') === key;
+      panel.hidden = !isActive;
+      panel.classList.toggle('is-active', isActive);
+      if (isActive) activePanel = panel;
+    });
+
+    if (activePanel && shouldScroll) {
+      window.setTimeout(function() {
+        (reader || activePanel).scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+      }, 40);
+    }
+  }
+
+  buttons.forEach(function(button) {
+    button.addEventListener('click', function() {
+      var key = button.getAttribute('data-section-button');
+      activateSection(key, true);
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', '#section-' + key);
+      }
+    });
+  });
+
+  Array.prototype.slice.call(home.querySelectorAll('[data-article-toggle]')).forEach(function(button) {
+    button.addEventListener('click', function() {
+      var article = button.closest ? button.closest('.home-readable-article') : button.parentNode.parentNode;
+      if (!article) return;
+      var expanded = !article.classList.contains('is-expanded');
+      article.classList.toggle('is-expanded', expanded);
+      button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      button.textContent = expanded ? '收起' : '展开阅读';
+    });
+  });
+
+  var initialKey = window.location.hash.replace('#section-', '') || home.getAttribute('data-default-section') || (buttons[0] && buttons[0].getAttribute('data-section-button'));
+  if (initialKey) activateSection(initialKey, false);
+})();
+</script>
+
+  </div>
+</body>
+</html>

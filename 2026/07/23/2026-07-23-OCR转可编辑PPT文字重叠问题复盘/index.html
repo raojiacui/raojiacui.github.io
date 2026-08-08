@@ -4,24 +4,22 @@
   <meta charset="utf-8">
   
   
-  <title>今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘 | 我的技术博客</title>
+  <title>增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘 | 我的技术博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="今天主要复盘无限画布 AI 视频模板功能的开发过程，包括多幕合一视频工作流、Veo 3.1 Lite 接入、浏览器渲染错误排查、D1 测试修复，以及功能上线前必须补齐测试的经验教训。">
+  <meta name="description" content="背景今天主要卡在一个问题上：图片转可编辑 PPT 时，识别出来的文字大量重叠。 一开始看起来像是“多语言识别不够好”，尤其是韩语、德语和欧洲语言样例中，页面上出现了很多错位文字、重复文字和异常大的文字。但继续排查后发现，真正的问题不是识别不到，而是识别结果被重复加入、过度拆分、错误合并，最后全部渲染成了可编辑文本层。 这个问题在简单页面里不明显，但在投行 PPT、Business Model Ca">
 <meta property="og:type" content="article">
-<meta property="og:title" content="今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘">
-<meta property="og:url" content="https://raojiacui.github.io/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/index.html">
+<meta property="og:title" content="增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘">
+<meta property="og:url" content="https://raojiacui.github.io/2026/07/23/2026-07-23-OCR%E8%BD%AC%E5%8F%AF%E7%BC%96%E8%BE%91PPT%E6%96%87%E5%AD%97%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98/index.html">
 <meta property="og:site_name" content="我的技术博客">
-<meta property="og:description" content="今天主要复盘无限画布 AI 视频模板功能的开发过程，包括多幕合一视频工作流、Veo 3.1 Lite 接入、浏览器渲染错误排查、D1 测试修复，以及功能上线前必须补齐测试的经验教训。">
+<meta property="og:description" content="背景今天主要卡在一个问题上：图片转可编辑 PPT 时，识别出来的文字大量重叠。 一开始看起来像是“多语言识别不够好”，尤其是韩语、德语和欧洲语言样例中，页面上出现了很多错位文字、重复文字和异常大的文字。但继续排查后发现，真正的问题不是识别不到，而是识别结果被重复加入、过度拆分、错误合并，最后全部渲染成了可编辑文本层。 这个问题在简单页面里不明显，但在投行 PPT、Business Model Ca">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-07-05T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-11T14:59:30.904Z">
+<meta property="article:published_time" content="2026-07-23T12:30:00.000Z">
+<meta property="article:modified_time" content="2026-07-23T14:12:16.217Z">
 <meta property="article:author" content="雨下雨停">
-<meta property="article:tag" content="工作总结">
-<meta property="article:tag" content="AI视频">
-<meta property="article:tag" content="无限画布">
-<meta property="article:tag" content="ReactFlow">
-<meta property="article:tag" content="Veo">
-<meta property="article:tag" content="D1">
+<meta property="article:tag" content="Next.js">
+<meta property="article:tag" content="OCR">
+<meta property="article:tag" content="PPT">
+<meta property="article:tag" content="复盘">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="我的技术博客" type="application/atom+xml">
@@ -104,10 +102,10 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-daily-summary-2026-07-06-infinite-canvas-ai-video-template" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-2026-07-23-OCR转可编辑PPT文字重叠问题复盘" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/" class="article-date">
-  <time class="dt-published" datetime="2026-07-05T16:00:00.000Z" itemprop="datePublished">2026-07-06</time>
+    <a href="/2026/07/23/2026-07-23-OCR%E8%BD%AC%E5%8F%AF%E7%BC%96%E8%BE%91PPT%E6%96%87%E5%AD%97%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98/" class="article-date">
+  <time class="dt-published" datetime="2026-07-23T12:30:00.000Z" itemprop="datePublished">2026-07-23</time>
 </a>
     
   <div class="article-category">
@@ -122,7 +120,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘
+      增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘
     </h1>
   
 
@@ -130,46 +128,146 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       <div class="article-collapsed-preview">
-        <h1 id="从“能跑”到“能上线”：一次无限画布-AI-视频功能开发复盘"><a href="#从“能跑”到“能上线”：一次无限画布-AI-视频功能开发复盘" class="headerlink" title="从“能跑”到“能上线”：一次无限画布 AI 视频功能开发复盘"></a>从“能跑”到“能上线”：一次无限画布 AI 视频功能开发复盘</h1><p>今天主要做的是一个具体功能的完整开发：让无限画布支持 AI 生成 1 分钟左右的视频模板。这个功能看起来像是“点一下生成视频”，但真正做下来才发现，它其实不是一个简单按钮，而是一整条工作流。</p>
-<h2 id="一、今天做了什么"><a href="#一、今天做了什么" class="headerlink" title="一、今天做了什么"></a>一、今天做了什么</h2><p>今天实现的是“多幕合一视频”的基础能力。整体流程是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">用户输入视频想法</span><br><span class="line">  -&gt; AI 生成多幕分镜</span><br><span class="line">  -&gt; 每一幕变成一个画布 Scene 节点</span><br><span class="line">  -&gt; 每个节点生成一段短视频</span><br><span class="line">  -&gt; 最后按顺序合成为一个完整视频</span><br></pre></td></tr></table></figure>
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>今天主要卡在一个问题上：图片转可编辑 PPT 时，识别出来的文字大量重叠。</p>
+<p>一开始看起来像是“多语言识别不够好”，尤其是韩语、德语和欧洲语言样例中，页面上出现了很多错位文字、重复文字和异常大的文字。但继续排查后发现，真正的问题不是识别不到，而是识别结果被重复加入、过度拆分、错误合并，最后全部渲染成了可编辑文本层。</p>
+<p>这个问题在简单页面里不明显，但在投行 PPT、Business Model Canvas、密集表格、复杂版面里会被迅速放大。</p>
+<h2 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h2><p>测试过程中主要出现了几类现象：</p>
+<ul>
+<li>同一段文字被叠加了两三次。</li>
+<li>原图里一行文字被拆成多个不同大小的文本框。</li>
+<li>某些识别结果字号异常大，直接盖住页面其他内容。</li>
+<li>页面越密集，生成的文本层越多，重叠越严重。</li>
+<li>德语样例中，大量灰色占位文字、栏目标题、正文说明混在一起。</li>
+<li>韩语样例中出现了不属于原图的异常混杂文字。</li>
+</ul>
+<p>结果就是：明明只想把原图上的文字转成可编辑文字，但页面上变成了密密麻麻的一堆可编辑文本框。</p>
+<h2 id="最初判断的偏差"><a href="#最初判断的偏差" class="headerlink" title="最初判断的偏差"></a>最初判断的偏差</h2><p>一开始我的判断偏向于“识别不够充分”，所以尝试增强 OCR 能力：</p>
+<ul>
+<li>加强 KIE/Gemini prompt。</li>
+<li>强调多语言原文照抄，不翻译、不猜测。</li>
+<li>增加 OCR audit。</li>
+<li>尝试让模型补充遗漏文字。</li>
+</ul>
+<p>这个方向在“文字漏识别”的场景里是合理的，但在复杂 PPT 场景里反而会带来副作用。</p>
+<p>复杂 PPT 的问题不是文字太少，而是文字太多、版面太密、层次太复杂。每多跑一次 OCR 或视觉分析，就会多出一批候选文本。如果合并策略不够严格，这些候选不会变成补漏，而是变成噪音。</p>
+<p>所以后面效果一度变差，根本原因是：我把“提高召回率”放在了“控制重复和稳定版面”前面。</p>
+<h2 id="为什么会出现重叠"><a href="#为什么会出现重叠" class="headerlink" title="为什么会出现重叠"></a>为什么会出现重叠</h2><p>当前系统里，文字可能来自多路结果：</p>
+<ul>
+<li>KIE/Gemini 主分析结果。</li>
+<li>KIE/Gemini OCR audit 结果。</li>
+<li>腾讯云 OCR 补充结果。</li>
+<li>后处理阶段校准后的文本层。</li>
+</ul>
+<p>这些来源的目标本来是互相补漏。但在复杂页面里，它们经常识别到同一块区域。</p>
+<p>比如一行德语标题：</p>
+<ul>
+<li>KIE 主结果识别出整行。</li>
+<li>OCR audit 又识别出整行。</li>
+<li>视觉模型还可能把其中几个词单独识别出来。</li>
+<li>后处理再把局部框和整体框都保留下来。</li>
+</ul>
+<p>最后，这些结果都进入 <code>textLayer</code>，前端和 PPTX 导出就会把它们全部画出来，于是形成文字重叠。</p>
+<p>更严重的是，Gemini/KIE 并不是专门的 OCR 排版引擎。它能理解页面结构，但对密集文字的坐标、字号、文本框边界并不总是稳定。它有时会把背景字、模板占位字、图标旁边的小字、栏目标题都当成同等级文字返回。</p>
+<p>这说明问题不只是 OCR，而是 OCR 结果进入可编辑图层之前缺少足够强的筛选和优先级。</p>
+<h2 id="后面怎么优化"><a href="#后面怎么优化" class="headerlink" title="后面怎么优化"></a>后面怎么优化</h2><p>后面的优化方向从“识别更多”改成了“更保守地接收文本层”。</p>
+<h3 id="1-减少默认-OCR-审核次数"><a href="#1-减少默认-OCR-审核次数" class="headerlink" title="1. 减少默认 OCR 审核次数"></a>1. 减少默认 OCR 审核次数</h3><p>之前为了多语言补漏，KIE 可能会跑更多 OCR audit。后来增加了配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KIE_OCR_AUDIT_MODE=standard</span><br></pre></td></tr></table></figure>
 
-<p>也就是说，它不是让 AI 一次性生成一个 60 秒视频，而是先生成多个短片段，再把这些片段拼接起来。默认方案改成了使用 Veo 3.1 Lite 测试：8 幕，每幕约 8 秒，合计约 64 秒，更适合本地测试和成本控制。</p>
-<h2 id="二、今天接触到的核心模块"><a href="#二、今天接触到的核心模块" class="headerlink" title="二、今天接触到的核心模块"></a>二、今天接触到的核心模块</h2><p>这次工作是偏全栈的，但重心更偏后端、AI 集成和工程化。前端部分主要是无限画布编辑器，包括 Scene 节点、Composition 合成节点、AI 模板弹窗、生成所有片段按钮和合成最终视频按钮。</p>
-<p>后端部分包括生成 AI 模板的 server action、保存节点和连线数据、提交视频任务、轮询任务状态、webhook 接收生成结果，以及把合成结果写回数据库。</p>
-<p>AI 集成部分包括用聊天模型生成分镜 prompt、用 KIE 的 Veo 3.1 Lite 生成视频、适配 Veo 专用接口、处理不同模型的 payload 和状态返回。数据库部分则涉及 Canvas 项目表、视频任务表、D1 migration 和本地 D1 测试。</p>
-<h2 id="三、最大的问题：浏览器渲染错误"><a href="#三、最大的问题：浏览器渲染错误" class="headerlink" title="三、最大的问题：浏览器渲染错误"></a>三、最大的问题：浏览器渲染错误</h2><p>今天最折磨人的问题是浏览器不断报这个错：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Failed to execute &#x27;insertBefore&#x27; on &#x27;Node&#x27;:</span><br><span class="line">The node before which the new node is to be inserted is not a child of this node.</span><br></pre></td></tr></table></figure>
-
-<p>一开始以为是弹窗组件写法有问题，于是先排查 Dialog。后来发现即使不用 Dialog，还是可能报错。继续排查后发现，Radix 的 Select 也会用 Portal 插入 DOM。为了降低风险，把 AI 模板弹窗里的 Radix Dialog 和 Select 都移除了，改成普通 fixed 弹窗和原生 select。</p>
-<p>但最后错误仍然可能出现在页面挂载点，这说明问题不一定是业务代码本身，而可能是浏览器插件在修改 DOM。这个错误非常像浏览器翻译插件导致的 React DOM 不一致，比如 Chrome 自动翻译、沉浸式翻译、划词翻译、双语网页翻译插件。</p>
-<p>这些插件可能会把 React 管理的文本节点拆开、替换、包一层 span。React 下一次更新时，以为某个节点还在原来的父节点下面，结果已经被插件改了，于是 insertBefore 就崩了。最后给 Canvas 页面和编辑器根节点都加了 notranslate 和 translate=”no”。</p>
-<p>这件事给我的教训是：高动态 React 页面，尤其是 ReactFlow、Portal、拖拽、弹窗这些场景，开发时一定要关掉网页翻译插件。不然很容易把浏览器插件的问题误判成业务代码问题。</p>
-<h2 id="四、测试不能只跑类型检查"><a href="#四、测试不能只跑类型检查" class="headerlink" title="四、测试不能只跑类型检查"></a>四、测试不能只跑类型检查</h2><p>今天一开始只跑了类型检查。类型检查通过了，但这不代表功能完整可靠。后来补了测试，才发现测试链路本身也有问题。</p>
-<p>新增了 Canvas 场景排序测试，以及 KIE Veo Lite payload 和状态映射测试，覆盖 Scene 节点拓扑排序、Composition 节点查找、Veo Lite payload、参考图转视频 payload、Veo 状态码映射，以及 Veo 模型是否走专用 record-info 查询接口。</p>
-<p>后来完整跑测试时，D1 测试失败，错误是 Wrangler returned no JSON output。排查后发现不是数据库本身的问题，而是测试 helper 在 Windows 下直接执行 wrangler.cmd 会失败，导致没有 stdout，所以自然解析不到 JSON。最终修复方式是不用 .cmd，改成直接用 Node 执行 Wrangler 的 JS 入口。</p>
-<p>修完后，完整测试和类型检查都通过了。这件事的教训很直接：以后推送前不能只跑类型检查，必须跑完整测试。测试没过就不能说完成，更不能推。</p>
-<h2 id="五、今天真正学到的东西"><a href="#五、今天真正学到的东西" class="headerlink" title="五、今天真正学到的东西"></a>五、今天真正学到的东西</h2><p>今天最大的收获不是写了多少代码，而是理解了一个完整功能上线背后的链路。一个 AI 视频功能不是只有“调用模型”这么简单，它至少包括用户输入、prompt 规划、节点数据结构、任务提交、异步生成、webhook 回调、数据库存储、文件转存、最终合成、错误恢复、测试验证。</p>
-<p>以前我可能会觉得“AI 生成视频”就是调一个 API。但今天做完之后会发现，真正难的是把它稳定地接进产品工作流里。</p>
-<h2 id="六、我需要补的知识点"><a href="#六、我需要补的知识点" class="headerlink" title="六、我需要补的知识点"></a>六、我需要补的知识点</h2><ol>
-<li>React DOM 和浏览器插件冲突：理解为什么翻译插件会导致 React 的 insertBefore 报错。</li>
-<li>ReactFlow 的 nodes / edges：画布不是普通列表，而是图结构，播放顺序应该由 edges 决定。</li>
-<li>拓扑排序：多幕视频合成前，必须从连接关系里推导出正确顺序。</li>
-<li>Webhook 异步任务：视频生成不是同步返回结果，而是先提交任务，完成后由平台回调。</li>
-<li>Cloudflare D1：D1 是 Cloudflare 的 SQLite 数据库服务，本地测试依赖 Wrangler。</li>
-<li>测试意识：tsc 只能证明类型没错，不能证明功能没错。以后必须完整跑测试。</li>
+<p>默认只走标准模式，不再主动跑过多额外识别。只有手动设置成 <code>exhaustive</code> 时，才启用更激进的多轮 OCR。</p>
+<p>这个改变的核心思路是：默认情况下，宁可少识别一点，也不能让页面变成满屏叠字。</p>
+<h3 id="2-增加低质量候选过滤"><a href="#2-增加低质量候选过滤" class="headerlink" title="2. 增加低质量候选过滤"></a>2. 增加低质量候选过滤</h3><p>对 OCR audit 合并结果增加了过滤规则：</p>
+<ul>
+<li>置信度太低的候选丢弃。</li>
+<li>字号明显异常的候选丢弃。</li>
+<li>文本很短但占用面积特别大的候选丢弃。</li>
+<li>字符脚本混杂异常的候选丢弃。</li>
+<li>与已有文本高度重叠且内容冲突的候选丢弃。</li>
+</ul>
+<p>这些规则不是为了让 OCR 更聪明，而是为了阻止明显不可靠的文本进入最终可编辑层。</p>
+<h3 id="3-对密集页面启用保守合并"><a href="#3-对密集页面启用保守合并" class="headerlink" title="3. 对密集页面启用保守合并"></a>3. 对密集页面启用保守合并</h3><p>当页面已有文本层数量很多时，说明这张图大概率是投行页、表格页、Canvas 页或者复杂报告页。</p>
+<p>这类页面如果继续追加 OCR 候选，很容易越补越乱。所以后面增加了密集页面保护：</p>
+<ul>
+<li>如果已有文本层很多，新的 OCR 候选只要和已有文本明显重叠，就不轻易加入。</li>
+<li>额外 OCR 结果更多作为补漏，而不是平等合并。</li>
+</ul>
+<p>这个策略的目标是减少重复叠加，而不是追求识别数量最大化。</p>
+<h3 id="4-限制异常字号"><a href="#4-限制异常字号" class="headerlink" title="4. 限制异常字号"></a>4. 限制异常字号</h3><p>有些识别结果即使文本内容对了，字号也可能异常大。前端预览和 PPTX 导出如果完全相信模型返回的字号，就会出现一行字盖住半页的情况。</p>
+<p>所以后面在两个地方增加了字号保护：</p>
+<ul>
+<li>前端预览时，字号不能超过文本框高度的合理比例。</li>
+<li>PPTX 导出时，也对字号做类似限制。</li>
+</ul>
+<p>这不能彻底解决重复识别，但可以防止单个异常文本层破坏整页视觉。</p>
+<h3 id="5-回滚过度修正"><a href="#5-回滚过度修正" class="headerlink" title="5. 回滚过度修正"></a>5. 回滚过度修正</h3><p>调试中也有一些尝试没有留下。</p>
+<p>比如过度清理主文本层、过度调整预览模式、试图用更多规则强行修正复杂版面，这些改动在某些样例上看似有效，但换一张图就可能更乱。</p>
+<p>所以后面保留了更稳定的部分：</p>
+<ul>
+<li>减少默认 OCR 轮次。</li>
+<li>强化低质量候选过滤。</li>
+<li>密集页面更保守。</li>
+<li>限制异常字号。</li>
+</ul>
+<p>没有继续堆过多不稳定规则。</p>
+<h2 id="最终形成的处理原则"><a href="#最终形成的处理原则" class="headerlink" title="最终形成的处理原则"></a>最终形成的处理原则</h2><p>这次复盘后，我对这个问题的判断变清楚了：</p>
+<p>图片转可编辑 PPT 里，OCR 不是越多越好。</p>
+<p>真正重要的是进入 <code>textLayer</code> 的结果必须干净、稳定、少重复。因为一旦文本进入可编辑层，用户就会直接看到它，PPTX 导出也会保留它。</p>
+<p>后续应该按这个优先级处理：</p>
+<ol>
+<li>专业 OCR 结果优先负责文字内容和坐标。</li>
+<li>KIE/Gemini 更适合做版面理解，不应该无限补文字。</li>
+<li>OCR audit 只能补漏，不能和主结果平等合并。</li>
+<li>重叠区域应该只保留一个最可信文本层。</li>
+<li>复杂密集页面默认走保守模式。</li>
+<li>渲染和导出阶段都要保护字号和边界。</li>
 </ol>
-<h2 id="七、今天最值得手写的函数"><a href="#七、今天最值得手写的函数" class="headerlink" title="七、今天最值得手写的函数"></a>七、今天最值得手写的函数</h2><p>今天最适合自己手写一遍的是场景排序函数。需求是：输入 nodes 和 edges，输出按播放顺序排列的 Scene 节点。</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scene-1 -&gt; scene-2 -&gt; scene-3 -&gt; composition</span><br><span class="line">输出：scene-1, scene-2, scene-3</span><br></pre></td></tr></table></figure>
-
-<p>这个函数能帮助我真正理解为什么 Canvas 是图、为什么连线决定播放顺序、为什么 Composition 是出口、为什么多幕视频可以合成为一个完整视频。如果我能自己写出这个函数，就说明我不是只知道“点按钮生成”，而是真的理解了这个功能的数据结构。</p>
-<h2 id="八、今天的经验教训"><a href="#八、今天的经验教训" class="headerlink" title="八、今天的经验教训"></a>八、今天的经验教训</h2><ol>
-<li>开发时不要被“页面能打开”骗了。能打开不代表功能完整，必须跑测试。</li>
-<li>浏览器环境也会制造 bug。以后遇到奇怪的 React DOM 错误，要第一时间用无痕窗口、关闭插件验证。</li>
-<li>AI 功能不是只调模型。真正上线时，模型只是其中一环，后面还有任务管理、回调、存储、合成、测试和错误处理。</li>
-</ol>
-<h2 id="九、总结"><a href="#九、总结" class="headerlink" title="九、总结"></a>九、总结</h2><p>今天做的事情让我意识到，一个看似简单的 AI 视频模板功能，背后其实是完整的工程系统。它包含前端画布、后端 action、数据库、AI 模型、第三方 API、webhook、R2 存储、测试和浏览器兼容问题。</p>
-<p>今天最大的进步不是“功能写完了”，而是开始意识到：功能上线不是写完代码，而是能解释清楚它怎么工作、能测、能排错、能复盘。</p>
+<h2 id="后续还应该继续做的优化"><a href="#后续还应该继续做的优化" class="headerlink" title="后续还应该继续做的优化"></a>后续还应该继续做的优化</h2><p>后面如果继续打磨这个问题，最值得做的是可观测性和来源优先级。</p>
+<h3 id="1-给每个文本层标记来源"><a href="#1-给每个文本层标记来源" class="headerlink" title="1. 给每个文本层标记来源"></a>1. 给每个文本层标记来源</h3><p>例如：</p>
+<ul>
+<li><code>kie-main</code></li>
+<li><code>kie-audit</code></li>
+<li><code>tencent-ocr</code></li>
+<li><code>manual</code></li>
+<li><code>postprocess</code></li>
+</ul>
+<p>这样调试时可以快速看出，到底是哪一路在制造重复文本。</p>
+<h3 id="2-做-OCR-来源开关"><a href="#2-做-OCR-来源开关" class="headerlink" title="2. 做 OCR 来源开关"></a>2. 做 OCR 来源开关</h3><p>在调试界面里增加开关：</p>
+<ul>
+<li>只看 KIE 主结果。</li>
+<li>只看 OCR audit。</li>
+<li>只看腾讯 OCR。</li>
+<li>看最终合并结果。</li>
+</ul>
+<p>这样比盲目改 prompt 或改规则更有效。</p>
+<h3 id="3-做-winner-take-one-合并"><a href="#3-做-winner-take-one-合并" class="headerlink" title="3. 做 winner-take-one 合并"></a>3. 做 winner-take-one 合并</h3><p>同一区域如果出现多个候选，不应该全部保留，而应该选一个赢家。</p>
+<p>可以综合考虑：</p>
+<ul>
+<li>来源优先级。</li>
+<li>置信度。</li>
+<li>文本长度。</li>
+<li>坐标合理性。</li>
+<li>字号合理性。</li>
+<li>与其他文本层的重叠程度。</li>
+</ul>
+<h3 id="4-增加复杂页面模式"><a href="#4-增加复杂页面模式" class="headerlink" title="4. 增加复杂页面模式"></a>4. 增加复杂页面模式</h3><p>对 Business Model Canvas、投行页、密集表格这类页面，可以默认更保守：</p>
+<ul>
+<li>降低 OCR audit 参与度。</li>
+<li>提高新增文本层门槛。</li>
+<li>优先保留较完整的文本框。</li>
+<li>不轻易加入局部重复词。</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这次最关键的反思是：不要把“多识别”误当成“识别质量更好”。</p>
+<p>用户真正想要的是：原图上有什么文字，就尽量照抄出来，并且变成可编辑文字。除此之外，不要多加、不要猜测、不要翻译、不要重复。</p>
+<p>在这个场景里，最终效果的好坏不是由 OCR 返回了多少文字决定的，而是由这些文字能不能稳定地落到正确位置、以正确大小显示、并且不互相覆盖决定的。</p>
+<p>所以后续做图片转可编辑 PPT，应该优先保证：</p>
+<ul>
+<li>少重复。</li>
+<li>不乱叠。</li>
+<li>坐标稳定。</li>
+<li>字号可控。</li>
+<li>来源清楚。</li>
+<li>能导出可编辑 PPTX。</li>
+</ul>
+<p>只有在这个基础上，再去追求更高识别率。</p>
 
       </div>
       <div class="article-collapsed-mask"></div>
@@ -178,11 +276,11 @@
       </div>
     </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/" data-id="cmrxo3bg8002mg83ga8jt3p1l" data-title="今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/07/23/2026-07-23-OCR%E8%BD%AC%E5%8F%AF%E7%BC%96%E8%BE%91PPT%E6%96%87%E5%AD%97%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98/" data-id="cmrxo3bfs0005g83g78am6t5h" data-title="增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI%E8%A7%86%E9%A2%91/" rel="tag">AI视频</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/D1/" rel="tag">D1</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ReactFlow/" rel="tag">ReactFlow</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Veo/" rel="tag">Veo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" rel="tag">无限画布</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OCR/" rel="tag">OCR</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PPT/" rel="tag">PPT</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%8D%E7%9B%98/" rel="tag">复盘</a></li></ul>
 
     </footer>
   </div>
@@ -190,19 +288,19 @@
     
 <nav id="article-nav">
   
-    <a href="/2026/07/11/2026-07-11-Win7%E8%99%9A%E6%8B%9F%E6%9C%BAPython3810-HeroBuddy%E9%85%8D%E7%BD%AE%E5%AE%9E%E5%BD%95/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2026/07/27/2026-07-27-SSE%E7%9C%9F%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90%E6%95%88%E6%9E%9C%E5%AE%9E%E7%8E%B0%E5%A4%8D%E7%9B%98/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption">前一篇</strong>
       <div class="article-nav-title">
         
-          从 ISO 到可用：Win7 虚拟机安装 Python 3.8.10
+          SSE（Server-Sent Events） 真流式生成效果实现复盘
         
       </div>
     </a>
   
   
-    <a href="/2026/06/30/2026-06-30-Next.js-cookie-i18n-%E8%B8%A9%E5%9D%91%E5%AE%9E%E5%BD%95/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2026/07/17/2026-07-17-%E7%99%BB%E5%BD%95%E9%A1%B5%E5%9C%B0%E5%9B%BE%E8%83%8C%E6%99%AF%E4%BC%98%E5%8C%96%E5%A4%8D%E7%9B%98-CDN-vs-%E6%9C%AC%E5%9C%B0%E4%BE%9D%E8%B5%96/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">后一篇</strong>
-      <div class="article-nav-title">2026-06-30-Next.js 纯 Cookie 模式 i18n 实战与踩坑实录</div>
+      <div class="article-nav-title">登录页地图背景优化复盘：CDN 动态加载 vs 本地依赖打包</div>
     </a>
   
 </nav>

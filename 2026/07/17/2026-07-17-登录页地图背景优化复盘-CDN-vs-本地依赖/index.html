@@ -4,24 +4,23 @@
   <meta charset="utf-8">
   
   
-  <title>今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘 | 我的技术博客</title>
+  <title>登录页地图背景优化复盘：CDN 动态加载 vs 本地依赖打包 | 我的技术博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="今天主要复盘无限画布 AI 视频模板功能的开发过程，包括多幕合一视频工作流、Veo 3.1 Lite 接入、浏览器渲染错误排查、D1 测试修复，以及功能上线前必须补齐测试的经验教训。">
+  <meta name="description" content="最近给 prompt-lens 的登录页换了一个新的背景效果：前景是一个可以自转、拖拽、缩放的 3D 地球，后面再铺一层淡色展开世界地图作为背景板。 视觉效果基本来自 amCharts 的全球地图 Demo，但实际接入过程中踩到了一个比较典型的前端性能问题：到底是运行时从 CDN 动态加载第三方库，还是把它作为本地依赖打进构建包？ 一、最开始的做法：运行时动态加载 CDN 脚本第一版为了少改项目依">
 <meta property="og:type" content="article">
-<meta property="og:title" content="今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘">
-<meta property="og:url" content="https://raojiacui.github.io/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/index.html">
+<meta property="og:title" content="登录页地图背景优化复盘：CDN 动态加载 vs 本地依赖打包">
+<meta property="og:url" content="https://raojiacui.github.io/2026/07/17/2026-07-17-%E7%99%BB%E5%BD%95%E9%A1%B5%E5%9C%B0%E5%9B%BE%E8%83%8C%E6%99%AF%E4%BC%98%E5%8C%96%E5%A4%8D%E7%9B%98-CDN-vs-%E6%9C%AC%E5%9C%B0%E4%BE%9D%E8%B5%96/index.html">
 <meta property="og:site_name" content="我的技术博客">
-<meta property="og:description" content="今天主要复盘无限画布 AI 视频模板功能的开发过程，包括多幕合一视频工作流、Veo 3.1 Lite 接入、浏览器渲染错误排查、D1 测试修复，以及功能上线前必须补齐测试的经验教训。">
+<meta property="og:description" content="最近给 prompt-lens 的登录页换了一个新的背景效果：前景是一个可以自转、拖拽、缩放的 3D 地球，后面再铺一层淡色展开世界地图作为背景板。 视觉效果基本来自 amCharts 的全球地图 Demo，但实际接入过程中踩到了一个比较典型的前端性能问题：到底是运行时从 CDN 动态加载第三方库，还是把它作为本地依赖打进构建包？ 一、最开始的做法：运行时动态加载 CDN 脚本第一版为了少改项目依">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-07-05T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-11T14:59:30.904Z">
+<meta property="article:published_time" content="2026-07-16T16:30:00.000Z">
+<meta property="article:modified_time" content="2026-07-18T14:13:11.110Z">
 <meta property="article:author" content="雨下雨停">
-<meta property="article:tag" content="工作总结">
-<meta property="article:tag" content="AI视频">
-<meta property="article:tag" content="无限画布">
-<meta property="article:tag" content="ReactFlow">
-<meta property="article:tag" content="Veo">
-<meta property="article:tag" content="D1">
+<meta property="article:tag" content="Next.js">
+<meta property="article:tag" content="Prompt Lens">
+<meta property="article:tag" content="前端实践">
+<meta property="article:tag" content="amCharts">
+<meta property="article:tag" content="工程复盘">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="我的技术博客" type="application/atom+xml">
@@ -104,10 +103,10 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-daily-summary-2026-07-06-infinite-canvas-ai-video-template" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-2026-07-17-登录页地图背景优化复盘-CDN-vs-本地依赖" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/" class="article-date">
-  <time class="dt-published" datetime="2026-07-05T16:00:00.000Z" itemprop="datePublished">2026-07-06</time>
+    <a href="/2026/07/17/2026-07-17-%E7%99%BB%E5%BD%95%E9%A1%B5%E5%9C%B0%E5%9B%BE%E8%83%8C%E6%99%AF%E4%BC%98%E5%8C%96%E5%A4%8D%E7%9B%98-CDN-vs-%E6%9C%AC%E5%9C%B0%E4%BE%9D%E8%B5%96/" class="article-date">
+  <time class="dt-published" datetime="2026-07-16T16:30:00.000Z" itemprop="datePublished">2026-07-17</time>
 </a>
     
   <div class="article-category">
@@ -122,7 +121,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘
+      登录页地图背景优化复盘：CDN 动态加载 vs 本地依赖打包
     </h1>
   
 
@@ -130,46 +129,200 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       <div class="article-collapsed-preview">
-        <h1 id="从“能跑”到“能上线”：一次无限画布-AI-视频功能开发复盘"><a href="#从“能跑”到“能上线”：一次无限画布-AI-视频功能开发复盘" class="headerlink" title="从“能跑”到“能上线”：一次无限画布 AI 视频功能开发复盘"></a>从“能跑”到“能上线”：一次无限画布 AI 视频功能开发复盘</h1><p>今天主要做的是一个具体功能的完整开发：让无限画布支持 AI 生成 1 分钟左右的视频模板。这个功能看起来像是“点一下生成视频”，但真正做下来才发现，它其实不是一个简单按钮，而是一整条工作流。</p>
-<h2 id="一、今天做了什么"><a href="#一、今天做了什么" class="headerlink" title="一、今天做了什么"></a>一、今天做了什么</h2><p>今天实现的是“多幕合一视频”的基础能力。整体流程是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">用户输入视频想法</span><br><span class="line">  -&gt; AI 生成多幕分镜</span><br><span class="line">  -&gt; 每一幕变成一个画布 Scene 节点</span><br><span class="line">  -&gt; 每个节点生成一段短视频</span><br><span class="line">  -&gt; 最后按顺序合成为一个完整视频</span><br></pre></td></tr></table></figure>
+        <p>最近给 <code>prompt-lens</code> 的登录页换了一个新的背景效果：前景是一个可以自转、拖拽、缩放的 3D 地球，后面再铺一层淡色展开世界地图作为背景板。</p>
+<p>视觉效果基本来自 amCharts 的全球地图 Demo，但实际接入过程中踩到了一个比较典型的前端性能问题：<strong>到底是运行时从 CDN 动态加载第三方库，还是把它作为本地依赖打进构建包？</strong></p>
+<h2 id="一、最开始的做法：运行时动态加载-CDN-脚本"><a href="#一、最开始的做法：运行时动态加载-CDN-脚本" class="headerlink" title="一、最开始的做法：运行时动态加载 CDN 脚本"></a>一、最开始的做法：运行时动态加载 CDN 脚本</h2><p>第一版为了少改项目依赖，我没有直接安装 amCharts，而是在登录页背景组件里动态插入脚本：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="variable constant_">AMCHARTS_SCRIPTS</span> = [</span><br><span class="line">  <span class="string">&quot;https://cdn.amcharts.com/lib/5/index.js&quot;</span>,</span><br><span class="line">  <span class="string">&quot;https://cdn.amcharts.com/lib/5/map.js&quot;</span>,</span><br><span class="line">  <span class="string">&quot;https://cdn.amcharts.com/lib/5/geodata/worldLow.js&quot;</span>,</span><br><span class="line">  <span class="string">&quot;https://cdn.amcharts.com/lib/5/themes/Animated.js&quot;</span>,</span><br><span class="line">];</span><br></pre></td></tr></table></figure>
 
-<p>也就是说，它不是让 AI 一次性生成一个 60 秒视频，而是先生成多个短片段，再把这些片段拼接起来。默认方案改成了使用 Veo 3.1 Lite 测试：8 幕，每幕约 8 秒，合计约 64 秒，更适合本地测试和成本控制。</p>
-<h2 id="二、今天接触到的核心模块"><a href="#二、今天接触到的核心模块" class="headerlink" title="二、今天接触到的核心模块"></a>二、今天接触到的核心模块</h2><p>这次工作是偏全栈的，但重心更偏后端、AI 集成和工程化。前端部分主要是无限画布编辑器，包括 Scene 节点、Composition 合成节点、AI 模板弹窗、生成所有片段按钮和合成最终视频按钮。</p>
-<p>后端部分包括生成 AI 模板的 server action、保存节点和连线数据、提交视频任务、轮询任务状态、webhook 接收生成结果，以及把合成结果写回数据库。</p>
-<p>AI 集成部分包括用聊天模型生成分镜 prompt、用 KIE 的 Veo 3.1 Lite 生成视频、适配 Veo 专用接口、处理不同模型的 payload 和状态返回。数据库部分则涉及 Canvas 项目表、视频任务表、D1 migration 和本地 D1 测试。</p>
-<h2 id="三、最大的问题：浏览器渲染错误"><a href="#三、最大的问题：浏览器渲染错误" class="headerlink" title="三、最大的问题：浏览器渲染错误"></a>三、最大的问题：浏览器渲染错误</h2><p>今天最折磨人的问题是浏览器不断报这个错：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Failed to execute &#x27;insertBefore&#x27; on &#x27;Node&#x27;:</span><br><span class="line">The node before which the new node is to be inserted is not a child of this node.</span><br></pre></td></tr></table></figure>
+<p>组件 mount 后，按顺序加载这几个 CDN 脚本。加载完成后，从 <code>window</code> 上读取：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; am5, am5map, am5geodata_worldLow, am5themes_Animated &#125; = <span class="variable language_">window</span>;</span><br></pre></td></tr></table></figure>
 
-<p>一开始以为是弹窗组件写法有问题，于是先排查 Dialog。后来发现即使不用 Dialog，还是可能报错。继续排查后发现，Radix 的 Select 也会用 Portal 插入 DOM。为了降低风险，把 AI 模板弹窗里的 Radix Dialog 和 Select 都移除了，改成普通 fixed 弹窗和原生 select。</p>
-<p>但最后错误仍然可能出现在页面挂载点，这说明问题不一定是业务代码本身，而可能是浏览器插件在修改 DOM。这个错误非常像浏览器翻译插件导致的 React DOM 不一致，比如 Chrome 自动翻译、沉浸式翻译、划词翻译、双语网页翻译插件。</p>
-<p>这些插件可能会把 React 管理的文本节点拆开、替换、包一层 span。React 下一次更新时，以为某个节点还在原来的父节点下面，结果已经被插件改了，于是 insertBefore 就崩了。最后给 Canvas 页面和编辑器根节点都加了 notranslate 和 translate=”no”。</p>
-<p>这件事给我的教训是：高动态 React 页面，尤其是 ReactFlow、Portal、拖拽、弹窗这些场景，开发时一定要关掉网页翻译插件。不然很容易把浏览器插件的问题误判成业务代码问题。</p>
-<h2 id="四、测试不能只跑类型检查"><a href="#四、测试不能只跑类型检查" class="headerlink" title="四、测试不能只跑类型检查"></a>四、测试不能只跑类型检查</h2><p>今天一开始只跑了类型检查。类型检查通过了，但这不代表功能完整可靠。后来补了测试，才发现测试链路本身也有问题。</p>
-<p>新增了 Canvas 场景排序测试，以及 KIE Veo Lite payload 和状态映射测试，覆盖 Scene 节点拓扑排序、Composition 节点查找、Veo Lite payload、参考图转视频 payload、Veo 状态码映射，以及 Veo 模型是否走专用 record-info 查询接口。</p>
-<p>后来完整跑测试时，D1 测试失败，错误是 Wrangler returned no JSON output。排查后发现不是数据库本身的问题，而是测试 helper 在 Windows 下直接执行 wrangler.cmd 会失败，导致没有 stdout，所以自然解析不到 JSON。最终修复方式是不用 .cmd，改成直接用 Node 执行 Wrangler 的 JS 入口。</p>
-<p>修完后，完整测试和类型检查都通过了。这件事的教训很直接：以后推送前不能只跑类型检查，必须跑完整测试。测试没过就不能说完成，更不能推。</p>
-<h2 id="五、今天真正学到的东西"><a href="#五、今天真正学到的东西" class="headerlink" title="五、今天真正学到的东西"></a>五、今天真正学到的东西</h2><p>今天最大的收获不是写了多少代码，而是理解了一个完整功能上线背后的链路。一个 AI 视频功能不是只有“调用模型”这么简单，它至少包括用户输入、prompt 规划、节点数据结构、任务提交、异步生成、webhook 回调、数据库存储、文件转存、最终合成、错误恢复、测试验证。</p>
-<p>以前我可能会觉得“AI 生成视频”就是调一个 API。但今天做完之后会发现，真正难的是把它稳定地接进产品工作流里。</p>
-<h2 id="六、我需要补的知识点"><a href="#六、我需要补的知识点" class="headerlink" title="六、我需要补的知识点"></a>六、我需要补的知识点</h2><ol>
-<li>React DOM 和浏览器插件冲突：理解为什么翻译插件会导致 React 的 insertBefore 报错。</li>
-<li>ReactFlow 的 nodes / edges：画布不是普通列表，而是图结构，播放顺序应该由 edges 决定。</li>
-<li>拓扑排序：多幕视频合成前，必须从连接关系里推导出正确顺序。</li>
-<li>Webhook 异步任务：视频生成不是同步返回结果，而是先提交任务，完成后由平台回调。</li>
-<li>Cloudflare D1：D1 是 Cloudflare 的 SQLite 数据库服务，本地测试依赖 Wrangler。</li>
-<li>测试意识：tsc 只能证明类型没错，不能证明功能没错。以后必须完整跑测试。</li>
+<p>然后创建两层图表：</p>
+<ul>
+<li>后层：展开世界地图</li>
+<li>前层：正交投影地球</li>
+</ul>
+<p>这个方案的优点很明显：</p>
+<ol>
+<li>不需要立刻改 <code>package.json</code></li>
+<li>不增加 Next 构建产物大小</li>
+<li>试效果很快，适合原型阶段</li>
 </ol>
-<h2 id="七、今天最值得手写的函数"><a href="#七、今天最值得手写的函数" class="headerlink" title="七、今天最值得手写的函数"></a>七、今天最值得手写的函数</h2><p>今天最适合自己手写一遍的是场景排序函数。需求是：输入 nodes 和 edges，输出按播放顺序排列的 Scene 节点。</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scene-1 -&gt; scene-2 -&gt; scene-3 -&gt; composition</span><br><span class="line">输出：scene-1, scene-2, scene-3</span><br></pre></td></tr></table></figure>
+<p>但是很快就暴露了问题。</p>
+<h2 id="二、第一个问题：CSP-拦截第三方脚本"><a href="#二、第一个问题：CSP-拦截第三方脚本" class="headerlink" title="二、第一个问题：CSP 拦截第三方脚本"></a>二、第一个问题：CSP 拦截第三方脚本</h2><p>项目里 middleware 配了比较严格的 Content Security Policy：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;script-src &#x27;self&#x27; &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27;&quot;</span></span><br></pre></td></tr></table></figure>
 
-<p>这个函数能帮助我真正理解为什么 Canvas 是图、为什么连线决定播放顺序、为什么 Composition 是出口、为什么多幕视频可以合成为一个完整视频。如果我能自己写出这个函数，就说明我不是只知道“点按钮生成”，而是真的理解了这个功能的数据结构。</p>
-<h2 id="八、今天的经验教训"><a href="#八、今天的经验教训" class="headerlink" title="八、今天的经验教训"></a>八、今天的经验教训</h2><ol>
-<li>开发时不要被“页面能打开”骗了。能打开不代表功能完整，必须跑测试。</li>
-<li>浏览器环境也会制造 bug。以后遇到奇怪的 React DOM 错误，要第一时间用无痕窗口、关闭插件验证。</li>
-<li>AI 功能不是只调模型。真正上线时，模型只是其中一环，后面还有任务管理、回调、存储、合成、测试和错误处理。</li>
+<p>这意味着浏览器只允许加载本站脚本。登录页动态插入：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://cdn.amcharts.com/lib/5/index.js</span><br></pre></td></tr></table></figure>
+
+<p>会直接被 CSP 拦截。</p>
+<p>当时临时修复是把 <code>cdn.amcharts.com</code> 加进白名单：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;script-src &#x27;self&#x27; &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; https://cdn.amcharts.com&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这样页面能跑了，但它带来一个新问题：为了一个登录页背景，整个站点的脚本来源策略被放宽了。</p>
+<p>这不是不能接受，但不够理想。</p>
+<h2 id="三、第二个问题：生产环境加载慢"><a href="#三、第二个问题：生产环境加载慢" class="headerlink" title="三、第二个问题：生产环境加载慢"></a>三、第二个问题：生产环境加载慢</h2><p>后来实际点进登录页时发现：背景不是马上出现，而是要等一会。</p>
+<p>原因很直接：进入 <code>/login</code> 后，浏览器才开始请求 4 个第三方 CDN 脚本：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">https://cdn.amcharts.com/lib/5/index.js</span><br><span class="line">https://cdn.amcharts.com/lib/5/map.js</span><br><span class="line">https://cdn.amcharts.com/lib/5/geodata/worldLow.js</span><br><span class="line">https://cdn.amcharts.com/lib/5/themes/Animated.js</span><br></pre></td></tr></table></figure>
+
+<p>这几个请求有几个不可控因素：</p>
+<ul>
+<li>DNS 解析</li>
+<li>TLS 握手</li>
+<li>第三方 CDN 响应速度</li>
+<li>用户网络到 CDN 的链路</li>
+<li>国内网络访问稳定性</li>
+<li>脚本串行加载顺序</li>
+</ul>
+<p>也就是说，登录页背景能不能快点出现，不完全取决于我们自己的站点，而取决于第三方 CDN。</p>
+<p>这类问题在开发环境里有时不明显，但到生产环境就会变成用户感知问题。</p>
+<h2 id="四、这不是传统算法复杂度问题"><a href="#四、这不是传统算法复杂度问题" class="headerlink" title="四、这不是传统算法复杂度问题"></a>四、这不是传统算法复杂度问题</h2><p>这是不是和时间复杂度、空间复杂度有关？</p>
+<p>严格说，有一点关系，但不是算法题里的那种关系。</p>
+<p>这里的主要问题不是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">O(n)</span><br><span class="line">O(nlogn)</span><br><span class="line">O(n²)</span><br></pre></td></tr></table></figure>
+
+<p>而是前端加载性能里的 tradeoff：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>CDN 动态加载</th>
+<th>本地依赖打包</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>网络请求</td>
+<td>运行时请求第三方 CDN</td>
+<td>请求本站 Next 静态资源</td>
+</tr>
+<tr>
+<td>首次稳定性</td>
+<td>受第三方 CDN 影响</td>
+<td>由自己部署平台/CDN 控制</td>
+</tr>
+<tr>
+<td>JS 包体积</td>
+<td>项目包更小</td>
+<td>登录页 chunk 变大</td>
+</tr>
+<tr>
+<td>CSP</td>
+<td>需要放开 CDN 域名</td>
+<td>可以保持 <code>script-src &#39;self&#39;</code></td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>第三方 CDN 缓存</td>
+<td>Next chunk 缓存</td>
+</tr>
+<tr>
+<td>生产可控性</td>
+<td>较弱</td>
+<td>较强</td>
+</tr>
+</tbody></table>
+<p>所以更准确的说法是：这是一个 <strong>加载速度、稳定性、安全策略、包体积之间的工程权衡</strong>。</p>
+<h2 id="五、改成第二种做法：本地依赖打包"><a href="#五、改成第二种做法：本地依赖打包" class="headerlink" title="五、改成第二种做法：本地依赖打包"></a>五、改成第二种做法：本地依赖打包</h2><p>最后把 amCharts 改成了本地依赖：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pnpm add @amcharts/amcharts5 @amcharts/amcharts5-geodata</span><br></pre></td></tr></table></figure>
+
+<p>组件里不再动态插入 script，而是直接 import：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> am5 <span class="keyword">from</span> <span class="string">&quot;@amcharts/amcharts5&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> am5map <span class="keyword">from</span> <span class="string">&quot;@amcharts/amcharts5/map&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> am5geodata_worldLow <span class="keyword">from</span> <span class="string">&quot;@amcharts/amcharts5-geodata/worldLow&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> am5themes_Animated <span class="keyword">from</span> <span class="string">&quot;@amcharts/amcharts5/themes/Animated&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这样登录页背景组件还是客户端组件，但它依赖的 amCharts 代码会进入 Next 的构建产物。</p>
+<p>同时，middleware 里的 CSP 可以收紧回去：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;script-src &#x27;self&#x27; &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>不再需要：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://cdn.amcharts.com</span><br></pre></td></tr></table></figure>
+
+<h2 id="六、代价：登录页-JS-变大"><a href="#六、代价：登录页-JS-变大" class="headerlink" title="六、代价：登录页 JS 变大"></a>六、代价：登录页 JS 变大</h2><p>这不是免费优化。</p>
+<p>改成本地依赖后，<code>npm run build</code> 的结果里，<code>/login</code> 的 First Load JS 大约变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/login  187 kB  300 kB First Load JS</span><br></pre></td></tr></table></figure>
+
+<p>这说明 amCharts 确实被打进了登录页相关 chunk。</p>
+<p>也就是说，第二种方案的代价是：</p>
+<ul>
+<li>登录页 JS 包体积变大</li>
+<li>首次下载的本站资源更多</li>
+<li>构建产物变重</li>
+</ul>
+<p>但它换来的是：</p>
+<ul>
+<li>不再等待第三方 CDN</li>
+<li>线上加载链路更稳定</li>
+<li>CSP 更干净</li>
+<li>第二次访问可以直接吃浏览器缓存</li>
+<li>故障边界更清楚</li>
+</ul>
+<p>对这个登录页来说，我认为这个 tradeoff 是值得的。因为用户点进登录页时看到背景延迟出现，会直接影响第一印象。</p>
+<h2 id="七、实现细节：避免-hydration-问题"><a href="#七、实现细节：避免-hydration-问题" class="headerlink" title="七、实现细节：避免 hydration 问题"></a>七、实现细节：避免 hydration 问题</h2><p>amCharts 本质上是浏览器端图表库，会直接操作 DOM/canvas。</p>
+<p>所以组件里没有让它参与 SSR，而是等客户端 mount 后再初始化：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> [mounted, setMounted] = <span class="title function_">useState</span>(<span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line"><span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="title function_">setMounted</span>(<span class="literal">true</span>);</span><br><span class="line">&#125;, []);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!mounted) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样可以避免服务端 HTML 和客户端 amCharts 接管后的 DOM 不一致，减少 hydration mismatch。</p>
+<p>地图初始化也放在 <code>useEffect</code> 里：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (!mounted) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> root = am5.<span class="property">Root</span>.<span class="title function_">new</span>(containerRef.<span class="property">current</span>);</span><br><span class="line">  <span class="comment">// 创建 MapChart...</span></span><br><span class="line">  <span class="keyword">return</span> <span class="function">() =&gt;</span> root.<span class="title function_">dispose</span>();</span><br><span class="line">&#125;, [mounted]);</span><br></pre></td></tr></table></figure>
+
+<p>关键点是：</p>
+<ul>
+<li>只在浏览器端初始化 amCharts</li>
+<li>unmount 时 dispose root</li>
+<li>不让 amCharts 生成的 DOM 参与 SSR 对比</li>
+</ul>
+<h2 id="八、视觉层面的调整"><a href="#八、视觉层面的调整" class="headerlink" title="八、视觉层面的调整"></a>八、视觉层面的调整</h2><p>最后登录页背景分成两层。</p>
+<p>后层是展开地图：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">projection</span>: am5map.<span class="title function_">geoEquirectangular</span>(),</span><br><span class="line"><span class="attr">rotationX</span>: <span class="number">180</span>,</span><br><span class="line"><span class="attr">zoomLevel</span>: <span class="number">0.96</span>,</span><br></pre></td></tr></table></figure>
+
+<p>这里 <code>rotationX: 180</code> 是为了改变世界地图的横向断点，让北美/南美被拼到右侧，非洲/欧洲从左侧区域开始。</p>
+<p>前层是地球：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">projection</span>: am5map.<span class="title function_">geoOrthographic</span>(),</span><br><span class="line"><span class="attr">panX</span>: <span class="string">&quot;rotateX&quot;</span>,</span><br><span class="line"><span class="attr">panY</span>: <span class="string">&quot;rotateY&quot;</span>,</span><br><span class="line"><span class="attr">wheelY</span>: <span class="string">&quot;zoom&quot;</span>,</span><br><span class="line"><span class="attr">pinchZoom</span>: <span class="literal">true</span>,</span><br></pre></td></tr></table></figure>
+
+<p>地球支持：</p>
+<ul>
+<li>自动自转</li>
+<li>鼠标拖拽</li>
+<li>滚轮缩放</li>
+<li>触控缩放</li>
+</ul>
+<p>为了让背景不抢登录表单的视觉，展开地图用了比较淡的颜色和透明度：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">fillOpacity</span>: <span class="number">0.2</span></span><br><span class="line"><span class="attr">strokeOpacity</span>: <span class="number">0.26</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="九、验证结果"><a href="#九、验证结果" class="headerlink" title="九、验证结果"></a>九、验证结果</h2><p>改完后做了几类检查。</p>
+<p>TypeScript：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npx tsc --noEmit</span><br></pre></td></tr></table></figure>
+
+<p>通过。</p>
+<p>生产构建：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm run build</span><br></pre></td></tr></table></figure>
+
+<p>通过。</p>
+<p>浏览器验证里检查了几件事：</p>
+<ol>
+<li>登录页正常渲染</li>
+<li>展开地图和地球都生成 canvas</li>
+<li>地球 canvas hash 随时间变化，说明自转正常</li>
+<li>没有请求 <code>cdn.amcharts.com</code></li>
+<li>控制台没有 amCharts 相关报错</li>
 </ol>
-<h2 id="九、总结"><a href="#九、总结" class="headerlink" title="九、总结"></a>九、总结</h2><p>今天做的事情让我意识到，一个看似简单的 AI 视频模板功能，背后其实是完整的工程系统。它包含前端画布、后端 action、数据库、AI 模型、第三方 API、webhook、R2 存储、测试和浏览器兼容问题。</p>
-<p>今天最大的进步不是“功能写完了”，而是开始意识到：功能上线不是写完代码，而是能解释清楚它怎么工作、能测、能排错、能复盘。</p>
+<p>最关键的是：现在登录页不再依赖运行时第三方 CDN 请求。</p>
+<h2 id="十、这次的结论"><a href="#十、这次的结论" class="headerlink" title="十、这次的结论"></a>十、这次的结论</h2><p>如果只是做一个临时 Demo，CDN 动态加载很方便：</p>
+<ul>
+<li>快速验证</li>
+<li>不改依赖</li>
+<li>不增加构建体积</li>
+</ul>
+<p>但如果要上生产，尤其是登录页、首屏、关键路径上的视觉模块，本地依赖打包通常更稳：</p>
+<ul>
+<li>加载链路可控</li>
+<li>CSP 更安全</li>
+<li>缓存策略统一</li>
+<li>故障更容易定位</li>
+</ul>
+<p>这次最终选择本地依赖，不是因为它在所有场景下绝对更快，而是因为它让生产环境更可控。</p>
+<blockquote>
+<p>CDN 方案省包体积，但把稳定性交给第三方；本地依赖方案增加登录页 chunk，但把加载链路收回自己手里。</p>
+</blockquote>
+<p>这就是这次登录页地图背景优化里最核心的工程取舍。</p>
 
       </div>
       <div class="article-collapsed-mask"></div>
@@ -178,11 +331,11 @@
       </div>
     </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/" data-id="cmrxo3bg8002mg83ga8jt3p1l" data-title="今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/07/17/2026-07-17-%E7%99%BB%E5%BD%95%E9%A1%B5%E5%9C%B0%E5%9B%BE%E8%83%8C%E6%99%AF%E4%BC%98%E5%8C%96%E5%A4%8D%E7%9B%98-CDN-vs-%E6%9C%AC%E5%9C%B0%E4%BE%9D%E8%B5%96/" data-id="cmrxo3bfo0001g83gd5d968u5" data-title="登录页地图背景优化复盘：CDN 动态加载 vs 本地依赖打包" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI%E8%A7%86%E9%A2%91/" rel="tag">AI视频</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/D1/" rel="tag">D1</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ReactFlow/" rel="tag">ReactFlow</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Veo/" rel="tag">Veo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" rel="tag">无限画布</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Prompt-Lens/" rel="tag">Prompt Lens</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/amCharts/" rel="tag">amCharts</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" rel="tag">前端实践</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" rel="tag">工程复盘</a></li></ul>
 
     </footer>
   </div>
@@ -190,19 +343,19 @@
     
 <nav id="article-nav">
   
-    <a href="/2026/07/11/2026-07-11-Win7%E8%99%9A%E6%8B%9F%E6%9C%BAPython3810-HeroBuddy%E9%85%8D%E7%BD%AE%E5%AE%9E%E5%BD%95/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2026/07/23/2026-07-23-OCR%E8%BD%AC%E5%8F%AF%E7%BC%96%E8%BE%91PPT%E6%96%87%E5%AD%97%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption">前一篇</strong>
       <div class="article-nav-title">
         
-          从 ISO 到可用：Win7 虚拟机安装 Python 3.8.10
+          增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘
         
       </div>
     </a>
   
   
-    <a href="/2026/06/30/2026-06-30-Next.js-cookie-i18n-%E8%B8%A9%E5%9D%91%E5%AE%9E%E5%BD%95/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2026/07/16/2026-07-16-KIE-Gemini-API%E6%8E%A5%E5%85%A5%E8%B8%A9%E5%9D%91%E5%A4%8D%E7%9B%98/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">后一篇</strong>
-      <div class="article-nav-title">2026-06-30-Next.js 纯 Cookie 模式 i18n 实战与踩坑实录</div>
+      <div class="article-nav-title">KIE Gemini API 接入踩坑复盘：OpenAI-compatible 不等于完全兼容</div>
     </a>
   
 </nav>
