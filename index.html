@@ -117,7 +117,7 @@
               <strong>学习笔记</strong>
               <small>课程、教程、配置实录和可复用知识沉淀。</small>
             </span>
-            <span class="section-meta">3</span>
+            <span class="section-meta">4</span>
           </button>
         
           
@@ -164,9 +164,423 @@
           
             <div class="home-article-list">
               
+                <article class="home-readable-article" id="post-2026-08-17-ai-agent-w11-vm-codex-opencode-playwright-claude-hermes">
+                  <header class="home-readable-header">
+                    <time datetime="2026-08-17T20:00:00.000Z">2026-08-17</time>
+                    <h3><a href="/2026/08/17/2026-08-17-ai-agent-w11-vm-codex-opencode-playwright-claude-hermes/">从零搭建一台 AI Agent Windows 11 虚拟机</a></h3>
+                  </header>
+                  <div class="home-article-body">
+                    <p>这次记录的是从一台已经安装 Oracle VirtualBox 的 Windows 电脑开始，搭建一套独立 AI Agent 实验环境的完整过程。</p>
+<p>这套环境的目标不是把所有工具都装到日常电脑里，而是单独准备一台 Windows 11 虚拟机，把 Codex App、Claude Code、OpenCode、Playwright CLI、Hermes、AITDK 等工具集中放进去。</p>
+<p>原因很简单：Agent 能力越来越强，能读文件、跑命令、打开浏览器、自动点击网页。如果直接放在真实电脑里，它理论上可能接触到私人文件、Token、SSH Key、<code>.env</code>、浏览器登录态，甚至误删或改坏一些不该碰的东西。</p>
+<p>所以这次的核心思路是：</p>
+<blockquote>
+<p>先自己看懂问题，再让 Agent 自动化，最后由自己检查和验收结果。</p>
+</blockquote>
+<h2 id="1-最终想搭成什么样"><a href="#1-最终想搭成什么样" class="headerlink" title="1. 最终想搭成什么样"></a>1. 最终想搭成什么样</h2><p>最终环境大概是这样：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">真实 Windows 电脑</span><br><span class="line">│</span><br><span class="line">├── 日常文件</span><br><span class="line">├── 项目</span><br><span class="line">├── 浏览器</span><br><span class="line">├── 代理软件</span><br><span class="line">│</span><br><span class="line">└── Oracle VirtualBox</span><br><span class="line">     │</span><br><span class="line">     └── Windows 11 虚拟机</span><br><span class="line">          │</span><br><span class="line">          ├── Chrome</span><br><span class="line">          ├── Git</span><br><span class="line">          ├── Node.js + npm</span><br><span class="line">          ├── ChatGPT / Codex</span><br><span class="line">          ├── OpenCode</span><br><span class="line">          ├── Playwright CLI</span><br><span class="line">          ├── Claude Code</span><br><span class="line">          ├── Hermes</span><br><span class="line">          └── AITDK</span><br></pre></td></tr></table></figure>
+
+<p>后面的自动化任务链路则是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">微信</span><br><span class="line"> ↓</span><br><span class="line">Hermes</span><br><span class="line"> ↓</span><br><span class="line">OpenCode / Claude Code / Codex</span><br><span class="line"> ↓</span><br><span class="line">Playwright CLI</span><br><span class="line"> ↓</span><br><span class="line">浏览器自动执行任务</span><br><span class="line"> ↓</span><br><span class="line">CSV / 文件 / 调研结果</span><br></pre></td></tr></table></figure>
+
+<p>这台 VM 本质上就是一台低成本 AI 实验电脑。</p>
+<h2 id="2-为什么要单独建虚拟机"><a href="#2-为什么要单独建虚拟机" class="headerlink" title="2. 为什么要单独建虚拟机"></a>2. 为什么要单独建虚拟机</h2><p>如果所有 Agent 工具都运行在日常电脑环境里，它们可能碰到很多完全不需要碰的东西。</p>
+<p>比如：</p>
+<ul>
+<li>私人文件</li>
+<li>浏览器 Cookie</li>
+<li>SSH Key</li>
+<li>API Token</li>
+<li>项目里的 <code>.env</code></li>
+<li>真实工作目录</li>
+</ul>
+<p>Agent 不是一定会乱动，但一旦工具权限给得太宽，它就有机会误操作。</p>
+<p>所以更合理的做法是：专门准备一台“AI 实验电脑”。虚拟机出问题，影响基本也限制在虚拟机内部。</p>
+<h2 id="3-创建-Windows-11-虚拟机"><a href="#3-创建-Windows-11-虚拟机" class="headerlink" title="3. 创建 Windows 11 虚拟机"></a>3. 创建 Windows 11 虚拟机</h2><p>我的宿主机配置是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">内存：32GB</span><br><span class="line">CPU：14 核 / 14 逻辑处理器</span><br><span class="line">VirtualBox：7.2.12</span><br></pre></td></tr></table></figure>
+
+<p>最后给虚拟机的配置是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Memory：8192 MB</span><br><span class="line">Processors：4</span><br><span class="line">Disk Size：100 GB</span><br><span class="line">EFI：开启</span><br></pre></td></tr></table></figure>
+
+<p>这个配置目前足够运行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Windows 11</span><br><span class="line">Chrome</span><br><span class="line">Codex</span><br><span class="line">OpenCode</span><br><span class="line">Claude Code</span><br><span class="line">Playwright</span><br><span class="line">Hermes</span><br></pre></td></tr></table></figure>
+
+<p>Windows 11 ISO 建议直接使用微软官方的 x64 ISO，不要下载 ARM64，也不要解压 ISO。VirtualBox 可以直接挂载。</p>
+<p>新建 VM 时取名：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AI-Agent-Windows11</span><br></pre></td></tr></table></figure>
+
+<p>虚拟硬盘最好放在空间比较充足的位置，比如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">D:\VirtualBox VMs\AI-Agent-Windows11\</span><br></pre></td></tr></table></figure>
+
+<p>不要默认全塞进 C 盘。</p>
+<h2 id="4-VirtualBox-创建-VM-的关键设置"><a href="#4-VirtualBox-创建-VM-的关键设置" class="headerlink" title="4. VirtualBox 创建 VM 的关键设置"></a>4. VirtualBox 创建 VM 的关键设置</h2><p>VirtualBox 创建 Windows 11 虚拟机时，有几个地方需要注意。</p>
+<p>第一个是取消无人值守安装：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">☐ Proceed with unattended installation</span><br></pre></td></tr></table></figure>
+
+<p>取消以后，Windows 会走微软自己的标准安装流程。这样如果卡住或报错，更容易判断问题到底出在哪里。</p>
+<p>第二个是 EFI：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">☑ Use EFI</span><br></pre></td></tr></table></figure>
+
+<p>Windows 11 保持开启即可。</p>
+<h2 id="5-安装-Windows-11"><a href="#5-安装-Windows-11" class="headerlink" title="5. 安装 Windows 11"></a>5. 安装 Windows 11</h2><p>启动虚拟机以后，就是普通 Windows 安装流程。</p>
+<p>中间可能会提示：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">我同意将删除所有内容，包括文件、应用和设置</span><br></pre></td></tr></table></figure>
+
+<p>这里删除的是虚拟机里的虚拟硬盘，不是宿主机真实的 C 盘或 D 盘。</p>
+<p>所以全新 VM 可以正常选择。</p>
+<h2 id="6-第一次初始化最容易卡在更新"><a href="#6-第一次初始化最容易卡在更新" class="headerlink" title="6. 第一次初始化最容易卡在更新"></a>6. 第一次初始化最容易卡在更新</h2><p>Windows 11 第一次 OOBE 初始化时，我遇到过：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">正在获取最新功能和安全更新</span><br><span class="line">步骤 1/3</span><br><span class="line">下载 100%</span><br></pre></td></tr></table></figure>
+
+<p>然后长时间停在那里，后来甚至出现黑屏。</p>
+<p>这种时候不要一看到不动就疯狂 Reset。第一次初始化可能同时在做这些事：</p>
+<ul>
+<li>下载更新</li>
+<li>安装驱动</li>
+<li>配置组件</li>
+<li>重启</li>
+<li>初始化账户</li>
+</ul>
+<p>虚拟机只有 4 核 + 8GB，速度自然比宿主机慢。</p>
+<p>如果界面允许选择“稍后更新”，我更倾向于先跳过。目标应该是先进入 Windows 桌面，真正的 Windows Update 可以进桌面以后再慢慢完成。</p>
+<h2 id="7-VirtualBox-鼠标被捕获怎么办"><a href="#7-VirtualBox-鼠标被捕获怎么办" class="headerlink" title="7. VirtualBox 鼠标被捕获怎么办"></a>7. VirtualBox 鼠标被捕获怎么办</h2><p>第一次用 VirtualBox 时，很容易遇到鼠标突然消失。</p>
+<p>其实不是系统坏了，而是鼠标被 VirtualBox 捕获了。</p>
+<p>默认 Host Key 是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Right Ctrl</span><br></pre></td></tr></table></figure>
+
+<p>也就是键盘右边的 Ctrl。</p>
+<p>按一下右 Ctrl，鼠标就会从 VM 释放出来。</p>
+<h2 id="8-安装-VirtualBox-Guest-Additions"><a href="#8-安装-VirtualBox-Guest-Additions" class="headerlink" title="8. 安装 VirtualBox Guest Additions"></a>8. 安装 VirtualBox Guest Additions</h2><p>Windows 进入桌面以后，建议马上安装 Guest Additions。</p>
+<p>VirtualBox 顶部菜单：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Devices</span><br><span class="line">→ Insert Guest Additions CD Image</span><br></pre></td></tr></table></figure>
+
+<p>然后在 Windows 里打开：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">文件资源管理器</span><br><span class="line">→ 此电脑</span><br><span class="line">→ VirtualBox Guest Additions</span><br></pre></td></tr></table></figure>
+
+<p>里面会看到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">VBoxWindowsAdditions.exe</span><br><span class="line">VBoxWindowsAdditions-amd64.exe</span><br><span class="line">VBoxWindowsAdditions-arm64.exe</span><br><span class="line">VBoxWindowsAdditions-x86.exe</span><br></pre></td></tr></table></figure>
+
+<p>普通 Intel / AMD 64 位 Windows 11 对应 <code>amd64</code>，直接运行 <code>VBoxWindowsAdditions.exe</code> 也可以，它会自动选择正确架构。</p>
+<p>安装过程中如果出现黑屏几秒、分辨率变化、鼠标短暂失效、窗口闪烁，先等，不要立刻 Reset。</p>
+<p>安装完成以后正常重启。</p>
+<h2 id="9-开启双向剪贴板"><a href="#9-开启双向剪贴板" class="headerlink" title="9. 开启双向剪贴板"></a>9. 开启双向剪贴板</h2><p>Guest Additions 装好以后，开启：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Devices</span><br><span class="line">→ Shared Clipboard</span><br><span class="line">→ Bidirectional</span><br></pre></td></tr></table></figure>
+
+<p>也可以开启：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Devices</span><br><span class="line">→ Drag and Drop</span><br><span class="line">→ Bidirectional</span><br></pre></td></tr></table></figure>
+
+<p>这样就可以在宿主机和虚拟机之间直接复制命令。</p>
+<h2 id="10-BitLocker-的坑"><a href="#10-BitLocker-的坑" class="headerlink" title="10. BitLocker 的坑"></a>10. BitLocker 的坑</h2><p>Windows 11 登录 Microsoft 账号后，系统有时会自动启用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Device Encryption / BitLocker</span><br></pre></td></tr></table></figure>
+
+<p>我后来创建 VirtualBox 快照，再启动 VM 时，Windows 突然进入 BitLocker Recovery，提示大意是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Secure Boot policy unexpectedly changed</span><br></pre></td></tr></table></figure>
+
+<p>然后要求输入 48 位 BitLocker Recovery Key。</p>
+<p>最后需要到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://aka.ms/myrecoverykey</span><br></pre></td></tr></table></figure>
+
+<p>使用该 Windows 11 登录的 Microsoft 账号找到恢复密钥，再输入虚拟机完成恢复。</p>
+<p>对于专门用来做 Agent 实验、频繁改环境的 VM，我后来决定不再折腾快照。</p>
+<p>如果一定要大量使用快照，最好提前理解 BitLocker、虚拟 TPM 和 Secure Boot 的关系。</p>
+<h2 id="11-虚拟机能上网，却打不开-ChatGPT"><a href="#11-虚拟机能上网，却打不开-ChatGPT" class="headerlink" title="11. 虚拟机能上网，却打不开 ChatGPT"></a>11. 虚拟机能上网，却打不开 ChatGPT</h2><p>VirtualBox 默认网络一般使用 NAT。</p>
+<p>虚拟机可以通过宿主机访问互联网，但要注意：</p>
+<blockquote>
+<p>VirtualBox NAT 不等于自动继承宿主机代理。</p>
+</blockquote>
+<p>我一开始碰到的现象是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">百度可以访问</span><br><span class="line">ChatGPT 登录提示地区不支持</span><br><span class="line">winget 下载 Chrome 超时</span><br></pre></td></tr></table></figure>
+
+<p>PowerShell 检查：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh winhttp show proxy</span><br></pre></td></tr></table></figure>
+
+<p>结果显示：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Direct access</span><br></pre></td></tr></table></figure>
+
+<p>也就是说，虚拟机根本没有走代理。</p>
+<h2 id="12-让虚拟机走宿主机代理"><a href="#12-让虚拟机走宿主机代理" class="headerlink" title="12. 让虚拟机走宿主机代理"></a>12. 让虚拟机走宿主机代理</h2><p>宿主机代理端口是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">7897</span><br></pre></td></tr></table></figure>
+
+<p>一开始我在虚拟机 Windows 代理里错误地填了：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:7897</span><br></pre></td></tr></table></figure>
+
+<p>这是错的。</p>
+<p>因为 <code>127.0.0.1</code> 在虚拟机里代表的是虚拟机自己，不是宿主机。</p>
+<p>VirtualBox 默认 NAT 下，虚拟机访问宿主机通常可以使用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">10.0.2.2</span><br></pre></td></tr></table></figure>
+
+<p>所以最终代理配置成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">地址：10.0.2.2</span><br><span class="line">端口：7897</span><br></pre></td></tr></table></figure>
+
+<p>同时宿主机代理软件需要开启：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Allow LAN</span><br></pre></td></tr></table></figure>
+
+<p>然后测试：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Test-NetConnection</span> <span class="number">10.0</span>.<span class="number">2.2</span> <span class="literal">-Port</span> <span class="number">7897</span></span><br></pre></td></tr></table></figure>
+
+<p>看到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TcpTestSucceeded : True</span><br></pre></td></tr></table></figure>
+
+<p>说明链路已经打通：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">虚拟机</span><br><span class="line">↓</span><br><span class="line">VirtualBox NAT</span><br><span class="line">↓</span><br><span class="line">10.0.2.2</span><br><span class="line">↓</span><br><span class="line">宿主机代理</span><br><span class="line">↓</span><br><span class="line">互联网</span><br></pre></td></tr></table></figure>
+
+<p>这一步解决以后，Google、ChatGPT、GitHub、npm、Chrome 下载基本就都正常了。</p>
+<h2 id="13-安装-Chrome"><a href="#13-安装-Chrome" class="headerlink" title="13. 安装 Chrome"></a>13. 安装 Chrome</h2><p>可以直接运行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">winget install <span class="literal">--id</span> Google.Chrome <span class="literal">--source</span> winget</span><br></pre></td></tr></table></figure>
+
+<p>如果出现：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0x80072ee2</span><br><span class="line">InternetOpenUrl() failed</span><br></pre></td></tr></table></figure>
+
+<p>通常不是 Chrome 的问题，而是网络或代理没有走通。</p>
+<p>如果终端命令也需要代理，可以在当前 PowerShell 里设置：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:HTTP_PROXY</span>=<span class="string">&quot;http://10.0.2.2:7897&quot;</span></span><br><span class="line"><span class="variable">$env:HTTPS_PROXY</span>=<span class="string">&quot;http://10.0.2.2:7897&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后重新执行安装。</p>
+<h2 id="14-安装-Git"><a href="#14-安装-Git" class="headerlink" title="14. 安装 Git"></a>14. 安装 Git</h2><p>进入：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://git-scm.com/install/windows</span><br></pre></td></tr></table></figure>
+
+<p>下载 x64 Setup，安装基本一路默认。</p>
+<p>验证：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="literal">--version</span></span><br></pre></td></tr></table></figure>
+
+<p>正常输出版本号即可。</p>
+<h2 id="15-安装-Node-js-npm"><a href="#15-安装-Node-js-npm" class="headerlink" title="15. 安装 Node.js + npm"></a>15. 安装 Node.js + npm</h2><p>Node.js 建议选择：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Windows</span><br><span class="line">x64</span><br><span class="line">LTS</span><br><span class="line">Windows Installer (.msi)</span><br></pre></td></tr></table></figure>
+
+<p>不要选择 Docker 那一套。</p>
+<p>安装完成以后验证：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">node <span class="literal">-v</span></span><br><span class="line">npm <span class="literal">-v</span></span><br></pre></td></tr></table></figure>
+
+<p>两个都返回版本号说明成功。</p>
+<p>Node 后面非常重要，因为 OpenCode、Playwright CLI 和很多 Agent 工具都需要 Node/npm。</p>
+<h2 id="16-安装-OpenCode"><a href="#16-安装-OpenCode" class="headerlink" title="16. 安装 OpenCode"></a>16. 安装 OpenCode</h2><p>OpenCode 是这套工作流里很重要的一环。</p>
+<p>我的分工思路是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">贵模型</span><br><span class="line">→ 理解问题</span><br><span class="line">→ 设计流程</span><br><span class="line">→ 解决复杂异常</span><br><span class="line"></span><br><span class="line">便宜模型</span><br><span class="line">→ Playwright</span><br><span class="line">→ 打开网页</span><br><span class="line">→ 点击</span><br><span class="line">→ 翻页</span><br><span class="line">→ 提取数据</span><br><span class="line">→ CSV</span><br><span class="line">→ URL 检查</span><br></pre></td></tr></table></figure>
+
+<p>安装：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install <span class="literal">-g</span> opencode<span class="literal">-ai</span></span><br></pre></td></tr></table></figure>
+
+<p>检查：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">opencode <span class="literal">--version</span></span><br></pre></td></tr></table></figure>
+
+<p>启动：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">opencode</span><br></pre></td></tr></table></figure>
+
+<p>如果 npm 长时间只有旋转符号，可以先 <code>Ctrl + C</code>，然后检查：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm ping</span><br></pre></td></tr></table></figure>
+
+<p>如果 npm 本身没有走代理，可以单独配置：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm config <span class="built_in">set</span> proxy http://<span class="number">10.0</span>.<span class="number">2.2</span>:<span class="number">7897</span></span><br><span class="line">npm config <span class="built_in">set</span> https<span class="literal">-proxy</span> http://<span class="number">10.0</span>.<span class="number">2.2</span>:<span class="number">7897</span></span><br></pre></td></tr></table></figure>
+
+<p>再执行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm ping</span><br></pre></td></tr></table></figure>
+
+<p>成功后重新安装。</p>
+<h2 id="17-安装-Playwright-CLI"><a href="#17-安装-Playwright-CLI" class="headerlink" title="17. 安装 Playwright CLI"></a>17. 安装 Playwright CLI</h2><p>Playwright CLI 是后面浏览器自动化真正的执行工具。</p>
+<p>安装：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install <span class="literal">-g</span> @playwright/<span class="built_in">cli</span>@latest</span><br></pre></td></tr></table></figure>
+
+<p>检查：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">playwright<span class="literal">-cli</span> <span class="literal">--help</span></span><br></pre></td></tr></table></figure>
+
+<p>安装 Coding Agent skills：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">playwright<span class="literal">-cli</span> install <span class="literal">--skills</span></span><br></pre></td></tr></table></figure>
+
+<p>最小测试：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">playwright<span class="literal">-cli</span> open https://example.com</span><br></pre></td></tr></table></figure>
+
+<p>如果浏览器成功打开 Example Domain，就说明 Playwright CLI 已经能工作。</p>
+<p>结束：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">playwright<span class="literal">-cli</span> close</span><br></pre></td></tr></table></figure>
+
+<p>后面真正的自动化大概就是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">打开网页</span><br><span class="line">↓</span><br><span class="line">搜索</span><br><span class="line">↓</span><br><span class="line">点击详情</span><br><span class="line">↓</span><br><span class="line">找到官网</span><br><span class="line">↓</span><br><span class="line">提取数据</span><br><span class="line">↓</span><br><span class="line">保存 CSV</span><br></pre></td></tr></table></figure>
+
+<h2 id="18-安装-AITDK"><a href="#18-安装-AITDK" class="headerlink" title="18. 安装 AITDK"></a>18. 安装 AITDK</h2><p>AITDK 是 Chrome 扩展，后面研究竞品时重点看：</p>
+<ul>
+<li>月访问量</li>
+<li>Traffic Sources</li>
+<li>Top Keywords</li>
+<li>Top Regions</li>
+<li>域名注册时间</li>
+<li>Title / Description</li>
+</ul>
+<p>Chrome 打开：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://aitdk.com/extension</span><br></pre></td></tr></table></figure>
+
+<p>安装扩展即可。</p>
+<p>真正做竞品研究时，AITDK 左边几十个菜单不用全看。</p>
+<p>重点看：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Traffic</span><br><span class="line">Whois</span><br><span class="line">Overview</span><br></pre></td></tr></table></figure>
+
+<p>尤其是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Monthly Visits</span><br><span class="line">Top Keywords</span><br><span class="line">Traffic Sources</span><br><span class="line">Top Regions</span><br><span class="line">Domain Registration Date</span><br></pre></td></tr></table></figure>
+
+<h2 id="19-安装-Claude-Code"><a href="#19-安装-Claude-Code" class="headerlink" title="19. 安装 Claude Code"></a>19. 安装 Claude Code</h2><p>Windows PowerShell 执行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">irm</span> https://claude.ai/install.ps1 | <span class="built_in">iex</span></span><br></pre></td></tr></table></figure>
+
+<p>第一次安装直接失败：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Failed to fetch version</span><br><span class="line">ECONNREFUSED xx.xx.xx.xx:443</span><br></pre></td></tr></table></figure>
+
+<p>原因仍然是安装器没有正确走代理。</p>
+<p>于是先设置当前 PowerShell 的代理环境变量：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:HTTP_PROXY</span>=<span class="string">&quot;http://10.0.2.2:7897&quot;</span></span><br><span class="line"><span class="variable">$env:HTTPS_PROXY</span>=<span class="string">&quot;http://10.0.2.2:7897&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>再测试：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl.exe <span class="literal">-I</span> https://downloads.claude.ai/claude<span class="literal">-code-releases</span>/latest</span><br></pre></td></tr></table></figure>
+
+<p>确认网络可以访问以后重新执行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">irm</span> https://claude.ai/install.ps1 | <span class="built_in">iex</span></span><br></pre></td></tr></table></figure>
+
+<p>最终成功后会看到类似：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Claude Code successfully installed!</span><br><span class="line"></span><br><span class="line">Version: 2.1.233</span><br><span class="line">Location:</span><br><span class="line">C:\Users\raoji\.local\bin\claude.exe</span><br></pre></td></tr></table></figure>
+
+<h2 id="20-Claude-安装成功却输入-claude-没反应"><a href="#20-Claude-安装成功却输入-claude-没反应" class="headerlink" title="20. Claude 安装成功却输入 claude 没反应"></a>20. Claude 安装成功却输入 claude 没反应</h2><p>安装器其实已经提示：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\raoji\.local\bin</span><br><span class="line">is not in your PATH</span><br></pre></td></tr></table></figure>
+
+<p>所以并不是 Claude 没装成功，而是 Windows 不知道 <code>claude.exe</code> 在哪里。</p>
+<p>先验证：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&amp; <span class="string">&quot;C:\Users\raoji\.local\bin\claude.exe&quot;</span> <span class="literal">--version</span></span><br></pre></td></tr></table></figure>
+
+<p>如果正常，就把这个目录加入用户 Path：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\raoji\.local\bin</span><br></pre></td></tr></table></figure>
+
+<p>路径：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">系统属性</span><br><span class="line">→ 高级</span><br><span class="line">→ 环境变量</span><br><span class="line">→ 用户变量</span><br><span class="line">→ Path</span><br><span class="line">→ New</span><br></pre></td></tr></table></figure>
+
+<p>重新打开 PowerShell：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">claude <span class="literal">--version</span></span><br></pre></td></tr></table></figure>
+
+<p>即可。</p>
+<h2 id="21-安装-Hermes"><a href="#21-安装-Hermes" class="headerlink" title="21. 安装 Hermes"></a>21. 安装 Hermes</h2><p>Hermes 是最后一个，也是整套系统里最有意思的部分。</p>
+<p>它的定位不是代替 OpenCode 或 Claude Code，而是远程任务分发入口。</p>
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">手机微信</span><br><span class="line">↓</span><br><span class="line">Hermes</span><br><span class="line">↓</span><br><span class="line">Claude Code / OpenCode</span><br><span class="line">↓</span><br><span class="line">电脑执行</span><br><span class="line">↓</span><br><span class="line">Hermes</span><br><span class="line">↓</span><br><span class="line">微信收到结果</span><br></pre></td></tr></table></figure>
+
+<p>也就是从微信发任务，让 Hermes 调用 OpenCode 或 Claude Code，在测试目录创建文件，再把执行结果回复到微信。</p>
+<p>Windows PowerShell 先设置代理：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:HTTP_PROXY</span>=<span class="string">&quot;http://10.0.2.2:7897&quot;</span></span><br><span class="line"><span class="variable">$env:HTTPS_PROXY</span>=<span class="string">&quot;http://10.0.2.2:7897&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后执行 Hermes 安装程序。</p>
+<p>安装过程中一度跳转到了 Nous Portal 的订阅授权页面。但这次任务并不要求购买 Nous 模型套餐。</p>
+<p>我的选择是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Hermes Provider：</span><br><span class="line">OpenAI Codex</span><br><span class="line"></span><br><span class="line">认证：</span><br><span class="line">ChatGPT OAuth</span><br><span class="line"></span><br><span class="line">不使用：</span><br><span class="line">OpenAI API Key</span><br></pre></td></tr></table></figure>
+
+<h2 id="22-Hermes-接入-ChatGPT-Codex-OAuth"><a href="#22-Hermes-接入-ChatGPT-Codex-OAuth" class="headerlink" title="22. Hermes 接入 ChatGPT / Codex OAuth"></a>22. Hermes 接入 ChatGPT / Codex OAuth</h2><p>成功导入凭据后，终端显示：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Credentials imported.</span><br><span class="line"></span><br><span class="line">Config updated:</span><br><span class="line">model.provider=openai-codex</span><br></pre></td></tr></table></figure>
+
+<p>然后 Hermes 会让选择默认模型：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1. gpt-5.6-sol</span><br><span class="line">2. gpt-5.6-terra</span><br><span class="line">3. gpt-5.6-luna</span><br><span class="line">4. gpt-5.5</span><br><span class="line">5. gpt-5.4</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>最后选择：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">4</span><br></pre></td></tr></table></figure>
+
+<p>得到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Default model set to:</span><br><span class="line">gpt-5.5</span><br><span class="line">(via OpenAI Codex)</span><br></pre></td></tr></table></figure>
+
+<p>这意味着链路已经打通：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Hermes</span><br><span class="line">↓</span><br><span class="line">OpenAI Codex Provider</span><br><span class="line">↓</span><br><span class="line">ChatGPT OAuth</span><br><span class="line">↓</span><br><span class="line">GPT 模型</span><br></pre></td></tr></table></figure>
+
+<h2 id="23-Hermes-微信配置"><a href="#23-Hermes-微信配置" class="headerlink" title="23. Hermes 微信配置"></a>23. Hermes 微信配置</h2><p>微信配置过程中会询问：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">How should direct messages be authorized?</span><br></pre></td></tr></table></figure>
+
+<p>选项：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. Use DM pairing approval (recommended)</span><br><span class="line">2. Allow all direct messages</span><br><span class="line">3. Only allow listed user IDs</span><br><span class="line">4. Disable direct messages</span><br></pre></td></tr></table></figure>
+
+<p>我选择：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1</span><br></pre></td></tr></table></figure>
+
+<p>也就是 DM pairing approval。</p>
+<p>第一次连接需要人工批准，更安全。</p>
+<p>后面流程就是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Weixin</span><br><span class="line">↓</span><br><span class="line">扫码</span><br><span class="line">↓</span><br><span class="line">Hermes Gateway</span><br><span class="line">↓</span><br><span class="line">DM Pairing</span><br><span class="line">↓</span><br><span class="line">微信发消息</span><br><span class="line">↓</span><br><span class="line">Hermes 回复</span><br></pre></td></tr></table></figure>
+
+<p>真正有批量任务时，再让 Hermes 调用 Coding Agent。</p>
+<h2 id="24-环境完成以后，真正的任务才开始"><a href="#24-环境完成以后，真正的任务才开始" class="headerlink" title="24. 环境完成以后，真正的任务才开始"></a>24. 环境完成以后，真正的任务才开始</h2><p>这里很容易产生一个误解：</p>
+<blockquote>
+<p>装完这么多东西，是不是马上就应该让 Agent 自动抓网站？</p>
+</blockquote>
+<p>恰恰相反。</p>
+<p>第一阶段应该先人工研究，比如先看 10 个 AI 视频产品。</p>
+<p>可以从这些网站开始：</p>
+<ul>
+<li>Toolify</li>
+<li>Product Hunt</li>
+<li>SaaSHub</li>
+<li>AlternativeTo</li>
+</ul>
+<p>而且先别急着让 Agent 抓。</p>
+<h2 id="25-每个产品应该研究什么"><a href="#25-每个产品应该研究什么" class="headerlink" title="25. 每个产品应该研究什么"></a>25. 每个产品应该研究什么</h2><p>每看到一个产品，先回答：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">产品：</span><br><span class="line">网址：</span><br><span class="line"></span><br><span class="line">给谁用：</span><br><span class="line">输入：</span><br><span class="line">AI 做什么：</span><br><span class="line">输出：</span><br><span class="line">价格：</span><br><span class="line"></span><br><span class="line">它解决什么问题：</span><br><span class="line">为什么值得继续看：</span><br></pre></td></tr></table></figure>
+
+<p>其中“输入”不是价格，而是用户把什么东西交给 AI。</p>
+<p>比如：</p>
+<ul>
+<li>文字 Prompt</li>
+<li>图片</li>
+<li>视频</li>
+<li>网址</li>
+<li>音频</li>
+<li>PDF</li>
+<li>商品照片</li>
+</ul>
+<p>“输出”则是用户最后获得什么。</p>
+<p>比如：</p>
+<ul>
+<li>视频</li>
+<li>图片</li>
+<li>数字人口播</li>
+<li>剪辑好的短视频</li>
+<li>声音</li>
+<li>字幕</li>
+</ul>
+<p>最终要形成的是：</p>
+<blockquote>
+<p>谁 → 输入什么 → AI 做什么 → 得到什么 → 为什么愿意付钱</p>
+</blockquote>
+<h2 id="26-AITDK-到底看什么"><a href="#26-AITDK-到底看什么" class="headerlink" title="26. AITDK 到底看什么"></a>26. AITDK 到底看什么</h2><p>找到一个有意思的产品后，再用 AITDK。</p>
+<p>重点看：</p>
+<ul>
+<li>月访问量</li>
+<li>Top Keywords</li>
+<li>Traffic Sources</li>
+<li>Top Regions</li>
+<li>域名注册时间</li>
+</ul>
+<p>尤其是 Top Keywords。</p>
+<p>这里需要区分：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Density</span><br><span class="line">≠</span><br><span class="line">Top Keywords</span><br></pre></td></tr></table></figure>
+
+<p>Density 是网页本身反复出现哪些词。</p>
+<p>Top Keywords 更重要，因为它代表用户主要通过搜索哪些关键词找到这个网站。</p>
+<p>比如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ai video generator</span><br><span class="line">image to video ai</span><br><span class="line">product video maker</span><br></pre></td></tr></table></figure>
+
+<p>这种关键词可以直接反推用户正在主动搜索什么需求。</p>
+<h2 id="27-这套环境真正教会了我什么"><a href="#27-这套环境真正教会了我什么" class="headerlink" title="27. 这套环境真正教会了我什么"></a>27. 这套环境真正教会了我什么</h2><p>真正重要的不是记住哪一条安装命令。</p>
+<p>因为这些工具以后都会变。</p>
+<p>真正值得保留下来的工作方式是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">自己先做</span><br><span class="line">↓</span><br><span class="line">理解正确答案</span><br><span class="line">↓</span><br><span class="line">找到重复劳动</span><br><span class="line">↓</span><br><span class="line">选择合适成本的 Agent</span><br><span class="line">↓</span><br><span class="line">让 Agent 自动化</span><br><span class="line">↓</span><br><span class="line">检查 Agent 输出</span><br><span class="line">↓</span><br><span class="line">正确以后再放大</span><br></pre></td></tr></table></figure>
+
+<p>AI Agent 真正有价值的地方，不是：</p>
+<blockquote>
+<p>我把任务丢给 AI，然后什么都不管。</p>
+</blockquote>
+<p>而是：</p>
+<blockquote>
+<p>我先理解业务，然后设计流程，再让不同能力、不同成本的 AI 替我完成重复劳动。</p>
+</blockquote>
+<p>最终，人负责判断。</p>
+<p>AI 负责放大。</p>
+
+                  </div>
+                  <div class="home-article-actions">
+                    <button type="button" class="home-article-toggle" data-article-toggle aria-expanded="false">展开阅读</button>
+                  </div>
+                </article>
+              
                 <article class="home-readable-article" id="post-2026-08-08-git-push-learning">
                   <header class="home-readable-header">
-                    <time datetime="2026-08-08T04:00:00.000Z">2026-08-08</time>
+                    <time datetime="2026-08-08T12:00:00.000Z">2026-08-08</time>
                     <h3><a href="/2026/08/08/2026-08-08-git-push-learning/">Git 推送学习：从 git status 到 GitHub 大文件限制</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -371,7 +785,7 @@
               
                 <article class="home-readable-article" id="post-Hexo博客部署到GitHub-Pages流程教程">
                   <header class="home-readable-header">
-                    <time datetime="2026-05-07T16:00:00.000Z">2026-05-08</time>
+                    <time datetime="2026-05-08T00:00:00.000Z">2026-05-08</time>
                     <h3><a href="/2026/05/08/Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/">Hexo博客部署到GitHub Pages流程教程</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -502,7 +916,7 @@
               
                 <article class="home-readable-article" id="post-QtConsult部署到阿里云OSS全流程教程">
                   <header class="home-readable-header">
-                    <time datetime="2026-05-07T12:19:03.000Z">2026-05-07</time>
+                    <time datetime="2026-05-07T20:19:03.000Z">2026-05-07</time>
                     <h3><a href="/2026/05/07/QtConsult%E9%83%A8%E7%BD%B2%E5%88%B0%E9%98%BF%E9%87%8C%E4%BA%91OSS%E5%85%A8%E6%B5%81%E7%A8%8B%E6%95%99%E7%A8%8B/">QtConsult部署到阿里云OSS全流程教程</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -703,7 +1117,7 @@
               
                 <article class="home-readable-article" id="post-2026-07-11-Win7虚拟机Python3810-HeroBuddy配置实录">
                   <header class="home-readable-header">
-                    <time datetime="2026-07-11T14:00:00.000Z">2026-07-11</time>
+                    <time datetime="2026-07-11T22:00:00.000Z">2026-07-11</time>
                     <h3><a href="/2026/07/11/2026-07-11-Win7%E8%99%9A%E6%8B%9F%E6%9C%BAPython3810-HeroBuddy%E9%85%8D%E7%BD%AE%E5%AE%9E%E5%BD%95/">从 ISO 到可用：Win7 虚拟机安装 Python 3.8.10</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -1056,7 +1470,7 @@
               
                 <article class="home-readable-article" id="post-今日总结-2026-05-11-QtCloud-Asset-域名绑定与K8s备选方案">
                   <header class="home-readable-header">
-                    <time datetime="2026-05-10T16:00:00.000Z">2026-05-11</time>
+                    <time datetime="2026-05-11T00:00:00.000Z">2026-05-11</time>
                     <h3><a href="/2026/05/11/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-11-QtCloud-Asset-%E5%9F%9F%E5%90%8D%E7%BB%91%E5%AE%9A%E4%B8%8EK8s%E5%A4%87%E9%80%89%E6%96%B9%E6%A1%88/">今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -1204,7 +1618,7 @@
               
                 <article class="home-readable-article" id="post-今日总结-2026-05-09-QtCloud-Asset-FaaS-前后端部署跑通">
                   <header class="home-readable-header">
-                    <time datetime="2026-05-08T16:00:00.000Z">2026-05-09</time>
+                    <time datetime="2026-05-09T00:00:00.000Z">2026-05-09</time>
                     <h3><a href="/2026/05/09/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-09-QtCloud-Asset-FaaS-%E5%89%8D%E5%90%8E%E7%AB%AF%E9%83%A8%E7%BD%B2%E8%B7%91%E9%80%9A/">今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -1350,7 +1764,7 @@
               
                 <article class="home-readable-article" id="post-今日总结-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-部署与发版">
                   <header class="home-readable-header">
-                    <time datetime="2026-05-07T16:00:00.000Z">2026-05-08</time>
+                    <time datetime="2026-05-08T00:00:00.000Z">2026-05-08</time>
                     <h3><a href="/2026/05/08/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-08-QtAdmin-QtConsult-QtCloud-Asset-%E9%83%A8%E7%BD%B2%E4%B8%8E%E5%8F%91%E7%89%88/">今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -1474,7 +1888,7 @@
               
                 <article class="home-readable-article" id="post-今日总结-2026-04-23-议事档案标本契约v0.0.3-术语统一">
                   <header class="home-readable-header">
-                    <time datetime="2026-04-22T16:00:00.000Z">2026-04-23</time>
+                    <time datetime="2026-04-23T00:00:00.000Z">2026-04-23</time>
                     <h3><a href="/2026/04/23/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-04-23-%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6v0.0.3-%E6%9C%AF%E8%AF%AD%E7%BB%9F%E4%B8%80/">今日总结-2026-04-23-议事档案标本契约v0.0.3-术语统一</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -1582,7 +1996,7 @@
               
                 <article class="home-readable-article" id="post-2026-08-03-用codex做前端太难了">
                   <header class="home-readable-header">
-                    <time datetime="2026-08-03T10:30:00.000Z">2026-08-03</time>
+                    <time datetime="2026-08-03T18:30:00.000Z">2026-08-03</time>
                     <h3><a href="/2026/08/03/2026-08-03-%E7%94%A8codex%E5%81%9A%E5%89%8D%E7%AB%AF%E5%A4%AA%E9%9A%BE%E4%BA%86/">用codex做前端太难了</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -1797,7 +2211,7 @@
               
                 <article class="home-readable-article" id="post-2026-07-27-SSE真流式生成效果实现复盘">
                   <header class="home-readable-header">
-                    <time datetime="2026-07-26T16:00:00.000Z">2026-07-27</time>
+                    <time datetime="2026-07-27T00:00:00.000Z">2026-07-27</time>
                     <h3><a href="/2026/07/27/2026-07-27-SSE%E7%9C%9F%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90%E6%95%88%E6%9E%9C%E5%AE%9E%E7%8E%B0%E5%A4%8D%E7%9B%98/">SSE（Server-Sent Events） 真流式生成效果实现复盘</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -2025,7 +2439,7 @@
               
                 <article class="home-readable-article" id="post-2026-07-23-OCR转可编辑PPT文字重叠问题复盘">
                   <header class="home-readable-header">
-                    <time datetime="2026-07-23T12:30:00.000Z">2026-07-23</time>
+                    <time datetime="2026-07-23T20:30:00.000Z">2026-07-23</time>
                     <h3><a href="/2026/07/23/2026-07-23-OCR%E8%BD%AC%E5%8F%AF%E7%BC%96%E8%BE%91PPT%E6%96%87%E5%AD%97%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98/">增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -2178,7 +2592,7 @@
               
                 <article class="home-readable-article" id="post-2026-07-17-登录页地图背景优化复盘-CDN-vs-本地依赖">
                   <header class="home-readable-header">
-                    <time datetime="2026-07-16T16:30:00.000Z">2026-07-17</time>
+                    <time datetime="2026-07-17T00:30:00.000Z">2026-07-17</time>
                     <h3><a href="/2026/07/17/2026-07-17-%E7%99%BB%E5%BD%95%E9%A1%B5%E5%9C%B0%E5%9B%BE%E8%83%8C%E6%99%AF%E4%BC%98%E5%8C%96%E5%A4%8D%E7%9B%98-CDN-vs-%E6%9C%AC%E5%9C%B0%E4%BE%9D%E8%B5%96/">登录页地图背景优化复盘：CDN 动态加载 vs 本地依赖打包</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -2385,7 +2799,7 @@
               
                 <article class="home-readable-article" id="post-2026-07-16-KIE-Gemini-API接入踩坑复盘">
                   <header class="home-readable-header">
-                    <time datetime="2026-07-16T10:30:00.000Z">2026-07-16</time>
+                    <time datetime="2026-07-16T18:30:00.000Z">2026-07-16</time>
                     <h3><a href="/2026/07/16/2026-07-16-KIE-Gemini-API%E6%8E%A5%E5%85%A5%E8%B8%A9%E5%9D%91%E5%A4%8D%E7%9B%98/">KIE Gemini API 接入踩坑复盘：OpenAI-compatible 不等于完全兼容</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -2499,7 +2913,7 @@
               
                 <article class="home-readable-article" id="post-今日总结-2026-07-13-HeroBuddy多Agent协作开发复盘">
                   <header class="home-readable-header">
-                    <time datetime="2026-07-13T15:30:00.000Z">2026-07-13</time>
+                    <time datetime="2026-07-13T23:30:00.000Z">2026-07-13</time>
                     <h3><a href="/2026/07/13/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-07-13-HeroBuddy%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C%E5%BC%80%E5%8F%91%E5%A4%8D%E7%9B%98/">今日总结-2026-07-13-HeroBuddy多Agent协作开发复盘</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -2617,7 +3031,7 @@
               
                 <article class="home-readable-article" id="post-daily-summary-2026-07-06-infinite-canvas-ai-video-template">
                   <header class="home-readable-header">
-                    <time datetime="2026-07-05T16:00:00.000Z">2026-07-06</time>
+                    <time datetime="2026-07-06T00:00:00.000Z">2026-07-06</time>
                     <h3><a href="/2026/07/06/daily-summary-2026-07-06-infinite-canvas-ai-video-template/">今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -2670,7 +3084,7 @@
               
                 <article class="home-readable-article" id="post-2026-06-30-Next.js-cookie-i18n-踩坑实录">
                   <header class="home-readable-header">
-                    <time datetime="2026-06-29T16:00:00.000Z">2026-06-30</time>
+                    <time datetime="2026-06-30T00:00:00.000Z">2026-06-30</time>
                     <h3><a href="/2026/06/30/2026-06-30-Next.js-cookie-i18n-%E8%B8%A9%E5%9D%91%E5%AE%9E%E5%BD%95/">2026-06-30-Next.js 纯 Cookie 模式 i18n 实战与踩坑实录</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -2802,7 +3216,7 @@
               
                 <article class="home-readable-article" id="post-今日总结-2026-06-12-Vercel大文件上传413与Blob直传修复">
                   <header class="home-readable-header">
-                    <time datetime="2026-06-11T16:00:00.000Z">2026-06-12</time>
+                    <time datetime="2026-06-12T00:00:00.000Z">2026-06-12</time>
                     <h3><a href="/2026/06/12/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-06-12-Vercel%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0413%E4%B8%8EBlob%E7%9B%B4%E4%BC%A0%E4%BF%AE%E5%A4%8D/">今日总结-2026-06-12-Vercel 大文件上传 413 与 Blob 直传修复</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -2974,7 +3388,7 @@
               
                 <article class="home-readable-article" id="post-今日总结-2026-05-31-第139次崩塌-AI-NPC接口修复">
                   <header class="home-readable-header">
-                    <time datetime="2026-05-30T16:00:00.000Z">2026-05-31</time>
+                    <time datetime="2026-05-31T00:00:00.000Z">2026-05-31</time>
                     <h3><a href="/2026/05/31/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-31-%E7%AC%AC139%E6%AC%A1%E5%B4%A9%E5%A1%8C-AI-NPC%E6%8E%A5%E5%8F%A3%E4%BF%AE%E5%A4%8D/">今日总结-2026-05-31-第139次崩塌 AI NPC 接口修复</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -3071,7 +3485,7 @@
               
                 <article class="home-readable-article" id="post-今日总结-2026-05-05-博客部署问题修复">
                   <header class="home-readable-header">
-                    <time datetime="2026-05-04T16:00:00.000Z">2026-05-05</time>
+                    <time datetime="2026-05-05T00:00:00.000Z">2026-05-05</time>
                     <h3><a href="/2026/05/05/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-05-%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E9%97%AE%E9%A2%98%E4%BF%AE%E5%A4%8D/">今日总结-2026-05-05-博客部署问题修复</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -3110,7 +3524,7 @@
               
                 <article class="home-readable-article" id="post-今日总结-2026-05-04-进阶规划题目设计-博客AccessKey修复">
                   <header class="home-readable-header">
-                    <time datetime="2026-05-03T16:00:00.000Z">2026-05-04</time>
+                    <time datetime="2026-05-04T00:00:00.000Z">2026-05-04</time>
                     <h3><a href="/2026/05/04/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-04-%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92%E9%A2%98%E7%9B%AE%E8%AE%BE%E8%AE%A1-%E5%8D%9A%E5%AE%A2AccessKey%E4%BF%AE%E5%A4%8D/">今日总结-2026-05-04-进阶规划题目设计-博客AccessKey修复</a></h3>
                   </header>
                   <div class="home-article-body">
@@ -3187,7 +3601,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-NPC/" rel="tag">AI NPC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E5%B7%A5%E5%85%B7/" rel="tag">AI工具</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E7%BC%96%E7%A8%8B/" rel="tag">AI编程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E8%A7%86%E9%A2%91/" rel="tag">AI视频</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/API%E6%8E%A5%E5%85%A5/" rel="tag">API接入</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cookie/" rel="tag">Cookie</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/D1/" rel="tag">D1</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DeepSeek/" rel="tag">DeepSeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Drizzle/" rel="tag">Drizzle</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gemini/" rel="tag">Gemini</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/H5-%E6%B8%B8%E6%88%8F/" rel="tag">H5 游戏</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HeroBuddy/" rel="tag">HeroBuddy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KIE/" rel="tag">KIE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCP/" rel="tag">MCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OCR/" rel="tag">OCR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PPT/" rel="tag">PPT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Prompt-Lens/" rel="tag">Prompt Lens</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReactFlow/" rel="tag">ReactFlow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Remotion-skills/" rel="tag">Remotion skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSE/" rel="tag">SSE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Serverless/" rel="tag">Serverless</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skills/" rel="tag">Skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TalentsAI/" rel="tag">TalentsAI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Veo/" rel="tag">Veo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel/" rel="tag">Vercel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel-Blob/" rel="tag">Vercel Blob</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VirtualBox/" rel="tag">VirtualBox</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-7/" rel="tag">Windows 7</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/amCharts/" rel="tag">amCharts</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/i18n/" rel="tag">i18n</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/next-intl/" rel="tag">next-intl</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" rel="tag">产品复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" rel="tag">前端实践</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" rel="tag">前端设计</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%8D%E7%9B%98/" rel="tag">复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" rel="tag">多Agent协作</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" rel="tag">大文件上传</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" rel="tag">工程复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" rel="tag">无限画布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" rel="tag">流式生成</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" rel="tag">落地页</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" rel="tag">进阶规划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-NPC/" rel="tag">AI NPC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E5%B7%A5%E5%85%B7/" rel="tag">AI工具</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E7%BC%96%E7%A8%8B/" rel="tag">AI编程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E8%A7%86%E9%A2%91/" rel="tag">AI视频</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/API%E6%8E%A5%E5%85%A5/" rel="tag">API接入</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cookie/" rel="tag">Cookie</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/D1/" rel="tag">D1</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DeepSeek/" rel="tag">DeepSeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Drizzle/" rel="tag">Drizzle</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gemini/" rel="tag">Gemini</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/H5-%E6%B8%B8%E6%88%8F/" rel="tag">H5 游戏</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HeroBuddy/" rel="tag">HeroBuddy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KIE/" rel="tag">KIE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCP/" rel="tag">MCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OCR/" rel="tag">OCR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PPT/" rel="tag">PPT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Playwright/" rel="tag">Playwright</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Prompt-Lens/" rel="tag">Prompt Lens</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReactFlow/" rel="tag">ReactFlow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Remotion-skills/" rel="tag">Remotion skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSE/" rel="tag">SSE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Serverless/" rel="tag">Serverless</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skills/" rel="tag">Skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TalentsAI/" rel="tag">TalentsAI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Veo/" rel="tag">Veo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel/" rel="tag">Vercel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel-Blob/" rel="tag">Vercel Blob</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VirtualBox/" rel="tag">VirtualBox</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-11/" rel="tag">Windows 11</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-7/" rel="tag">Windows 7</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/amCharts/" rel="tag">amCharts</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/i18n/" rel="tag">i18n</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/next-intl/" rel="tag">next-intl</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" rel="tag">产品复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" rel="tag">前端实践</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" rel="tag">前端设计</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%8D%E7%9B%98/" rel="tag">复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" rel="tag">多Agent协作</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" rel="tag">大文件上传</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" rel="tag">工程复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" rel="tag">无限画布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" rel="tag">流式生成</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" rel="tag">落地页</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" rel="tag">进阶规划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
     </div>
   </div>
 
@@ -3197,7 +3611,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签云</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AI-NPC/" style="font-size: 10px;">AI NPC</a> <a href="/tags/AI%E5%B7%A5%E5%85%B7/" style="font-size: 10px;">AI工具</a> <a href="/tags/AI%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">AI编程</a> <a href="/tags/AI%E8%A7%86%E9%A2%91/" style="font-size: 10px;">AI视频</a> <a href="/tags/API%E6%8E%A5%E5%85%A5/" style="font-size: 10px;">API接入</a> <a href="/tags/Codex/" style="font-size: 10px;">Codex</a> <a href="/tags/Cookie/" style="font-size: 10px;">Cookie</a> <a href="/tags/D1/" style="font-size: 10px;">D1</a> <a href="/tags/DeepSeek/" style="font-size: 10px;">DeepSeek</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Drizzle/" style="font-size: 10px;">Drizzle</a> <a href="/tags/Function-Compute/" style="font-size: 14px;">Function Compute</a> <a href="/tags/Gemini/" style="font-size: 10px;">Gemini</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/GitHub/" style="font-size: 10px;">GitHub</a> <a href="/tags/GitHub-Actions/" style="font-size: 16px;">GitHub Actions</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/H5-%E6%B8%B8%E6%88%8F/" style="font-size: 10px;">H5 游戏</a> <a href="/tags/HeroBuddy/" style="font-size: 10px;">HeroBuddy</a> <a href="/tags/Hexo/" style="font-size: 12px;">Hexo</a> <a href="/tags/KIE/" style="font-size: 10px;">KIE</a> <a href="/tags/Kubernetes/" style="font-size: 10px;">Kubernetes</a> <a href="/tags/MCP/" style="font-size: 10px;">MCP</a> <a href="/tags/Next-js/" style="font-size: 18px;">Next.js</a> <a href="/tags/OCR/" style="font-size: 10px;">OCR</a> <a href="/tags/OSS/" style="font-size: 12px;">OSS</a> <a href="/tags/PPT/" style="font-size: 12px;">PPT</a> <a href="/tags/Prompt-Lens/" style="font-size: 14px;">Prompt Lens</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/QtAdmin/" style="font-size: 10px;">QtAdmin</a> <a href="/tags/QtCloud/" style="font-size: 10px;">QtCloud</a> <a href="/tags/QtCloud-Asset/" style="font-size: 14px;">QtCloud Asset</a> <a href="/tags/QtConsult/" style="font-size: 12px;">QtConsult</a> <a href="/tags/ReactFlow/" style="font-size: 10px;">ReactFlow</a> <a href="/tags/Remotion-skills/" style="font-size: 10px;">Remotion skills</a> <a href="/tags/SSE/" style="font-size: 10px;">SSE</a> <a href="/tags/Serverless/" style="font-size: 10px;">Serverless</a> <a href="/tags/Skills/" style="font-size: 10px;">Skills</a> <a href="/tags/TalentsAI/" style="font-size: 10px;">TalentsAI</a> <a href="/tags/Veo/" style="font-size: 10px;">Veo</a> <a href="/tags/Vercel/" style="font-size: 12px;">Vercel</a> <a href="/tags/Vercel-Blob/" style="font-size: 10px;">Vercel Blob</a> <a href="/tags/VirtualBox/" style="font-size: 10px;">VirtualBox</a> <a href="/tags/Windows-7/" style="font-size: 10px;">Windows 7</a> <a href="/tags/amCharts/" style="font-size: 10px;">amCharts</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/i18n/" style="font-size: 10px;">i18n</a> <a href="/tags/next-intl/" style="font-size: 10px;">next-intl</a> <a href="/tags/workflow/" style="font-size: 10px;">workflow</a> <a href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" style="font-size: 10px;">产品复盘</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 10px;">前端</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" style="font-size: 10px;">前端实践</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;">前端设计</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 12px;">博客</a> <a href="/tags/%E5%A4%8D%E7%9B%98/" style="font-size: 12px;">复盘</a> <a href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" style="font-size: 10px;">多Agent协作</a> <a href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" style="font-size: 10px;">大文件上传</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 10px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 20px;">工作总结</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" style="font-size: 12px;">工程复盘</a> <a href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" style="font-size: 10px;">数字资产</a> <a href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" style="font-size: 10px;">无限画布</a> <a href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" style="font-size: 10px;">标本契约</a> <a href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" style="font-size: 10px;">流式生成</a> <a href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" style="font-size: 10px;">落地页</a> <a href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" style="font-size: 10px;">议事档案</a> <a href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" style="font-size: 10px;">进阶规划</a> <a href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" style="font-size: 10px;">部署教程</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 16px;">阿里云</a>
+      <a href="/tags/AI-Agent/" style="font-size: 10px;">AI Agent</a> <a href="/tags/AI-NPC/" style="font-size: 10px;">AI NPC</a> <a href="/tags/AI%E5%B7%A5%E5%85%B7/" style="font-size: 10px;">AI工具</a> <a href="/tags/AI%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">AI编程</a> <a href="/tags/AI%E8%A7%86%E9%A2%91/" style="font-size: 10px;">AI视频</a> <a href="/tags/API%E6%8E%A5%E5%85%A5/" style="font-size: 10px;">API接入</a> <a href="/tags/Claude-Code/" style="font-size: 10px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 12px;">Codex</a> <a href="/tags/Cookie/" style="font-size: 10px;">Cookie</a> <a href="/tags/D1/" style="font-size: 10px;">D1</a> <a href="/tags/DeepSeek/" style="font-size: 10px;">DeepSeek</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Drizzle/" style="font-size: 10px;">Drizzle</a> <a href="/tags/Function-Compute/" style="font-size: 14px;">Function Compute</a> <a href="/tags/Gemini/" style="font-size: 10px;">Gemini</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/GitHub/" style="font-size: 10px;">GitHub</a> <a href="/tags/GitHub-Actions/" style="font-size: 16px;">GitHub Actions</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/H5-%E6%B8%B8%E6%88%8F/" style="font-size: 10px;">H5 游戏</a> <a href="/tags/HeroBuddy/" style="font-size: 10px;">HeroBuddy</a> <a href="/tags/Hexo/" style="font-size: 12px;">Hexo</a> <a href="/tags/KIE/" style="font-size: 10px;">KIE</a> <a href="/tags/Kubernetes/" style="font-size: 10px;">Kubernetes</a> <a href="/tags/MCP/" style="font-size: 10px;">MCP</a> <a href="/tags/Next-js/" style="font-size: 18px;">Next.js</a> <a href="/tags/OCR/" style="font-size: 10px;">OCR</a> <a href="/tags/OSS/" style="font-size: 12px;">OSS</a> <a href="/tags/PPT/" style="font-size: 12px;">PPT</a> <a href="/tags/Playwright/" style="font-size: 10px;">Playwright</a> <a href="/tags/Prompt-Lens/" style="font-size: 14px;">Prompt Lens</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/QtAdmin/" style="font-size: 10px;">QtAdmin</a> <a href="/tags/QtCloud/" style="font-size: 10px;">QtCloud</a> <a href="/tags/QtCloud-Asset/" style="font-size: 14px;">QtCloud Asset</a> <a href="/tags/QtConsult/" style="font-size: 12px;">QtConsult</a> <a href="/tags/ReactFlow/" style="font-size: 10px;">ReactFlow</a> <a href="/tags/Remotion-skills/" style="font-size: 10px;">Remotion skills</a> <a href="/tags/SSE/" style="font-size: 10px;">SSE</a> <a href="/tags/Serverless/" style="font-size: 10px;">Serverless</a> <a href="/tags/Skills/" style="font-size: 10px;">Skills</a> <a href="/tags/TalentsAI/" style="font-size: 10px;">TalentsAI</a> <a href="/tags/Veo/" style="font-size: 10px;">Veo</a> <a href="/tags/Vercel/" style="font-size: 12px;">Vercel</a> <a href="/tags/Vercel-Blob/" style="font-size: 10px;">Vercel Blob</a> <a href="/tags/VirtualBox/" style="font-size: 12px;">VirtualBox</a> <a href="/tags/Windows-11/" style="font-size: 10px;">Windows 11</a> <a href="/tags/Windows-7/" style="font-size: 10px;">Windows 7</a> <a href="/tags/amCharts/" style="font-size: 10px;">amCharts</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/i18n/" style="font-size: 10px;">i18n</a> <a href="/tags/next-intl/" style="font-size: 10px;">next-intl</a> <a href="/tags/workflow/" style="font-size: 10px;">workflow</a> <a href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" style="font-size: 10px;">产品复盘</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 10px;">前端</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" style="font-size: 10px;">前端实践</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;">前端设计</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 12px;">博客</a> <a href="/tags/%E5%A4%8D%E7%9B%98/" style="font-size: 12px;">复盘</a> <a href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" style="font-size: 10px;">多Agent协作</a> <a href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" style="font-size: 10px;">大文件上传</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 10px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 20px;">工作总结</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" style="font-size: 12px;">工程复盘</a> <a href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" style="font-size: 10px;">数字资产</a> <a href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" style="font-size: 10px;">无限画布</a> <a href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" style="font-size: 10px;">标本契约</a> <a href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" style="font-size: 10px;">流式生成</a> <a href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" style="font-size: 10px;">落地页</a> <a href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" style="font-size: 10px;">议事档案</a> <a href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" style="font-size: 10px;">进阶规划</a> <a href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" style="font-size: 10px;">部署教程</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 16px;">阿里云</a>
     </div>
   </div>
 
@@ -3219,6 +3633,10 @@
       <ul>
         
           <li>
+            <a href="/2026/08/17/2026-08-17-ai-agent-w11-vm-codex-opencode-playwright-claude-hermes/">从零搭建一台 AI Agent Windows 11 虚拟机</a>
+          </li>
+        
+          <li>
             <a href="/2026/08/08/2026-08-08-git-push-learning/">Git 推送学习：从 git status 到 GitHub 大文件限制</a>
           </li>
         
@@ -3232,10 +3650,6 @@
         
           <li>
             <a href="/2026/07/23/2026-07-23-OCR%E8%BD%AC%E5%8F%AF%E7%BC%96%E8%BE%91PPT%E6%96%87%E5%AD%97%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98/">增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘</a>
-          </li>
-        
-          <li>
-            <a href="/2026/07/17/2026-07-17-%E7%99%BB%E5%BD%95%E9%A1%B5%E5%9C%B0%E5%9B%BE%E8%83%8C%E6%99%AF%E4%BC%98%E5%8C%96%E5%A4%8D%E7%9B%98-CDN-vs-%E6%9C%AC%E5%9C%B0%E4%BE%9D%E8%B5%96/">登录页地图背景优化复盘：CDN 动态加载 vs 本地依赖打包</a>
           </li>
         
       </ul>
