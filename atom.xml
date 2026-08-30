@@ -9,7 +9,28 @@
   <link href="https://raojiacui.github.io/atom.xml" rel="self"/>
   <rights>All rights reserved 2026, 雨下雨停</rights>
   <title>我的技术博客</title>
-  <updated>2026-08-17T14:37:33.512Z</updated>
+  <updated>2026-08-30T04:14:15.586Z</updated>
+  <entry>
+    <author>
+      <name>雨下雨停</name>
+    </author>
+    <category term="学习笔记" scheme="https://raojiacui.github.io/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+    <category term="面试复盘" scheme="https://raojiacui.github.io/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/"/>
+    <category term="AI 产品" scheme="https://raojiacui.github.io/tags/AI-%E4%BA%A7%E5%93%81/"/>
+    <category term="产品工程" scheme="https://raojiacui.github.io/tags/%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B/"/>
+    <content>
+      <![CDATA[<p>首先一针见血：事情做了很多，但是缺乏深度。</p><h2 id="一面：从-AI-产品开发到完整产品闭环"><a href="#一面：从-AI-产品开发到完整产品闭环" class="headerlink" title="一面：从 AI 产品开发到完整产品闭环"></a>一面：从 AI 产品开发到完整产品闭环</h2><p>我主要参与过 AI SaaS 产品从 0 到 1 的落地，同时也独立做过自己的 AI 产品。比如，我自己开发过一款 AI 视频提示词分析工具，从最开始的需求判断、产品设计，到后续的开发、上线和迭代，基本都完整参与过。</p><p>因为之前做的产品比较偏向全球用户，所以我平时也会持续关注海外市场。我常会在 Reddit、X 等平台上观察海外开发者和创作者在讨论什么，尤其会通过 Reddit 社区和 GitHub 去寻找用户真实的需求和痛点。</p><p>除了用户调研，我也会进行竞品分析，了解同类型的优秀产品是如何解决问题的，再判断我们是否能够做出差异化的体验。</p><p>当需求相对明确之后，我会使用 Codex、Claude Code 这类 AI Coding 工具，把产品需求拆解成具体的开发任务，先快速跑通核心功能，再进行测试、产品迭代，以及交互和用户体验上的优化。</p><p>产品相对完善之后，我会继续做增长相关的工作，比如外链建设和流量获取。对我来说，做产品并不是把功能开发出来就结束了，而是要从用户需求、竞品分析、快速开发，到上线迭代，再到增长获客，尽可能把整个产品链路跑成一个闭环。</p><p>我也很喜欢这种快速把想法做出来，再通过真实用户反馈不断验证和迭代的工作方式。所以看到这个岗位之后，我会觉得它和我的工作方式，以及我感兴趣的方向都比较契合。我也很希望能够参与到秒哒海外版这个产品真正落地的过程中。</p><p>谢谢。</p><h2 id="二面：产品上线之后，用户从哪里来"><a href="#二面：产品上线之后，用户从哪里来" class="headerlink" title="二面：产品上线之后，用户从哪里来"></a>二面：产品上线之后，用户从哪里来</h2><p>一面的时候，我更多介绍了自己在 AI 产品从 0 到 1，以及 AI Coding 方面的经历。</p><p>其实除了产品开发之外，我也一直比较关注一个问题：产品上线之后，用户从哪里来，以及如何持续获得低成本的流量和用户。</p><p>我对增长的理解是，产品做出来只是第一步，后面还需要解决用户如何发现产品的问题。</p><p>以 SEO 为例，我认为核心并不是单纯写很多 Blog，而是先找到目标用户在 Google 上真正会搜索什么，再围绕这些关键词制作内容或页面，把有明确需求的用户带到产品里，最后还要继续观察这些流量能不能转化成注册、使用，甚至付费。</p><p>我自己也比较感兴趣的一点是，如何利用 AI 把这套增长工作进一步自动化。</p><p>比如关键词发现、竞品分析、内容框架生成、外链机会筛选等环节，都存在大量重复性工作。这些工作可以先交给 Agent 或 AI Coding 工具完成，人更多地负责最后的判断、质量控制和策略调整。</p><p>我觉得，AI 产品工程不仅需要快速把产品做出来，也需要真正思考海外用户在哪里、如何让他们发现产品，以及如何让增长工作变得更高效。</p><p>我也很希望能够参与到这部分工作中。</p><p>谢谢。</p><h2 id="面试问题复盘"><a href="#面试问题复盘" class="headerlink" title="面试问题复盘"></a>面试问题复盘</h2><p>这部分主要是面试官对项目细节的追问。它们让我意识到，面试官并不只想知道“你做过什么”，还会继续追问“为什么这么做，以及你是否真正理解它”。</p><h3 id="1-自动拆镜是依据什么进行的？"><a href="#1-自动拆镜是依据什么进行的？" class="headerlink" title="1. 自动拆镜是依据什么进行的？"></a>1. 自动拆镜是依据什么进行的？</h3><p>我们的自动拆镜并不是让大模型直接“猜”镜头边界，而是优先使用 PySceneDetect 这样的开源场景检测库进行分析。</p><p>当时使用的是 AdaptiveDetector。它会分析视频帧之间的内容变化，并结合局部时间范围内的变化趋势，判断某一帧是否相较于周围帧出现了明显变化。因此，它并不是简单地使用一个固定规则判断每一对相邻帧，在快速运动、镜头晃动或人物动作幅度较大的视频中，适应性会更好一些。</p><p>同时，我们还保留了 FFmpeg 的 scene 检测作为兜底方案。FFmpeg 会根据相邻视频帧之间的画面差异计算 scene change score。当分数超过设定阈值时，就认为这里可能发生了镜头切换。</p><p>我们的兜底阈值设置为 <code>0.32</code>。这个数值不是绝对最优解，也不是随意拍脑袋决定的，而是一个基于测试和经验的折中值。它在漏切和误切之间取得了相对保守的平衡。</p><p>为了避免单纯依赖阈值导致结果失控，还增加了边界规整和时长约束：</p><ul><li>过短的片段，例如小于 <code>0.6</code> 秒的片段，会进行合并或过滤；</li><li>超过 <code>8</code> 秒的长片段，会继续拆分成更适合后续分析的单元；</li><li>检测器、阈值和相关参数都可以通过环境变量进行调整。</li></ul><p>所以，系统并不是认为某个阈值永远准确，而是通过“场景检测库优先、FFmpeg 兜底、片段时长约束、参数可配置”这几层机制降低风险。</p><p>这些视频分析逻辑最终部署在 Fly.io 的 Worker 上，由独立的 FFmpeg Worker 负责处理。</p><h3 id="2-为什么阈值设置为-0-32？"><a href="#2-为什么阈值设置为-0-32？" class="headerlink" title="2. 为什么阈值设置为 0.32？"></a>2. 为什么阈值设置为 0.32？</h3><p><code>0.32</code> 更准确地说是一个经验阈值，而不是经过大规模标注数据训练出来的绝对最优值。</p><p>在实际视频中，阈值设置得太低，容易把人物快速移动、镜头晃动、光线变化误判成镜头切换；阈值设置得太高，又可能漏掉一些比较自然、变化幅度较小的转场。</p><p>因此，我们通过不同类型的视频进行测试，在误切和漏切之间寻找一个相对平衡的点，最终选择了 <code>0.32</code> 作为初始配置。</p><p>但我现在的理解是，不能把这个数字包装成“通用最优参数”。更合理的做法应该是：</p><ol><li>建立包含不同内容类型的视频测试集；</li><li>对人工标注的镜头边界进行对比；</li><li>分别统计误切、漏切和边界偏移；</li><li>按视频类型设置不同参数；</li><li>通过用户反馈继续调整阈值。</li></ol><p>所以，<code>0.32</code> 是当时工程上的经验选择，后续还需要通过更大规模的样本测试进一步验证。</p><h3 id="3-Google-和-GitHub-登录是怎么实现的？"><a href="#3-Google-和-GitHub-登录是怎么实现的？" class="headerlink" title="3. Google 和 GitHub 登录是怎么实现的？"></a>3. Google 和 GitHub 登录是怎么实现的？</h3><p>登录部分使用的是 Better Auth 提供的 OAuth 社交登录能力。</p><p>前端调用类似 <code>/api/auth/sign-in/social</code> 的接口，并传入 Google 或 GitHub 作为登录提供商。之后由认证系统负责跳转到对应平台的授权页面。</p><p>用户授权之后，平台会回调到我们的服务端。Better Auth 会处理授权码交换、用户信息获取以及账号关联，并将用户、账号和会话信息写入数据库中的相关表。</p><p>登录成功之后，系统会通过 session cookie 维护登录状态。用户之后访问需要登录的接口时，服务端会读取请求中的会话信息，确认当前用户身份，再决定是否允许继续操作。</p><p>这里需要区分两种 Cookie：</p><ul><li>Prompt Lens 自己的 Cookie，只用于识别用户在 Prompt Lens 中的登录状态；</li><li>Google、GitHub、YouTube、抖音等平台的 Cookie，属于对应平台的登录凭证。</li></ul><p>我们自己的 Cookie 不能代替用户在其他平台上的登录状态。</p><h3 id="4-项目中遇到的最大问题是什么？"><a href="#4-项目中遇到的最大问题是什么？" class="headerlink" title="4. 项目中遇到的最大问题是什么？"></a>4. 项目中遇到的最大问题是什么？</h3><p>当时遇到的最大问题，是视频分享链接解析功能。</p><p>设想是，用户不需要上传视频文件，只需要粘贴一个视频分享链接，系统就可以直接分析。这样既能降低用户的使用门槛，也能减少平台自身的存储压力。</p><p>但真正实现时，问题并不只是“把 URL 传给 FFmpeg”这么简单。</p><p>很多平台的分享链接并不是真实的视频文件地址，而是一个需要经过网页解析、接口请求或鉴权才能访问的页面链接。对于部分非公开视频，平台还会要求登录态、签名参数、请求头或者 Cookie。</p><p>而线上服务端无法直接拿到用户浏览器里保存的抖音、YouTube 等平台的 Cookie。Prompt Lens 自己的登录 Cookie 只能证明用户登录了我们的产品，并不能证明用户已经登录了其他视频平台。</p><p>因此，当服务端直接使用 yt-dlp 或 FFmpeg 解析某些链接时，就可能遇到登录态缺失、403、链接过期、平台反爬以及音视频分离等问题。</p><p>对于公开视频，yt-dlp 可以直接解析其中相当一部分；但它并不能保证解析所有平台、所有类型的视频。后续方案是考虑接入第三方媒体解析服务，由第三方服务完成平台适配、鉴权和真实媒体地址解析，再将返回的媒体 URL 交给 FFmpeg 进行视频分析。</p><p>不过，这种方案并不是完全没有成本。它还需要考虑：</p><ul><li>解析服务的稳定性；</li><li>视频链接的有效期；</li><li>第三方服务的调用费用；</li><li>用户隐私和平台合规；</li><li>视频是否需要临时转存到 R2；</li><li>音频和视频流是否需要重新合并；</li><li>解析失败后的重试和错误提示。</li></ul><p>这让我意识到，产品需求看起来只是“支持粘贴一个链接”，但真正落地时，背后涉及平台兼容性、登录态、反爬、媒体传输、存储成本和合规风险等一整套工程问题。</p><h3 id="5-为什么要充值-GPT？"><a href="#5-为什么要充值-GPT？" class="headerlink" title="5. 为什么要充值 GPT？"></a>5. 为什么要充值 GPT？</h3><p>首先，它可以陪伴我进行日常学习。在遇到不懂的知识、技术问题或者学习方向上的困惑时，我可以和它不断交流和追问，通过对话把问题逐渐弄清楚。</p><p>其次，我希望继续迭代自己的 Prompt Lens 项目。这个产品还有很多想法和功能可以完善，GPT 可以帮助我进行需求分析、技术调研、方案设计、代码实现和问题复盘。</p><p>比如在视频链接解析、自动拆镜、抽帧策略、第三方服务接入等问题上，我会先和 GPT 澄清需求、比较方案，再结合实际代码和测试结果做决定。</p><p>所以，对我来说，充值 GPT 不只是购买一个聊天工具，更是为自己的长期学习和项目实践提供支持。我希望一边学习，一边把自己的产品慢慢搭建和迭代起来。</p><h2 id="这次面试之后的体会：事情要做精，而不是只做多"><a href="#这次面试之后的体会：事情要做精，而不是只做多" class="headerlink" title="这次面试之后的体会：事情要做精，而不是只做多"></a>这次面试之后的体会：事情要做精，而不是只做多</h2><p>这次面试之后，我也更加重视文档驱动开发。</p><p>过去我有时会一上手就开始写代码，遇到问题之后再不断修改。但对于稍微复杂一点的功能，如果没有提前明确目标、边界和验收标准，开发过程中很容易反复返工。</p><p>现在我更倾向于先进行需求澄清和技术调研，再写一份简短的需求文档或技术方案，明确：</p><ul><li>这个功能要解决什么问题；</li><li>哪些内容属于本次范围；</li><li>哪些内容暂时不做；</li><li>计划采用什么技术方案；</li><li>可能存在什么风险；</li><li>最终如何验证功能是否完成。</li></ul><p>文档不一定要写得很长，但一定要能帮助自己和团队形成共识。</p><p>AI 可以辅助我们生成文档、拆解任务和补充方案，但最终的需求判断、技术取舍和结果验收，仍然需要开发者自己负责。</p><p>更深刻的体会是，事情不要贪多，一定要做得精。自己使用 AI Coding 工具开发项目，虽然不需要看懂每一行代码，但核心功能的代码逻辑一定要看，要让自己心里有底，同时也要防止 AI 过度设计。</p><p>要把 AI 当成放大自己能力的工具，而不是把自己的判断全部交出去。真正需要体现的，是自己在这件事情里面做了什么，以及为什么这样做。</p><p>真正重要的是：</p><ul><li>为什么选择这个方案；</li><li>这个参数是怎么确定的；</li><li>有没有大量做过测试；</li><li>方案的边界在哪里；</li><li>出现异常时如何处理；</li><li>如果重新做一次，会如何改进。</li></ul><p>这些问题会把“我做过”继续追问成“我是否真正理解”。</p><p>做产品不能只追求把事情做出来，还要逐渐做到能够解释清楚、验证清楚，并且知道它为什么有效、什么时候会失效。</p>]]>
+    </content>
+    <id>https://raojiacui.github.io/2026/08/30/2026-08-30-%E7%99%BE%E5%BA%A6AI%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B%E5%AE%9E%E4%B9%A0%E7%94%9F%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/</id>
+    <link href="https://raojiacui.github.io/2026/08/30/2026-08-30-%E7%99%BE%E5%BA%A6AI%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B%E5%AE%9E%E4%B9%A0%E7%94%9F%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/"/>
+    <published>2026-08-30T12:00:00.000Z</published>
+    <summary>
+      <![CDATA[<p>首先一针见血：事情做了很多，但是缺乏深度。</p>
+<h2 id="一面：从-AI-产品开发到完整产品闭环"><a href="#一面：从-AI-产品开发到完整产品闭环" class="headerlink" title="一面：从 AI 产品开发到完整产品闭环"></a>]]>
+    </summary>
+    <title>百度 AI 产品工程实习生一面、二面复盘</title>
+    <updated>2026-08-30T04:14:15.586Z</updated>
+  </entry>
   <entry>
     <author>
       <name>雨下雨停</name>
@@ -32,7 +53,7 @@
 <p>这套环境的目标不是把所有工具都装到日常电脑里，而是单独准备一台 Windows 11 虚拟机，把 Codex A]]>
     </summary>
     <title>从零搭建一台 AI Agent Windows 11 虚拟机</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -53,7 +74,7 @@
 <h2 id="1-查看改动：git-status"><a href="#1-查看改动：git-status" class="headerlink" title="1. 查看改动：git status"></a>1.]]>
     </summary>
     <title>Git 推送学习：从 git status 到 GitHub 大文件限制</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -76,7 +97,7 @@
 <p>一开始我对落地页的理解还比较传统：有一个好看的 hero，有价值主张，有一些功能介绍，再加几个案例和 FAQ，最后放一个 CTA。这个结构当然没错，但做多了之后会发现，AI 工具类产品的落地页和普通 SaaS 官网不太]]>
     </summary>
     <title>用codex做前端太难了</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -98,7 +119,7 @@
       <![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>一开始文生 PPT 和图生 PPT 都已经能接上 KIE API，也能生成 outline、生成 PPT、生成图片和可编辑图层。但实际使用时]]>
     </summary>
     <title>SSE（Server-Sent Events） 真流式生成效果实现复盘</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -120,7 +141,7 @@
 <p>一开始看起来像是“多语言识别不够好”，尤其是韩语、]]>
     </summary>
     <title>增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -143,7 +164,7 @@
 <p>视觉效果基本来自 amCharts 的全球地图 Demo，但实际接入过程中踩到了一个]]>
     </summary>
     <title>登录页地图背景优化复盘：CDN 动态加载 vs 本地依赖打包</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -165,7 +186,7 @@
 <h2 id="上传图]]>
     </summary>
     <title>KIE Gemini API 接入踩坑复盘：OpenAI-compatible 不等于完全兼容</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -187,7 +208,7 @@
     <published>2026-07-13T23:30:00.000Z</published>
     <summary>今天用主 Agent 加多个 Worker Agent 的方式推进 HeroBuddy MVP，从运行主循环、Provider 协议、工具安全、Session、Checkpoint、Context Budget，到 CLI Smoke 和 MCP/Skills 设计，完整体验了一次多 Agent 并行开发、审查、返工和合并流程。</summary>
     <title>今日总结-2026-07-13-HeroBuddy多Agent协作开发复盘</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -208,7 +229,7 @@
       <![CDATA[<h1 id="从-ISO-到可用：Win7-虚拟机安装-Python-3-8-10"><a href="#从-ISO-到可用：Win7-虚拟机安装-Python-3-8-10" class="headerlink" title="从 ISO 到可用：Win7 虚拟机安装 Pyt]]>
     </summary>
     <title>从 ISO 到可用：Win7 虚拟机安装 Python 3.8.10</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -229,7 +250,7 @@
     <published>2026-07-06T00:00:00.000Z</published>
     <summary>今天主要复盘无限画布 AI 视频模板功能的开发过程，包括多幕合一视频工作流、Veo 3.1 Lite 接入、浏览器渲染错误排查、D1 测试修复，以及功能上线前必须补齐测试的经验教训。</summary>
     <title>今日总结-2026-07-06-无限画布 AI 视频模板功能上线复盘</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -254,7 +275,7 @@
       <![CDATA[<h1 id="Next-js-纯-Cookie-模式-i18n-实战与踩坑实录"><a href="#Next-js-纯-Cookie-模式-i18n-实战与踩坑实录" class="headerlink" title="Next.js 纯 Cookie 模式 i18n 实战与]]>
     </summary>
     <title>2026-06-30-Next.js 纯 Cookie 模式 i18n 实战与踩坑实录</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -278,7 +299,7 @@
       <![CDATA[<h1 id="今日总结：Vercel-大文件上传-413-与-Blob-直传修复"><a href="#今日总结：Vercel-大文件上传-413-与-Blob-直传修复" class="headerlink" title="今日总结：Vercel 大文件上传 413 与 Bl]]>
     </summary>
     <title>今日总结-2026-06-12-Vercel 大文件上传 413 与 Blob 直传修复</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -300,7 +321,7 @@
       <![CDATA[<h1 id="今日总结：修复《第139次崩塌》AI-NPC-接口问题"><a href="#今日总结：修复《第139次崩塌》AI-NPC-接口问题" class="headerlink" title="今日总结：修复《第139次崩塌》AI NPC 接口问题"></a>今日总结：]]>
     </summary>
     <title>今日总结-2026-05-31-第139次崩塌 AI NPC 接口修复</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -324,7 +345,7 @@
       <![CDATA[<h1 id="今日总结：QtCloud-Asset-域名绑定与-K8s-备选方案"><a href="#今日总结：QtCloud-Asset-域名绑定与-K8s-备选方案" class="headerlink" title="今日总结：QtCloud Asset 域名绑定与 K]]>
     </summary>
     <title>今日总结-2026-05-11-QtCloud Asset 域名绑定与 K8s 备选方案</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -347,7 +368,7 @@
       <![CDATA[<h1 id="今日总结：QtCloud-Asset-FaaS-代码包部署与前后端联通"><a href="#今日总结：QtCloud-Asset-FaaS-代码包部署与前后端联通" class="headerlink" title="今日总结：QtCloud Asset Faa]]>
     </summary>
     <title>今日总结-2026-05-09-QtCloud Asset FaaS 前后端部署跑通</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -368,7 +389,7 @@
       <![CDATA[<h1 id="Hexo-博客部署到-GitHub-Pages-流程教程"><a href="#Hexo-博客部署到-GitHub-Pages-流程教程" class="headerlink" title="Hexo 博客部署到 GitHub Pages 流程教程"></a>He]]>
     </summary>
     <title>Hexo博客部署到GitHub Pages流程教程</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -392,7 +413,7 @@
       <![CDATA[<h1 id="今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索"><a href="#今日总结：从-QtAdmin-部署，到-QtConsult-发版，再到-QtCloud-Asset-FaaS-部署探索"]]>
     </summary>
     <title>今日总结-2026-05-08-QtAdmin、QtConsult 与 QtCloud Asset 部署发版</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -413,7 +434,7 @@
       <![CDATA[<h1 id="QtConsult-部署到阿里云-OSS-全流程"><a href="#QtConsult-部署到阿里云-OSS-全流程" class="headerlink" title="QtConsult 部署到阿里云 OSS 全流程"></a>QtConsult 部署到阿]]>
     </summary>
     <title>QtConsult部署到阿里云OSS全流程教程</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
   <entry>
     <author>
@@ -433,27 +454,6 @@
       <![CDATA[<h1 id="今日总结：2026-05-05"><a href="#今日总结：2026-05-05" class="headerlink" title="今日总结：2026-05-05"></a>今日总结：2026-05-05</h1><h2 id="完成项"><a href=]]>
     </summary>
     <title>今日总结-2026-05-05-博客部署问题修复</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
-  </entry>
-  <entry>
-    <author>
-      <name>雨下雨停</name>
-    </author>
-    <category term="工作记录" scheme="https://raojiacui.github.io/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/"/>
-    <category term="工作总结" scheme="https://raojiacui.github.io/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/"/>
-    <category term="TalentsAI" scheme="https://raojiacui.github.io/tags/TalentsAI/"/>
-    <category term="进阶规划" scheme="https://raojiacui.github.io/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/"/>
-    <category term="Git" scheme="https://raojiacui.github.io/tags/Git/"/>
-    <content>
-      <![CDATA[<h1 id="今日总结：2026-05-04"><a href="#今日总结：2026-05-04" class="headerlink" title="今日总结：2026-05-04"></a>今日总结：2026-05-04</h1><h2 id="完成项"><a href="#完成项" class="headerlink" title="完成项"></a>完成项</h2><h3 id="1-TalentsAI-进阶规划题目设计"><a href="#1-TalentsAI-进阶规划题目设计" class="headerlink" title="1. TalentsAI 进阶规划题目设计"></a>1. TalentsAI 进阶规划题目设计</h3><p>完成了”思政课课程小组作业分工”场景的题目设计，主题是”AI赋能大模型时代的挑战与机遇”。</p><p><strong>场景设计：</strong></p><ul><li>5人小组：组长小月、晓星星、李芳、浩然、子琪</li><li>分工：上台发言、给定方向、资料收集、资料整理、PPT制作</li><li>剧情亮点：原本指定殷子琪发言，但5月5日殷子琪突然告知已买好回家车票无法参加，临时换成李芳</li></ul><p><strong>题目结构：</strong></p><ul><li>STEP 1：前置信息（角色、通道、出题背景）</li><li>STEP 2：Prompt + 标准答案</li><li>STEP 3a：81条时间轴线索</li><li>STEP 3b：81条骨架消息（真实对话）</li><li>STEP 4：模型回复校验</li></ul><p><strong>设计亮点：</strong></p><ul><li>换人剧情增加题目复杂度</li><li>干扰线索：浩然私聊说”如果实在没人愿意发言，我也可以勉强试试”</li><li>排除线索：晓小星星答辩紧张、浩然明确表示不擅长演讲</li><li>关键线索：李芳主动请缨且PPT是她做的内容最熟</li></ul><h3 id="2-博客-AccessKey-问题修复"><a href="#2-博客-AccessKey-问题修复" class="headerlink" title="2. 博客 AccessKey 问题修复"></a>2. 博客 AccessKey 问题修复</h3><p><strong>问题：</strong></p><ul><li>之前推送博客时，<code>.deploy_git/index.html</code> 中包含了真实的阿里云 AccessKey</li><li>GitHub Push Protection 检测到并阻止推送</li></ul><p><strong>解决方案：</strong></p><ul><li>reset 到 origin/master，丢弃包含真实 key 的 commit</li><li>确认源 markdown 文件使用的是占位符（YOUR_ACCESS_KEY_ID）</li></ul><hr><h2 id="明日计划"><a href="#明日计划" class="headerlink" title="明日计划"></a>明日计划</h2><ol><li>继续 TalentsAI 进阶规划题目练习</li><li>修复 hexo 环境问题</li></ol><hr><h2 id="仓库信息"><a href="#仓库信息" class="headerlink" title="仓库信息"></a>仓库信息</h2><ul><li>博客仓库：<a href="https://github.com/raojiacui/raojiacui.github.io">https://github.com/raojiacui/raojiacui.github.io</a></li><li>本地路径：<code>C:\Users\雨下雨停\hexo-blog</code></li></ul>]]>
-    </content>
-    <id>https://raojiacui.github.io/2026/05/04/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-04-%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92%E9%A2%98%E7%9B%AE%E8%AE%BE%E8%AE%A1-%E5%8D%9A%E5%AE%A2AccessKey%E4%BF%AE%E5%A4%8D/</id>
-    <link href="https://raojiacui.github.io/2026/05/04/%E4%BB%8A%E6%97%A5%E6%80%BB%E7%BB%93-2026-05-04-%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92%E9%A2%98%E7%9B%AE%E8%AE%BE%E8%AE%A1-%E5%8D%9A%E5%AE%A2AccessKey%E4%BF%AE%E5%A4%8D/"/>
-    <published>2026-05-04T00:00:00.000Z</published>
-    <summary>
-      <![CDATA[<h1 id="今日总结：2026-05-04"><a href="#今日总结：2026-05-04" class="headerlink" title="今日总结：2026-05-04"></a>今日总结：2026-05-04</h1><h2 id="完成项"><a href=]]>
-    </summary>
-    <title>今日总结-2026-05-04-进阶规划题目设计-博客AccessKey修复</title>
-    <updated>2026-08-17T14:37:33.512Z</updated>
+    <updated>2026-08-30T04:14:15.586Z</updated>
   </entry>
 </feed>

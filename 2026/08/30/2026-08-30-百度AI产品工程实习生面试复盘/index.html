@@ -4,22 +4,21 @@
   <meta charset="utf-8">
   
   
-  <title>增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘 | 我的技术博客</title>
+  <title>百度 AI 产品工程实习生一面、二面复盘 | 我的技术博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="背景今天主要卡在一个问题上：图片转可编辑 PPT 时，识别出来的文字大量重叠。 一开始看起来像是“多语言识别不够好”，尤其是韩语、德语和欧洲语言样例中，页面上出现了很多错位文字、重复文字和异常大的文字。但继续排查后发现，真正的问题不是识别不到，而是识别结果被重复加入、过度拆分、错误合并，最后全部渲染成了可编辑文本层。 这个问题在简单页面里不明显，但在投行 PPT、Business Model Ca">
+  <meta name="description" content="首先一针见血：事情做了很多，但是缺乏深度。 一面：从 AI 产品开发到完整产品闭环我主要参与过 AI SaaS 产品从 0 到 1 的落地，同时也独立做过自己的 AI 产品。比如，我自己开发过一款 AI 视频提示词分析工具，从最开始的需求判断、产品设计，到后续的开发、上线和迭代，基本都完整参与过。 因为之前做的产品比较偏向全球用户，所以我平时也会持续关注海外市场。我常会在 Reddit、X 等平台">
 <meta property="og:type" content="article">
-<meta property="og:title" content="增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘">
-<meta property="og:url" content="https://raojiacui.github.io/2026/07/23/2026-07-23-OCR%E8%BD%AC%E5%8F%AF%E7%BC%96%E8%BE%91PPT%E6%96%87%E5%AD%97%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98/index.html">
+<meta property="og:title" content="百度 AI 产品工程实习生一面、二面复盘">
+<meta property="og:url" content="https://raojiacui.github.io/2026/08/30/2026-08-30-%E7%99%BE%E5%BA%A6AI%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B%E5%AE%9E%E4%B9%A0%E7%94%9F%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/index.html">
 <meta property="og:site_name" content="我的技术博客">
-<meta property="og:description" content="背景今天主要卡在一个问题上：图片转可编辑 PPT 时，识别出来的文字大量重叠。 一开始看起来像是“多语言识别不够好”，尤其是韩语、德语和欧洲语言样例中，页面上出现了很多错位文字、重复文字和异常大的文字。但继续排查后发现，真正的问题不是识别不到，而是识别结果被重复加入、过度拆分、错误合并，最后全部渲染成了可编辑文本层。 这个问题在简单页面里不明显，但在投行 PPT、Business Model Ca">
+<meta property="og:description" content="首先一针见血：事情做了很多，但是缺乏深度。 一面：从 AI 产品开发到完整产品闭环我主要参与过 AI SaaS 产品从 0 到 1 的落地，同时也独立做过自己的 AI 产品。比如，我自己开发过一款 AI 视频提示词分析工具，从最开始的需求判断、产品设计，到后续的开发、上线和迭代，基本都完整参与过。 因为之前做的产品比较偏向全球用户，所以我平时也会持续关注海外市场。我常会在 Reddit、X 等平台">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-07-23T20:30:00.000Z">
+<meta property="article:published_time" content="2026-08-30T12:00:00.000Z">
 <meta property="article:modified_time" content="2026-08-30T04:14:15.586Z">
 <meta property="article:author" content="雨下雨停">
-<meta property="article:tag" content="Next.js">
-<meta property="article:tag" content="OCR">
-<meta property="article:tag" content="PPT">
-<meta property="article:tag" content="复盘">
+<meta property="article:tag" content="面试复盘">
+<meta property="article:tag" content="AI 产品">
+<meta property="article:tag" content="产品工程">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="我的技术博客" type="application/atom+xml">
@@ -102,14 +101,14 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-2026-07-23-OCR转可编辑PPT文字重叠问题复盘" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-2026-08-30-百度AI产品工程实习生面试复盘" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2026/07/23/2026-07-23-OCR%E8%BD%AC%E5%8F%AF%E7%BC%96%E8%BE%91PPT%E6%96%87%E5%AD%97%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98/" class="article-date">
-  <time class="dt-published" datetime="2026-07-23T20:30:00.000Z" itemprop="datePublished">2026-07-23</time>
+    <a href="/2026/08/30/2026-08-30-%E7%99%BE%E5%BA%A6AI%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B%E5%AE%9E%E4%B9%A0%E7%94%9F%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/" class="article-date">
+  <time class="dt-published" datetime="2026-08-30T12:00:00.000Z" itemprop="datePublished">2026-08-30</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a>
+    <a class="article-category-link" href="/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a>
   </div>
 
   </div>
@@ -120,7 +119,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘
+      百度 AI 产品工程实习生一面、二面复盘
     </h1>
   
 
@@ -128,146 +127,106 @@
     
     <div class="e-content article-entry article-collapsed" itemprop="articleBody">
       <div class="article-collapsed-preview">
-        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>今天主要卡在一个问题上：图片转可编辑 PPT 时，识别出来的文字大量重叠。</p>
-<p>一开始看起来像是“多语言识别不够好”，尤其是韩语、德语和欧洲语言样例中，页面上出现了很多错位文字、重复文字和异常大的文字。但继续排查后发现，真正的问题不是识别不到，而是识别结果被重复加入、过度拆分、错误合并，最后全部渲染成了可编辑文本层。</p>
-<p>这个问题在简单页面里不明显，但在投行 PPT、Business Model Canvas、密集表格、复杂版面里会被迅速放大。</p>
-<h2 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h2><p>测试过程中主要出现了几类现象：</p>
+        <p>首先一针见血：事情做了很多，但是缺乏深度。</p>
+<h2 id="一面：从-AI-产品开发到完整产品闭环"><a href="#一面：从-AI-产品开发到完整产品闭环" class="headerlink" title="一面：从 AI 产品开发到完整产品闭环"></a>一面：从 AI 产品开发到完整产品闭环</h2><p>我主要参与过 AI SaaS 产品从 0 到 1 的落地，同时也独立做过自己的 AI 产品。比如，我自己开发过一款 AI 视频提示词分析工具，从最开始的需求判断、产品设计，到后续的开发、上线和迭代，基本都完整参与过。</p>
+<p>因为之前做的产品比较偏向全球用户，所以我平时也会持续关注海外市场。我常会在 Reddit、X 等平台上观察海外开发者和创作者在讨论什么，尤其会通过 Reddit 社区和 GitHub 去寻找用户真实的需求和痛点。</p>
+<p>除了用户调研，我也会进行竞品分析，了解同类型的优秀产品是如何解决问题的，再判断我们是否能够做出差异化的体验。</p>
+<p>当需求相对明确之后，我会使用 Codex、Claude Code 这类 AI Coding 工具，把产品需求拆解成具体的开发任务，先快速跑通核心功能，再进行测试、产品迭代，以及交互和用户体验上的优化。</p>
+<p>产品相对完善之后，我会继续做增长相关的工作，比如外链建设和流量获取。对我来说，做产品并不是把功能开发出来就结束了，而是要从用户需求、竞品分析、快速开发，到上线迭代，再到增长获客，尽可能把整个产品链路跑成一个闭环。</p>
+<p>我也很喜欢这种快速把想法做出来，再通过真实用户反馈不断验证和迭代的工作方式。所以看到这个岗位之后，我会觉得它和我的工作方式，以及我感兴趣的方向都比较契合。我也很希望能够参与到秒哒海外版这个产品真正落地的过程中。</p>
+<p>谢谢。</p>
+<h2 id="二面：产品上线之后，用户从哪里来"><a href="#二面：产品上线之后，用户从哪里来" class="headerlink" title="二面：产品上线之后，用户从哪里来"></a>二面：产品上线之后，用户从哪里来</h2><p>一面的时候，我更多介绍了自己在 AI 产品从 0 到 1，以及 AI Coding 方面的经历。</p>
+<p>其实除了产品开发之外，我也一直比较关注一个问题：产品上线之后，用户从哪里来，以及如何持续获得低成本的流量和用户。</p>
+<p>我对增长的理解是，产品做出来只是第一步，后面还需要解决用户如何发现产品的问题。</p>
+<p>以 SEO 为例，我认为核心并不是单纯写很多 Blog，而是先找到目标用户在 Google 上真正会搜索什么，再围绕这些关键词制作内容或页面，把有明确需求的用户带到产品里，最后还要继续观察这些流量能不能转化成注册、使用，甚至付费。</p>
+<p>我自己也比较感兴趣的一点是，如何利用 AI 把这套增长工作进一步自动化。</p>
+<p>比如关键词发现、竞品分析、内容框架生成、外链机会筛选等环节，都存在大量重复性工作。这些工作可以先交给 Agent 或 AI Coding 工具完成，人更多地负责最后的判断、质量控制和策略调整。</p>
+<p>我觉得，AI 产品工程不仅需要快速把产品做出来，也需要真正思考海外用户在哪里、如何让他们发现产品，以及如何让增长工作变得更高效。</p>
+<p>我也很希望能够参与到这部分工作中。</p>
+<p>谢谢。</p>
+<h2 id="面试问题复盘"><a href="#面试问题复盘" class="headerlink" title="面试问题复盘"></a>面试问题复盘</h2><p>这部分主要是面试官对项目细节的追问。它们让我意识到，面试官并不只想知道“你做过什么”，还会继续追问“为什么这么做，以及你是否真正理解它”。</p>
+<h3 id="1-自动拆镜是依据什么进行的？"><a href="#1-自动拆镜是依据什么进行的？" class="headerlink" title="1. 自动拆镜是依据什么进行的？"></a>1. 自动拆镜是依据什么进行的？</h3><p>我们的自动拆镜并不是让大模型直接“猜”镜头边界，而是优先使用 PySceneDetect 这样的开源场景检测库进行分析。</p>
+<p>当时使用的是 AdaptiveDetector。它会分析视频帧之间的内容变化，并结合局部时间范围内的变化趋势，判断某一帧是否相较于周围帧出现了明显变化。因此，它并不是简单地使用一个固定规则判断每一对相邻帧，在快速运动、镜头晃动或人物动作幅度较大的视频中，适应性会更好一些。</p>
+<p>同时，我们还保留了 FFmpeg 的 scene 检测作为兜底方案。FFmpeg 会根据相邻视频帧之间的画面差异计算 scene change score。当分数超过设定阈值时，就认为这里可能发生了镜头切换。</p>
+<p>我们的兜底阈值设置为 <code>0.32</code>。这个数值不是绝对最优解，也不是随意拍脑袋决定的，而是一个基于测试和经验的折中值。它在漏切和误切之间取得了相对保守的平衡。</p>
+<p>为了避免单纯依赖阈值导致结果失控，还增加了边界规整和时长约束：</p>
 <ul>
-<li>同一段文字被叠加了两三次。</li>
-<li>原图里一行文字被拆成多个不同大小的文本框。</li>
-<li>某些识别结果字号异常大，直接盖住页面其他内容。</li>
-<li>页面越密集，生成的文本层越多，重叠越严重。</li>
-<li>德语样例中，大量灰色占位文字、栏目标题、正文说明混在一起。</li>
-<li>韩语样例中出现了不属于原图的异常混杂文字。</li>
+<li>过短的片段，例如小于 <code>0.6</code> 秒的片段，会进行合并或过滤；</li>
+<li>超过 <code>8</code> 秒的长片段，会继续拆分成更适合后续分析的单元；</li>
+<li>检测器、阈值和相关参数都可以通过环境变量进行调整。</li>
 </ul>
-<p>结果就是：明明只想把原图上的文字转成可编辑文字，但页面上变成了密密麻麻的一堆可编辑文本框。</p>
-<h2 id="最初判断的偏差"><a href="#最初判断的偏差" class="headerlink" title="最初判断的偏差"></a>最初判断的偏差</h2><p>一开始我的判断偏向于“识别不够充分”，所以尝试增强 OCR 能力：</p>
-<ul>
-<li>加强 KIE/Gemini prompt。</li>
-<li>强调多语言原文照抄，不翻译、不猜测。</li>
-<li>增加 OCR audit。</li>
-<li>尝试让模型补充遗漏文字。</li>
-</ul>
-<p>这个方向在“文字漏识别”的场景里是合理的，但在复杂 PPT 场景里反而会带来副作用。</p>
-<p>复杂 PPT 的问题不是文字太少，而是文字太多、版面太密、层次太复杂。每多跑一次 OCR 或视觉分析，就会多出一批候选文本。如果合并策略不够严格，这些候选不会变成补漏，而是变成噪音。</p>
-<p>所以后面效果一度变差，根本原因是：我把“提高召回率”放在了“控制重复和稳定版面”前面。</p>
-<h2 id="为什么会出现重叠"><a href="#为什么会出现重叠" class="headerlink" title="为什么会出现重叠"></a>为什么会出现重叠</h2><p>当前系统里，文字可能来自多路结果：</p>
-<ul>
-<li>KIE/Gemini 主分析结果。</li>
-<li>KIE/Gemini OCR audit 结果。</li>
-<li>腾讯云 OCR 补充结果。</li>
-<li>后处理阶段校准后的文本层。</li>
-</ul>
-<p>这些来源的目标本来是互相补漏。但在复杂页面里，它们经常识别到同一块区域。</p>
-<p>比如一行德语标题：</p>
-<ul>
-<li>KIE 主结果识别出整行。</li>
-<li>OCR audit 又识别出整行。</li>
-<li>视觉模型还可能把其中几个词单独识别出来。</li>
-<li>后处理再把局部框和整体框都保留下来。</li>
-</ul>
-<p>最后，这些结果都进入 <code>textLayer</code>，前端和 PPTX 导出就会把它们全部画出来，于是形成文字重叠。</p>
-<p>更严重的是，Gemini/KIE 并不是专门的 OCR 排版引擎。它能理解页面结构，但对密集文字的坐标、字号、文本框边界并不总是稳定。它有时会把背景字、模板占位字、图标旁边的小字、栏目标题都当成同等级文字返回。</p>
-<p>这说明问题不只是 OCR，而是 OCR 结果进入可编辑图层之前缺少足够强的筛选和优先级。</p>
-<h2 id="后面怎么优化"><a href="#后面怎么优化" class="headerlink" title="后面怎么优化"></a>后面怎么优化</h2><p>后面的优化方向从“识别更多”改成了“更保守地接收文本层”。</p>
-<h3 id="1-减少默认-OCR-审核次数"><a href="#1-减少默认-OCR-审核次数" class="headerlink" title="1. 减少默认 OCR 审核次数"></a>1. 减少默认 OCR 审核次数</h3><p>之前为了多语言补漏，KIE 可能会跑更多 OCR audit。后来增加了配置：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KIE_OCR_AUDIT_MODE=standard</span><br></pre></td></tr></table></figure>
-
-<p>默认只走标准模式，不再主动跑过多额外识别。只有手动设置成 <code>exhaustive</code> 时，才启用更激进的多轮 OCR。</p>
-<p>这个改变的核心思路是：默认情况下，宁可少识别一点，也不能让页面变成满屏叠字。</p>
-<h3 id="2-增加低质量候选过滤"><a href="#2-增加低质量候选过滤" class="headerlink" title="2. 增加低质量候选过滤"></a>2. 增加低质量候选过滤</h3><p>对 OCR audit 合并结果增加了过滤规则：</p>
-<ul>
-<li>置信度太低的候选丢弃。</li>
-<li>字号明显异常的候选丢弃。</li>
-<li>文本很短但占用面积特别大的候选丢弃。</li>
-<li>字符脚本混杂异常的候选丢弃。</li>
-<li>与已有文本高度重叠且内容冲突的候选丢弃。</li>
-</ul>
-<p>这些规则不是为了让 OCR 更聪明，而是为了阻止明显不可靠的文本进入最终可编辑层。</p>
-<h3 id="3-对密集页面启用保守合并"><a href="#3-对密集页面启用保守合并" class="headerlink" title="3. 对密集页面启用保守合并"></a>3. 对密集页面启用保守合并</h3><p>当页面已有文本层数量很多时，说明这张图大概率是投行页、表格页、Canvas 页或者复杂报告页。</p>
-<p>这类页面如果继续追加 OCR 候选，很容易越补越乱。所以后面增加了密集页面保护：</p>
-<ul>
-<li>如果已有文本层很多，新的 OCR 候选只要和已有文本明显重叠，就不轻易加入。</li>
-<li>额外 OCR 结果更多作为补漏，而不是平等合并。</li>
-</ul>
-<p>这个策略的目标是减少重复叠加，而不是追求识别数量最大化。</p>
-<h3 id="4-限制异常字号"><a href="#4-限制异常字号" class="headerlink" title="4. 限制异常字号"></a>4. 限制异常字号</h3><p>有些识别结果即使文本内容对了，字号也可能异常大。前端预览和 PPTX 导出如果完全相信模型返回的字号，就会出现一行字盖住半页的情况。</p>
-<p>所以后面在两个地方增加了字号保护：</p>
-<ul>
-<li>前端预览时，字号不能超过文本框高度的合理比例。</li>
-<li>PPTX 导出时，也对字号做类似限制。</li>
-</ul>
-<p>这不能彻底解决重复识别，但可以防止单个异常文本层破坏整页视觉。</p>
-<h3 id="5-回滚过度修正"><a href="#5-回滚过度修正" class="headerlink" title="5. 回滚过度修正"></a>5. 回滚过度修正</h3><p>调试中也有一些尝试没有留下。</p>
-<p>比如过度清理主文本层、过度调整预览模式、试图用更多规则强行修正复杂版面，这些改动在某些样例上看似有效，但换一张图就可能更乱。</p>
-<p>所以后面保留了更稳定的部分：</p>
-<ul>
-<li>减少默认 OCR 轮次。</li>
-<li>强化低质量候选过滤。</li>
-<li>密集页面更保守。</li>
-<li>限制异常字号。</li>
-</ul>
-<p>没有继续堆过多不稳定规则。</p>
-<h2 id="最终形成的处理原则"><a href="#最终形成的处理原则" class="headerlink" title="最终形成的处理原则"></a>最终形成的处理原则</h2><p>这次复盘后，我对这个问题的判断变清楚了：</p>
-<p>图片转可编辑 PPT 里，OCR 不是越多越好。</p>
-<p>真正重要的是进入 <code>textLayer</code> 的结果必须干净、稳定、少重复。因为一旦文本进入可编辑层，用户就会直接看到它，PPTX 导出也会保留它。</p>
-<p>后续应该按这个优先级处理：</p>
+<p>所以，系统并不是认为某个阈值永远准确，而是通过“场景检测库优先、FFmpeg 兜底、片段时长约束、参数可配置”这几层机制降低风险。</p>
+<p>这些视频分析逻辑最终部署在 Fly.io 的 Worker 上，由独立的 FFmpeg Worker 负责处理。</p>
+<h3 id="2-为什么阈值设置为-0-32？"><a href="#2-为什么阈值设置为-0-32？" class="headerlink" title="2. 为什么阈值设置为 0.32？"></a>2. 为什么阈值设置为 0.32？</h3><p><code>0.32</code> 更准确地说是一个经验阈值，而不是经过大规模标注数据训练出来的绝对最优值。</p>
+<p>在实际视频中，阈值设置得太低，容易把人物快速移动、镜头晃动、光线变化误判成镜头切换；阈值设置得太高，又可能漏掉一些比较自然、变化幅度较小的转场。</p>
+<p>因此，我们通过不同类型的视频进行测试，在误切和漏切之间寻找一个相对平衡的点，最终选择了 <code>0.32</code> 作为初始配置。</p>
+<p>但我现在的理解是，不能把这个数字包装成“通用最优参数”。更合理的做法应该是：</p>
 <ol>
-<li>专业 OCR 结果优先负责文字内容和坐标。</li>
-<li>KIE/Gemini 更适合做版面理解，不应该无限补文字。</li>
-<li>OCR audit 只能补漏，不能和主结果平等合并。</li>
-<li>重叠区域应该只保留一个最可信文本层。</li>
-<li>复杂密集页面默认走保守模式。</li>
-<li>渲染和导出阶段都要保护字号和边界。</li>
+<li>建立包含不同内容类型的视频测试集；</li>
+<li>对人工标注的镜头边界进行对比；</li>
+<li>分别统计误切、漏切和边界偏移；</li>
+<li>按视频类型设置不同参数；</li>
+<li>通过用户反馈继续调整阈值。</li>
 </ol>
-<h2 id="后续还应该继续做的优化"><a href="#后续还应该继续做的优化" class="headerlink" title="后续还应该继续做的优化"></a>后续还应该继续做的优化</h2><p>后面如果继续打磨这个问题，最值得做的是可观测性和来源优先级。</p>
-<h3 id="1-给每个文本层标记来源"><a href="#1-给每个文本层标记来源" class="headerlink" title="1. 给每个文本层标记来源"></a>1. 给每个文本层标记来源</h3><p>例如：</p>
+<p>所以，<code>0.32</code> 是当时工程上的经验选择，后续还需要通过更大规模的样本测试进一步验证。</p>
+<h3 id="3-Google-和-GitHub-登录是怎么实现的？"><a href="#3-Google-和-GitHub-登录是怎么实现的？" class="headerlink" title="3. Google 和 GitHub 登录是怎么实现的？"></a>3. Google 和 GitHub 登录是怎么实现的？</h3><p>登录部分使用的是 Better Auth 提供的 OAuth 社交登录能力。</p>
+<p>前端调用类似 <code>/api/auth/sign-in/social</code> 的接口，并传入 Google 或 GitHub 作为登录提供商。之后由认证系统负责跳转到对应平台的授权页面。</p>
+<p>用户授权之后，平台会回调到我们的服务端。Better Auth 会处理授权码交换、用户信息获取以及账号关联，并将用户、账号和会话信息写入数据库中的相关表。</p>
+<p>登录成功之后，系统会通过 session cookie 维护登录状态。用户之后访问需要登录的接口时，服务端会读取请求中的会话信息，确认当前用户身份，再决定是否允许继续操作。</p>
+<p>这里需要区分两种 Cookie：</p>
 <ul>
-<li><code>kie-main</code></li>
-<li><code>kie-audit</code></li>
-<li><code>tencent-ocr</code></li>
-<li><code>manual</code></li>
-<li><code>postprocess</code></li>
+<li>Prompt Lens 自己的 Cookie，只用于识别用户在 Prompt Lens 中的登录状态；</li>
+<li>Google、GitHub、YouTube、抖音等平台的 Cookie，属于对应平台的登录凭证。</li>
 </ul>
-<p>这样调试时可以快速看出，到底是哪一路在制造重复文本。</p>
-<h3 id="2-做-OCR-来源开关"><a href="#2-做-OCR-来源开关" class="headerlink" title="2. 做 OCR 来源开关"></a>2. 做 OCR 来源开关</h3><p>在调试界面里增加开关：</p>
+<p>我们自己的 Cookie 不能代替用户在其他平台上的登录状态。</p>
+<h3 id="4-项目中遇到的最大问题是什么？"><a href="#4-项目中遇到的最大问题是什么？" class="headerlink" title="4. 项目中遇到的最大问题是什么？"></a>4. 项目中遇到的最大问题是什么？</h3><p>当时遇到的最大问题，是视频分享链接解析功能。</p>
+<p>设想是，用户不需要上传视频文件，只需要粘贴一个视频分享链接，系统就可以直接分析。这样既能降低用户的使用门槛，也能减少平台自身的存储压力。</p>
+<p>但真正实现时，问题并不只是“把 URL 传给 FFmpeg”这么简单。</p>
+<p>很多平台的分享链接并不是真实的视频文件地址，而是一个需要经过网页解析、接口请求或鉴权才能访问的页面链接。对于部分非公开视频，平台还会要求登录态、签名参数、请求头或者 Cookie。</p>
+<p>而线上服务端无法直接拿到用户浏览器里保存的抖音、YouTube 等平台的 Cookie。Prompt Lens 自己的登录 Cookie 只能证明用户登录了我们的产品，并不能证明用户已经登录了其他视频平台。</p>
+<p>因此，当服务端直接使用 yt-dlp 或 FFmpeg 解析某些链接时，就可能遇到登录态缺失、403、链接过期、平台反爬以及音视频分离等问题。</p>
+<p>对于公开视频，yt-dlp 可以直接解析其中相当一部分；但它并不能保证解析所有平台、所有类型的视频。后续方案是考虑接入第三方媒体解析服务，由第三方服务完成平台适配、鉴权和真实媒体地址解析，再将返回的媒体 URL 交给 FFmpeg 进行视频分析。</p>
+<p>不过，这种方案并不是完全没有成本。它还需要考虑：</p>
 <ul>
-<li>只看 KIE 主结果。</li>
-<li>只看 OCR audit。</li>
-<li>只看腾讯 OCR。</li>
-<li>看最终合并结果。</li>
+<li>解析服务的稳定性；</li>
+<li>视频链接的有效期；</li>
+<li>第三方服务的调用费用；</li>
+<li>用户隐私和平台合规；</li>
+<li>视频是否需要临时转存到 R2；</li>
+<li>音频和视频流是否需要重新合并；</li>
+<li>解析失败后的重试和错误提示。</li>
 </ul>
-<p>这样比盲目改 prompt 或改规则更有效。</p>
-<h3 id="3-做-winner-take-one-合并"><a href="#3-做-winner-take-one-合并" class="headerlink" title="3. 做 winner-take-one 合并"></a>3. 做 winner-take-one 合并</h3><p>同一区域如果出现多个候选，不应该全部保留，而应该选一个赢家。</p>
-<p>可以综合考虑：</p>
+<p>这让我意识到，产品需求看起来只是“支持粘贴一个链接”，但真正落地时，背后涉及平台兼容性、登录态、反爬、媒体传输、存储成本和合规风险等一整套工程问题。</p>
+<h3 id="5-为什么要充值-GPT？"><a href="#5-为什么要充值-GPT？" class="headerlink" title="5. 为什么要充值 GPT？"></a>5. 为什么要充值 GPT？</h3><p>首先，它可以陪伴我进行日常学习。在遇到不懂的知识、技术问题或者学习方向上的困惑时，我可以和它不断交流和追问，通过对话把问题逐渐弄清楚。</p>
+<p>其次，我希望继续迭代自己的 Prompt Lens 项目。这个产品还有很多想法和功能可以完善，GPT 可以帮助我进行需求分析、技术调研、方案设计、代码实现和问题复盘。</p>
+<p>比如在视频链接解析、自动拆镜、抽帧策略、第三方服务接入等问题上，我会先和 GPT 澄清需求、比较方案，再结合实际代码和测试结果做决定。</p>
+<p>所以，对我来说，充值 GPT 不只是购买一个聊天工具，更是为自己的长期学习和项目实践提供支持。我希望一边学习，一边把自己的产品慢慢搭建和迭代起来。</p>
+<h2 id="这次面试之后的体会：事情要做精，而不是只做多"><a href="#这次面试之后的体会：事情要做精，而不是只做多" class="headerlink" title="这次面试之后的体会：事情要做精，而不是只做多"></a>这次面试之后的体会：事情要做精，而不是只做多</h2><p>这次面试之后，我也更加重视文档驱动开发。</p>
+<p>过去我有时会一上手就开始写代码，遇到问题之后再不断修改。但对于稍微复杂一点的功能，如果没有提前明确目标、边界和验收标准，开发过程中很容易反复返工。</p>
+<p>现在我更倾向于先进行需求澄清和技术调研，再写一份简短的需求文档或技术方案，明确：</p>
 <ul>
-<li>来源优先级。</li>
-<li>置信度。</li>
-<li>文本长度。</li>
-<li>坐标合理性。</li>
-<li>字号合理性。</li>
-<li>与其他文本层的重叠程度。</li>
+<li>这个功能要解决什么问题；</li>
+<li>哪些内容属于本次范围；</li>
+<li>哪些内容暂时不做；</li>
+<li>计划采用什么技术方案；</li>
+<li>可能存在什么风险；</li>
+<li>最终如何验证功能是否完成。</li>
 </ul>
-<h3 id="4-增加复杂页面模式"><a href="#4-增加复杂页面模式" class="headerlink" title="4. 增加复杂页面模式"></a>4. 增加复杂页面模式</h3><p>对 Business Model Canvas、投行页、密集表格这类页面，可以默认更保守：</p>
+<p>文档不一定要写得很长，但一定要能帮助自己和团队形成共识。</p>
+<p>AI 可以辅助我们生成文档、拆解任务和补充方案，但最终的需求判断、技术取舍和结果验收，仍然需要开发者自己负责。</p>
+<p>更深刻的体会是，事情不要贪多，一定要做得精。自己使用 AI Coding 工具开发项目，虽然不需要看懂每一行代码，但核心功能的代码逻辑一定要看，要让自己心里有底，同时也要防止 AI 过度设计。</p>
+<p>要把 AI 当成放大自己能力的工具，而不是把自己的判断全部交出去。真正需要体现的，是自己在这件事情里面做了什么，以及为什么这样做。</p>
+<p>真正重要的是：</p>
 <ul>
-<li>降低 OCR audit 参与度。</li>
-<li>提高新增文本层门槛。</li>
-<li>优先保留较完整的文本框。</li>
-<li>不轻易加入局部重复词。</li>
+<li>为什么选择这个方案；</li>
+<li>这个参数是怎么确定的；</li>
+<li>有没有大量做过测试；</li>
+<li>方案的边界在哪里；</li>
+<li>出现异常时如何处理；</li>
+<li>如果重新做一次，会如何改进。</li>
 </ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这次最关键的反思是：不要把“多识别”误当成“识别质量更好”。</p>
-<p>用户真正想要的是：原图上有什么文字，就尽量照抄出来，并且变成可编辑文字。除此之外，不要多加、不要猜测、不要翻译、不要重复。</p>
-<p>在这个场景里，最终效果的好坏不是由 OCR 返回了多少文字决定的，而是由这些文字能不能稳定地落到正确位置、以正确大小显示、并且不互相覆盖决定的。</p>
-<p>所以后续做图片转可编辑 PPT，应该优先保证：</p>
-<ul>
-<li>少重复。</li>
-<li>不乱叠。</li>
-<li>坐标稳定。</li>
-<li>字号可控。</li>
-<li>来源清楚。</li>
-<li>能导出可编辑 PPTX。</li>
-</ul>
-<p>只有在这个基础上，再去追求更高识别率。</p>
+<p>这些问题会把“我做过”继续追问成“我是否真正理解”。</p>
+<p>做产品不能只追求把事情做出来，还要逐渐做到能够解释清楚、验证清楚，并且知道它为什么有效、什么时候会失效。</p>
 
       </div>
       <div class="article-collapsed-mask"></div>
@@ -276,11 +235,11 @@
       </div>
     </div>
     <footer class="article-footer">
-      <a data-url="https://raojiacui.github.io/2026/07/23/2026-07-23-OCR%E8%BD%AC%E5%8F%AF%E7%BC%96%E8%BE%91PPT%E6%96%87%E5%AD%97%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98%E5%A4%8D%E7%9B%98/" data-id="cmtfap9020006tu2b928n7c3k" data-title="增加多语言 OCR 识别图片转可编辑 PPT 的文字重叠问题复盘" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="https://raojiacui.github.io/2026/08/30/2026-08-30-%E7%99%BE%E5%BA%A6AI%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B%E5%AE%9E%E4%B9%A0%E7%94%9F%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/" data-id="cmtfap909000ktu2b0z8zhfhw" data-title="百度 AI 产品工程实习生一面、二面复盘" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OCR/" rel="tag">OCR</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PPT/" rel="tag">PPT</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%8D%E7%9B%98/" rel="tag">复盘</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI-%E4%BA%A7%E5%93%81/" rel="tag">AI 产品</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B/" rel="tag">产品工程</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/" rel="tag">面试复盘</a></li></ul>
 
     </footer>
   </div>
@@ -288,19 +247,10 @@
     
 <nav id="article-nav">
   
-    <a href="/2026/07/27/2026-07-27-SSE%E7%9C%9F%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90%E6%95%88%E6%9E%9C%E5%AE%9E%E7%8E%B0%E5%A4%8D%E7%9B%98/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">前一篇</strong>
-      <div class="article-nav-title">
-        
-          SSE（Server-Sent Events） 真流式生成效果实现复盘
-        
-      </div>
-    </a>
   
-  
-    <a href="/2026/07/17/2026-07-17-%E7%99%BB%E5%BD%95%E9%A1%B5%E5%9C%B0%E5%9B%BE%E8%83%8C%E6%99%AF%E4%BC%98%E5%8C%96%E5%A4%8D%E7%9B%98-CDN-vs-%E6%9C%AC%E5%9C%B0%E4%BE%9D%E8%B5%96/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2026/08/17/2026-08-17-ai-agent-w11-vm-codex-opencode-playwright-claude-hermes/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">后一篇</strong>
-      <div class="article-nav-title">登录页地图背景优化复盘：CDN 动态加载 vs 本地依赖打包</div>
+      <div class="article-nav-title">从零搭建一台 AI Agent Windows 11 虚拟机</div>
     </a>
   
 </nav>
