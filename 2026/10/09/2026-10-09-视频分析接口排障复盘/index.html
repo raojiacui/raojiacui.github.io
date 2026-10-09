@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html class="blog-loading">
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>一次视频分析接口排障：为什么页面总是返回空结果并且显示错误 | 我的技术博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="一次视频分析接口排障：为什么页面总是返回空结果并且显示错误这次测试视频分析功能，这个AI就会甩锅，自己接口用了兼容接口没用原生接口导致一直500错误，没有加以测试就甩锅服务商模型错误。 用户看到的现象很直接：视频上传了，镜头能播放，但分析等待很久，最后提示词仍是空的。有时出现 Unexpected end of JSON input，有时显示 Analysis interrupted。后来排查到部">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一次视频分析接口排障：为什么页面总是返回空结果并且显示错误">
+<meta property="og:url" content="https://raojiacui.github.io/2026/10/09/2026-10-09-%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90%E6%8E%A5%E5%8F%A3%E6%8E%92%E9%9A%9C%E5%A4%8D%E7%9B%98/index.html">
+<meta property="og:site_name" content="我的技术博客">
+<meta property="og:description" content="一次视频分析接口排障：为什么页面总是返回空结果并且显示错误这次测试视频分析功能，这个AI就会甩锅，自己接口用了兼容接口没用原生接口导致一直500错误，没有加以测试就甩锅服务商模型错误。 用户看到的现象很直接：视频上传了，镜头能播放，但分析等待很久，最后提示词仍是空的。有时出现 Unexpected end of JSON input，有时显示 Analysis interrupted。后来排查到部">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-09T17:30:00.000Z">
+<meta property="article:modified_time" content="2026-10-09T09:41:48.017Z">
+<meta property="article:author" content="雨下雨停">
+<meta property="article:tag" content="KIE">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="视频分析">
+<meta property="article:tag" content="Debug">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="我的技术博客" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body>
+  <noscript><style>html.blog-loading #container{opacity:1}.blog-loader{display:none!important}</style></noscript>
+  <div class="blog-loader" data-blog-loader role="status" aria-live="polite" aria-label="博客正在加载">
+    <div class="blog-loader-stack">
+      <div class="blog-loader-clapper" aria-hidden="true">
+        <div class="blog-clapper-top">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="blog-clapper-body">
+          <i></i>
+          <i></i>
+          <i></i>
+        </div>
+        <div class="blog-clapper-hinge"></div>
+      </div>
+      <div class="blog-loader-progress"><span></span></div>
+    </div>
+  </div>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">我的技术博客</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS 订阅"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="搜索"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://raojiacui.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-2026-10-09-视频分析接口排障复盘" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/10/09/2026-10-09-%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90%E6%8E%A5%E5%8F%A3%E6%8E%92%E9%9A%9C%E5%A4%8D%E7%9B%98/" class="article-date">
+  <time class="dt-published" datetime="2026-10-09T17:30:00.000Z" itemprop="datePublished">2026-10-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      一次视频分析接口排障：为什么页面总是返回空结果并且显示错误
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry article-collapsed" itemprop="articleBody">
+      <div class="article-collapsed-preview">
+        <h1 id="一次视频分析接口排障：为什么页面总是返回空结果并且显示错误"><a href="#一次视频分析接口排障：为什么页面总是返回空结果并且显示错误" class="headerlink" title="一次视频分析接口排障：为什么页面总是返回空结果并且显示错误"></a>一次视频分析接口排障：为什么页面总是返回空结果并且显示错误</h1><p>这次测试视频分析功能，这个AI就会甩锅，自己接口用了兼容接口没用原生接口导致一直500错误，没有加以测试就甩锅服务商模型错误。</p>
+<p>用户看到的现象很直接：视频上传了，镜头能播放，但分析等待很久，最后提示词仍是空的。有时出现 <code>Unexpected end of JSON input</code>，有时显示 <code>Analysis interrupted</code>。后来排查到部分模型请求返回了 <code>&#123;&quot;code&quot;:500,&quot;msg&quot;:&quot;Network error, please try again later.&quot;&#125;</code>。</p>
+<h2 id="第一次-Debug：模型有返回，页面却保存了空结果"><a href="#第一次-Debug：模型有返回，页面却保存了空结果" class="headerlink" title="第一次 Debug：模型有返回，页面却保存了空结果"></a>第一次 Debug：模型有返回，页面却保存了空结果</h2><h3 id="1-遇到了什么报错"><a href="#1-遇到了什么报错" class="headerlink" title="1. 遇到了什么报错"></a>1. 遇到了什么报错</h3><p>视频分析完成后，提示词区域没有内容，镜头显示待复核，页面出现 <code>Analysis interrupted</code>。测试过程中还出现过 <code>Unexpected end of JSON input</code>。</p>
+<p>这几个现象涉及不同的处理环节，需要分别排查。</p>
+<h3 id="2-是什么原因导致的"><a href="#2-是什么原因导致的" class="headerlink" title="2. 是什么原因导致的"></a>2. 是什么原因导致的</h3><p><strong>是因为写的结果校验把有效分析丢掉了。</strong></p>
+<p>同一素材复现时，模型确实返回了画面描述和提示词，但 <code>story</code> 是一段文字；代码要求它必须是对象，因此判整份结果失败，最后保存成空提示词。</p>
+<p><strong>问题在主应用的分析结果处理代码。</strong></p>
+<p>另外，<code>Unexpected end of JSON input</code> 表示读取响应时，没有拿到完整、有效的 JSON。它与 <code>story</code> 字段校验失败属于两个问题：前者发生在响应解析阶段，后者发生在分析内容校验阶段。仅凭这条报错，无法确定当时响应为空或不完整的具体原因。</p>
+<h3 id="3-最后怎么解决的"><a href="#3-最后怎么解决的" class="headerlink" title="3. 最后怎么解决的"></a>3. 最后怎么解决的</h3><p>已经修正：</p>
+<ul>
+<li>文字形式的 <code>story</code> 转成摘要，保留有效分析。</li>
+<li>真正缺字段时，记录具体缺哪项。</li>
+<li>明确告诉模型每个字段应是什么格式。</li>
+</ul>
+<p>响应读取也进行了调整：检查响应类型和业务错误；原生接口的流式响应按事件逐段解析；响应没有完整结束时明确报错，避免保存不完整结果。</p>
+<p>此前确认分析按钮无法继续的问题，则单独修复了报价恢复逻辑，避免异常恢复后按钮仍被锁住。</p>
+<h2 id="第二次-Debug：兼容接口持续报错，误判成服务商故障"><a href="#第二次-Debug：兼容接口持续报错，误判成服务商故障" class="headerlink" title="第二次 Debug：兼容接口持续报错，误判成服务商故障"></a>第二次 Debug：兼容接口持续报错，误判成服务商故障</h2><h3 id="1-遇到了什么报错-1"><a href="#1-遇到了什么报错-1" class="headerlink" title="1. 遇到了什么报错"></a>1. 遇到了什么报错</h3><p>继续测试时，分析等待很久，最终仍然失败。排查发现，接口虽然返回 HTTP 200，正文却包含业务错误：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;code&quot;</span><span class="punctuation">:</span><span class="number">500</span><span class="punctuation">,</span><span class="attr">&quot;msg&quot;</span><span class="punctuation">:</span><span class="string">&quot;Network error, please try again later.&quot;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>Gemini 2.5 Flash 则返回：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;code&quot;</span><span class="punctuation">:</span><span class="number">422</span><span class="punctuation">,</span><span class="attr">&quot;msg&quot;</span><span class="punctuation">:</span><span class="string">&quot;The channel is not supported&quot;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>看到 <code>Network error</code> 后，AI过早把原因归到网络或服务商模型故障，用户要求再次排查。</p>
+<h3 id="2-是什么原因导致的-1"><a href="#2-是什么原因导致的-1" class="headerlink" title="2. 是什么原因导致的"></a>2. 是什么原因导致的</h3><p>当时使用了 OpenAI 兼容接口。对照测试中，使用同一份 Key、同一个模型，兼容路径返回业务错误，原生 Gemini 路径能够成功回复 OK。</p>
+<p>这个结果把问题定位到了接口路径：当前测试环境下，四个模型的兼容路径调用失败，原生路径调用成功。至于兼容路径内部为什么报错，目前没有足够证据继续下结论。</p>
+<p>接入过程还有两个疏漏：没有充分实测就认为模型已经接通，以及把服务端返回的 <code>Network error</code> 直接当成根因。</p>
+<h3 id="3-最后怎么解决的-1"><a href="#3-最后怎么解决的-1" class="headerlink" title="3. 最后怎么解决的"></a>3. 最后怎么解决的</h3><p>Gemini 3.5、3.6、3.7、3.8 Flash 全部切换到原生接口，并同步调整请求格式与流式响应解析。</p>
+<p>四个模型逐个发送最小的 OK 请求，全部成功。每个消耗 0.01 个 KIE 积分，本轮合计 0.04 个。</p>
+<p>Gemini 2.5 Flash 的兼容和原生路径均返回“通道不支持”，因此删除了模型选项及对应配置</p>
+<p>总结一下AI使用的几个麻烦的地方：</p>
+<p>1.旧代码老留着不删，我亲自看文件时才发现</p>
+<p>2.不会推测真实用户的操作导致在写代码上闹一些笑话，比如不知道人类会上下滚动页面，导致翻过去的存储资源直接删除后面翻回来时重复加载</p>
+<p>3.流程繁琐不精简，总喜欢在页面上写好多重复入口</p>
+<p>4.喜欢甩锅，不深度验证就赖是外部服务错误不是他自己的问题</p>
+
+      </div>
+      <div class="article-collapsed-mask"></div>
+      <div class="article-expand-btn" onclick="toggleArticle(this)">
+        <span class="expand-icon">▾</span> 阅读全文
+      </div>
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://raojiacui.github.io/2026/10/09/2026-10-09-%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90%E6%8E%A5%E5%8F%A3%E6%8E%92%E9%9A%9C%E5%A4%8D%E7%9B%98/" data-id="cmv0s0ke0000py34c8kl8hs04" data-title="一次视频分析接口排障：为什么页面总是返回空结果并且显示错误" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Debug/" rel="tag">Debug</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KIE/" rel="tag">KIE</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90/" rel="tag">视频分析</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/09/24/2026-09-24-Prompt-Lens%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90%E9%93%BE%E8%B7%AF%E6%95%85%E9%9A%9C%E5%A4%8D%E7%9B%98/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">从 stream aborted 到 KIE 422：Prompt Lens 视频分析链路故障复盘</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E4%BD%9C%E8%AE%B0%E5%BD%95/">工作记录</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95/">开发记录</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">部署教程</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-NPC/" rel="tag">AI NPC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-%E4%BA%A7%E5%93%81/" rel="tag">AI 产品</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E5%B7%A5%E5%85%B7/" rel="tag">AI工具</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E7%BC%96%E7%A8%8B/" rel="tag">AI编程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E8%A7%86%E9%A2%91/" rel="tag">AI视频</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/API%E6%8E%A5%E5%85%A5/" rel="tag">API接入</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloudflare-R2/" rel="tag">Cloudflare R2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cookie/" rel="tag">Cookie</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/D1/" rel="tag">D1</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Debug/" rel="tag">Debug</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DeepSeek/" rel="tag">DeepSeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Drizzle/" rel="tag">Drizzle</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gemini/" rel="tag">Gemini</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/H5-%E6%B8%B8%E6%88%8F/" rel="tag">H5 游戏</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HeroBuddy/" rel="tag">HeroBuddy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KIE/" rel="tag">KIE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCP/" rel="tag">MCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OCR/" rel="tag">OCR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PPT/" rel="tag">PPT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Playwright/" rel="tag">Playwright</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Prompt-Lens/" rel="tag">Prompt Lens</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReactFlow/" rel="tag">ReactFlow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Remotion-skills/" rel="tag">Remotion skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSE/" rel="tag">SSE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Serverless/" rel="tag">Serverless</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skills/" rel="tag">Skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TalentsAI/" rel="tag">TalentsAI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Veo/" rel="tag">Veo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel/" rel="tag">Vercel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel-Blob/" rel="tag">Vercel Blob</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VirtualBox/" rel="tag">VirtualBox</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-11/" rel="tag">Windows 11</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-7/" rel="tag">Windows 7</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/amCharts/" rel="tag">amCharts</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/i18n/" rel="tag">i18n</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/next-intl/" rel="tag">next-intl</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" rel="tag">产品复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B/" rel="tag">产品工程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" rel="tag">前端实践</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" rel="tag">前端设计</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%8D%E7%9B%98/" rel="tag">复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" rel="tag">多Agent协作</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" rel="tag">大文件上传</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" rel="tag">工程复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" rel="tag">无限画布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" rel="tag">流式生成</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" rel="tag">落地页</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90/" rel="tag">视频分析</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" rel="tag">进阶规划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/" rel="tag">面试复盘</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AI/" style="font-size: 10px;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 10px;">AI Agent</a> <a href="/tags/AI-NPC/" style="font-size: 10px;">AI NPC</a> <a href="/tags/AI-%E4%BA%A7%E5%93%81/" style="font-size: 10px;">AI 产品</a> <a href="/tags/AI%E5%B7%A5%E5%85%B7/" style="font-size: 10px;">AI工具</a> <a href="/tags/AI%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">AI编程</a> <a href="/tags/AI%E8%A7%86%E9%A2%91/" style="font-size: 10px;">AI视频</a> <a href="/tags/API%E6%8E%A5%E5%85%A5/" style="font-size: 12px;">API接入</a> <a href="/tags/Claude-Code/" style="font-size: 10px;">Claude Code</a> <a href="/tags/Cloudflare-R2/" style="font-size: 10px;">Cloudflare R2</a> <a href="/tags/Codex/" style="font-size: 12px;">Codex</a> <a href="/tags/Cookie/" style="font-size: 10px;">Cookie</a> <a href="/tags/D1/" style="font-size: 10px;">D1</a> <a href="/tags/Debug/" style="font-size: 10px;">Debug</a> <a href="/tags/DeepSeek/" style="font-size: 10px;">DeepSeek</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Drizzle/" style="font-size: 10px;">Drizzle</a> <a href="/tags/Function-Compute/" style="font-size: 14px;">Function Compute</a> <a href="/tags/Gemini/" style="font-size: 10px;">Gemini</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/GitHub/" style="font-size: 10px;">GitHub</a> <a href="/tags/GitHub-Actions/" style="font-size: 16px;">GitHub Actions</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/H5-%E6%B8%B8%E6%88%8F/" style="font-size: 10px;">H5 游戏</a> <a href="/tags/HeroBuddy/" style="font-size: 10px;">HeroBuddy</a> <a href="/tags/Hexo/" style="font-size: 12px;">Hexo</a> <a href="/tags/KIE/" style="font-size: 14px;">KIE</a> <a href="/tags/Kubernetes/" style="font-size: 10px;">Kubernetes</a> <a href="/tags/MCP/" style="font-size: 10px;">MCP</a> <a href="/tags/Next-js/" style="font-size: 18px;">Next.js</a> <a href="/tags/OCR/" style="font-size: 10px;">OCR</a> <a href="/tags/OSS/" style="font-size: 12px;">OSS</a> <a href="/tags/PPT/" style="font-size: 12px;">PPT</a> <a href="/tags/Playwright/" style="font-size: 10px;">Playwright</a> <a href="/tags/Prompt-Lens/" style="font-size: 16px;">Prompt Lens</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/QtAdmin/" style="font-size: 10px;">QtAdmin</a> <a href="/tags/QtCloud/" style="font-size: 10px;">QtCloud</a> <a href="/tags/QtCloud-Asset/" style="font-size: 14px;">QtCloud Asset</a> <a href="/tags/QtConsult/" style="font-size: 12px;">QtConsult</a> <a href="/tags/ReactFlow/" style="font-size: 10px;">ReactFlow</a> <a href="/tags/Remotion-skills/" style="font-size: 10px;">Remotion skills</a> <a href="/tags/SSE/" style="font-size: 10px;">SSE</a> <a href="/tags/Serverless/" style="font-size: 10px;">Serverless</a> <a href="/tags/Skills/" style="font-size: 10px;">Skills</a> <a href="/tags/TalentsAI/" style="font-size: 10px;">TalentsAI</a> <a href="/tags/Veo/" style="font-size: 10px;">Veo</a> <a href="/tags/Vercel/" style="font-size: 12px;">Vercel</a> <a href="/tags/Vercel-Blob/" style="font-size: 10px;">Vercel Blob</a> <a href="/tags/VirtualBox/" style="font-size: 12px;">VirtualBox</a> <a href="/tags/Windows-11/" style="font-size: 10px;">Windows 11</a> <a href="/tags/Windows-7/" style="font-size: 10px;">Windows 7</a> <a href="/tags/amCharts/" style="font-size: 10px;">amCharts</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/i18n/" style="font-size: 10px;">i18n</a> <a href="/tags/next-intl/" style="font-size: 10px;">next-intl</a> <a href="/tags/workflow/" style="font-size: 10px;">workflow</a> <a href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" style="font-size: 10px;">产品复盘</a> <a href="/tags/%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">产品工程</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 10px;">前端</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" style="font-size: 10px;">前端实践</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;">前端设计</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 12px;">博客</a> <a href="/tags/%E5%A4%8D%E7%9B%98/" style="font-size: 12px;">复盘</a> <a href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" style="font-size: 10px;">多Agent协作</a> <a href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" style="font-size: 10px;">大文件上传</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 10px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 20px;">工作总结</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" style="font-size: 14px;">工程复盘</a> <a href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" style="font-size: 10px;">数字资产</a> <a href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" style="font-size: 10px;">无限画布</a> <a href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" style="font-size: 10px;">标本契约</a> <a href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" style="font-size: 10px;">流式生成</a> <a href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" style="font-size: 10px;">落地页</a> <a href="/tags/%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90/" style="font-size: 10px;">视频分析</a> <a href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" style="font-size: 10px;">议事档案</a> <a href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" style="font-size: 10px;">进阶规划</a> <a href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" style="font-size: 10px;">部署教程</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 16px;">阿里云</a> <a href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/" style="font-size: 10px;">面试复盘</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/10/">十月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/09/">九月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/08/">八月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/07/">七月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/04/">四月 2026</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/10/09/2026-10-09-%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90%E6%8E%A5%E5%8F%A3%E6%8E%92%E9%9A%9C%E5%A4%8D%E7%9B%98/">一次视频分析接口排障：为什么页面总是返回空结果并且显示错误</a>
+          </li>
+        
+          <li>
+            <a href="/2026/09/24/2026-09-24-Prompt-Lens%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90%E9%93%BE%E8%B7%AF%E6%95%85%E9%9A%9C%E5%A4%8D%E7%9B%98/">从 stream aborted 到 KIE 422：Prompt Lens 视频分析链路故障复盘</a>
+          </li>
+        
+          <li>
+            <a href="/2026/08/30/2026-08-30-%E7%99%BE%E5%BA%A6AI%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B%E5%AE%9E%E4%B9%A0%E7%94%9F%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/">BaiDu AI 产品工程实习生一面、二面复盘</a>
+          </li>
+        
+          <li>
+            <a href="/2026/08/17/2026-08-17-ai-agent-w11-vm-codex-opencode-playwright-claude-hermes/">从零搭建一台 AI Agent Windows 11 虚拟机</a>
+          </li>
+        
+          <li>
+            <a href="/2026/08/08/2026-08-08-git-push-learning/">Git 推送学习：从 git status 到 GitHub 大文件限制</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 雨下雨停<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+
+<script>
+function toggleArticle(btn) {
+  var entry = btn.parentElement;
+  entry.classList.add('expanded');
+}
+</script>
+
+<script>
+(function() {
+  var root = document.documentElement;
+  var loader = document.querySelector('[data-blog-loader]');
+  var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var now = window.performance && window.performance.now ? function() { return window.performance.now(); } : function() { return Date.now(); };
+  var startedAt = now();
+  var minimumDuration = reducedMotion ? 80 : 920;
+  var maximumDuration = reducedMotion ? 160 : 1500;
+  var finished = false;
+
+  function removeClass(node, className) {
+    if (node.classList) {
+      node.classList.remove(className);
+    } else {
+      node.className = node.className.replace(new RegExp('(^|\\s)' + className + '(\\s|$)', 'g'), ' ');
+    }
+  }
+
+  function addClass(node, className) {
+    if (node.classList) {
+      node.classList.add(className);
+    } else if (node.className.indexOf(className) === -1) {
+      node.className += ' ' + className;
+    }
+  }
+
+  function finishLoader() {
+    if (finished) return;
+    finished = true;
+
+    window.setTimeout(function() {
+      addClass(root, 'blog-ready');
+      removeClass(root, 'blog-loading');
+      if (loader) loader.setAttribute('aria-hidden', 'true');
+
+      window.setTimeout(function() {
+        if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+      }, reducedMotion ? 0 : 420);
+    }, Math.max(0, minimumDuration - (now() - startedAt)));
+  }
+
+  if (!loader) {
+    finishLoader();
+  } else if (document.readyState === 'complete') {
+    finishLoader();
+  } else {
+    window.addEventListener('load', finishLoader, { once: true });
+  }
+
+  window.setTimeout(finishLoader, maximumDuration);
+})();
+
+(function() {
+  var home = document.querySelector('[data-blog-home]');
+  if (!home) return;
+
+  var buttons = Array.prototype.slice.call(home.querySelectorAll('[data-section-button]'));
+  var panels = Array.prototype.slice.call(home.querySelectorAll('[data-section-panel]'));
+  var reader = home.querySelector('[data-home-reader]');
+  var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function activateSection(key, shouldScroll) {
+    var activePanel = null;
+
+    buttons.forEach(function(button) {
+      var isActive = button.getAttribute('data-section-button') === key;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+    });
+
+    panels.forEach(function(panel) {
+      var isActive = panel.getAttribute('data-section-panel') === key;
+      panel.hidden = !isActive;
+      panel.classList.toggle('is-active', isActive);
+      if (isActive) activePanel = panel;
+    });
+
+    if (activePanel && shouldScroll) {
+      window.setTimeout(function() {
+        (reader || activePanel).scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+      }, 40);
+    }
+  }
+
+  buttons.forEach(function(button) {
+    button.addEventListener('click', function() {
+      var key = button.getAttribute('data-section-button');
+      activateSection(key, true);
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', '#section-' + key);
+      }
+    });
+  });
+
+  Array.prototype.slice.call(home.querySelectorAll('[data-article-toggle]')).forEach(function(button) {
+    button.addEventListener('click', function() {
+      var article = button.closest ? button.closest('.home-readable-article') : button.parentNode.parentNode;
+      if (!article) return;
+      var expanded = !article.classList.contains('is-expanded');
+      article.classList.toggle('is-expanded', expanded);
+      button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      button.textContent = expanded ? '收起' : '展开阅读';
+    });
+  });
+
+  var initialKey = window.location.hash.replace('#section-', '') || home.getAttribute('data-default-section') || (buttons[0] && buttons[0].getAttribute('data-section-button'));
+  if (initialKey) activateSection(initialKey, false);
+})();
+</script>
+
+  </div>
+</body>
+</html>

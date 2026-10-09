@@ -139,7 +139,7 @@
               <strong>踩坑复盘</strong>
               <small>报错、兼容、依赖、部署问题的原因和修复路径。</small>
             </span>
-            <span class="section-meta">12</span>
+            <span class="section-meta">14</span>
           </button>
         
       </nav>
@@ -2105,6 +2105,221 @@
           
             <div class="home-article-list">
               
+                <article class="home-readable-article" id="post-2026-10-09-视频分析接口排障复盘">
+                  <header class="home-readable-header">
+                    <time datetime="2026-10-09T17:30:00.000Z">2026-10-09</time>
+                    <h3><a href="/2026/10/09/2026-10-09-%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90%E6%8E%A5%E5%8F%A3%E6%8E%92%E9%9A%9C%E5%A4%8D%E7%9B%98/">一次视频分析接口排障：为什么页面总是返回空结果并且显示错误</a></h3>
+                  </header>
+                  <div class="home-article-body">
+                    <h1 id="一次视频分析接口排障：为什么页面总是返回空结果并且显示错误"><a href="#一次视频分析接口排障：为什么页面总是返回空结果并且显示错误" class="headerlink" title="一次视频分析接口排障：为什么页面总是返回空结果并且显示错误"></a>一次视频分析接口排障：为什么页面总是返回空结果并且显示错误</h1><p>这次测试视频分析功能，这个AI就会甩锅，自己接口用了兼容接口没用原生接口导致一直500错误，没有加以测试就甩锅服务商模型错误。</p>
+<p>用户看到的现象很直接：视频上传了，镜头能播放，但分析等待很久，最后提示词仍是空的。有时出现 <code>Unexpected end of JSON input</code>，有时显示 <code>Analysis interrupted</code>。后来排查到部分模型请求返回了 <code>&#123;&quot;code&quot;:500,&quot;msg&quot;:&quot;Network error, please try again later.&quot;&#125;</code>。</p>
+<h2 id="第一次-Debug：模型有返回，页面却保存了空结果"><a href="#第一次-Debug：模型有返回，页面却保存了空结果" class="headerlink" title="第一次 Debug：模型有返回，页面却保存了空结果"></a>第一次 Debug：模型有返回，页面却保存了空结果</h2><h3 id="1-遇到了什么报错"><a href="#1-遇到了什么报错" class="headerlink" title="1. 遇到了什么报错"></a>1. 遇到了什么报错</h3><p>视频分析完成后，提示词区域没有内容，镜头显示待复核，页面出现 <code>Analysis interrupted</code>。测试过程中还出现过 <code>Unexpected end of JSON input</code>。</p>
+<p>这几个现象涉及不同的处理环节，需要分别排查。</p>
+<h3 id="2-是什么原因导致的"><a href="#2-是什么原因导致的" class="headerlink" title="2. 是什么原因导致的"></a>2. 是什么原因导致的</h3><p><strong>是因为写的结果校验把有效分析丢掉了。</strong></p>
+<p>同一素材复现时，模型确实返回了画面描述和提示词，但 <code>story</code> 是一段文字；代码要求它必须是对象，因此判整份结果失败，最后保存成空提示词。</p>
+<p><strong>问题在主应用的分析结果处理代码。</strong></p>
+<p>另外，<code>Unexpected end of JSON input</code> 表示读取响应时，没有拿到完整、有效的 JSON。它与 <code>story</code> 字段校验失败属于两个问题：前者发生在响应解析阶段，后者发生在分析内容校验阶段。仅凭这条报错，无法确定当时响应为空或不完整的具体原因。</p>
+<h3 id="3-最后怎么解决的"><a href="#3-最后怎么解决的" class="headerlink" title="3. 最后怎么解决的"></a>3. 最后怎么解决的</h3><p>已经修正：</p>
+<ul>
+<li>文字形式的 <code>story</code> 转成摘要，保留有效分析。</li>
+<li>真正缺字段时，记录具体缺哪项。</li>
+<li>明确告诉模型每个字段应是什么格式。</li>
+</ul>
+<p>响应读取也进行了调整：检查响应类型和业务错误；原生接口的流式响应按事件逐段解析；响应没有完整结束时明确报错，避免保存不完整结果。</p>
+<p>此前确认分析按钮无法继续的问题，则单独修复了报价恢复逻辑，避免异常恢复后按钮仍被锁住。</p>
+<h2 id="第二次-Debug：兼容接口持续报错，误判成服务商故障"><a href="#第二次-Debug：兼容接口持续报错，误判成服务商故障" class="headerlink" title="第二次 Debug：兼容接口持续报错，误判成服务商故障"></a>第二次 Debug：兼容接口持续报错，误判成服务商故障</h2><h3 id="1-遇到了什么报错-1"><a href="#1-遇到了什么报错-1" class="headerlink" title="1. 遇到了什么报错"></a>1. 遇到了什么报错</h3><p>继续测试时，分析等待很久，最终仍然失败。排查发现，接口虽然返回 HTTP 200，正文却包含业务错误：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;code&quot;</span><span class="punctuation">:</span><span class="number">500</span><span class="punctuation">,</span><span class="attr">&quot;msg&quot;</span><span class="punctuation">:</span><span class="string">&quot;Network error, please try again later.&quot;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>Gemini 2.5 Flash 则返回：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;code&quot;</span><span class="punctuation">:</span><span class="number">422</span><span class="punctuation">,</span><span class="attr">&quot;msg&quot;</span><span class="punctuation">:</span><span class="string">&quot;The channel is not supported&quot;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>看到 <code>Network error</code> 后，AI过早把原因归到网络或服务商模型故障，用户要求再次排查。</p>
+<h3 id="2-是什么原因导致的-1"><a href="#2-是什么原因导致的-1" class="headerlink" title="2. 是什么原因导致的"></a>2. 是什么原因导致的</h3><p>当时使用了 OpenAI 兼容接口。对照测试中，使用同一份 Key、同一个模型，兼容路径返回业务错误，原生 Gemini 路径能够成功回复 OK。</p>
+<p>这个结果把问题定位到了接口路径：当前测试环境下，四个模型的兼容路径调用失败，原生路径调用成功。至于兼容路径内部为什么报错，目前没有足够证据继续下结论。</p>
+<p>接入过程还有两个疏漏：没有充分实测就认为模型已经接通，以及把服务端返回的 <code>Network error</code> 直接当成根因。</p>
+<h3 id="3-最后怎么解决的-1"><a href="#3-最后怎么解决的-1" class="headerlink" title="3. 最后怎么解决的"></a>3. 最后怎么解决的</h3><p>Gemini 3.5、3.6、3.7、3.8 Flash 全部切换到原生接口，并同步调整请求格式与流式响应解析。</p>
+<p>四个模型逐个发送最小的 OK 请求，全部成功。每个消耗 0.01 个 KIE 积分，本轮合计 0.04 个。</p>
+<p>Gemini 2.5 Flash 的兼容和原生路径均返回“通道不支持”，因此删除了模型选项及对应配置</p>
+<p>总结一下AI使用的几个麻烦的地方：</p>
+<p>1.旧代码老留着不删，我亲自看文件时才发现</p>
+<p>2.不会推测真实用户的操作导致在写代码上闹一些笑话，比如不知道人类会上下滚动页面，导致翻过去的存储资源直接删除后面翻回来时重复加载</p>
+<p>3.流程繁琐不精简，总喜欢在页面上写好多重复入口</p>
+<p>4.喜欢甩锅，不深度验证就赖是外部服务错误不是他自己的问题</p>
+
+                  </div>
+                  <div class="home-article-actions">
+                    <button type="button" class="home-article-toggle" data-article-toggle aria-expanded="false">展开阅读</button>
+                  </div>
+                </article>
+              
+                <article class="home-readable-article" id="post-2026-09-24-Prompt-Lens视频分析链路故障复盘">
+                  <header class="home-readable-header">
+                    <time datetime="2026-09-24T23:54:25.000Z">2026-09-24</time>
+                    <h3><a href="/2026/09/24/2026-09-24-Prompt-Lens%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90%E9%93%BE%E8%B7%AF%E6%95%85%E9%9A%9C%E5%A4%8D%E7%9B%98/">从 stream aborted 到 KIE 422：Prompt Lens 视频分析链路故障复盘</a></h3>
+                  </header>
+                  <div class="home-article-body">
+                    <h1 id="从一个报错开始，最后重做了整条分析链路"><a href="#从一个报错开始，最后重做了整条分析链路" class="headerlink" title="从一个报错开始，最后重做了整条分析链路"></a>从一个报错开始，最后重做了整条分析链路</h1><p>今天原本只是想修 Prompt Lens 线上视频分析时出现的一个错误：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error: stream has been aborted</span><br></pre></td></tr></table></figure>
+
+<p>但修下去以后，问题一个接一个暴露出来：OpenRouter 401、KIE 返回空结果、KIE 422、Pro 模型上游维护、试用次数只在后端拦截，以及 Vercel Blob、B2、R2 三套存储遗留并存。</p>
+<p>这些看起来是不同的报错，实际上都指向同一个问题：视频分析这条链路经历了多次迭代，但存储、模型、密钥、额度和前端状态没有形成统一规则。</p>
+<p>这篇记录一下今天遇到的每个问题、为什么会出现、最后怎么修，以及这次修复暴露出的架构教训。</p>
+<h2 id="一、stream-has-been-aborted：请求体太大，不是模型报错"><a href="#一、stream-has-been-aborted：请求体太大，不是模型报错" class="headerlink" title="一、stream has been aborted：请求体太大，不是模型报错"></a>一、<code>stream has been aborted</code>：请求体太大，不是模型报错</h2><p>最开始的视频分析流程是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">浏览器读取视频</span><br><span class="line">  ↓</span><br><span class="line">抽取多张关键帧</span><br><span class="line">  ↓</span><br><span class="line">每张图片转成 Base64</span><br><span class="line">  ↓</span><br><span class="line">全部塞进 /api/analyze 请求体</span><br><span class="line">  ↓</span><br><span class="line">服务端再调用视觉模型</span><br></pre></td></tr></table></figure>
+
+<p>这个方案在视频短、抽帧少时可以工作，但 Base64 会让图片体积继续膨胀。几十张图片同时进入一个请求后，请求体很大，上传和服务端处理时间也很长。在 Vercel 这类 Serverless 环境里，请求流可能在业务逻辑完成前就被中断，于是前端只看到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error: stream has been aborted</span><br></pre></td></tr></table></figure>
+
+<p>它并不是 AI 模型主动返回的错误，而是传输方式本身不稳定。</p>
+<h3 id="修复方式：浏览器直传-R2，分析接口只收-URL"><a href="#修复方式：浏览器直传-R2，分析接口只收-URL" class="headerlink" title="修复方式：浏览器直传 R2，分析接口只收 URL"></a>修复方式：浏览器直传 R2，分析接口只收 URL</h3><p>新的流程改成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">浏览器抽帧并压缩</span><br><span class="line">  ↓</span><br><span class="line">申请 R2 临时上传地址</span><br><span class="line">  ↓</span><br><span class="line">浏览器把帧直接上传到 R2</span><br><span class="line">  ↓</span><br><span class="line">/api/analyze 只接收图片 URL</span><br><span class="line">  ↓</span><br><span class="line">模型从 URL 读取图片</span><br><span class="line">  ↓</span><br><span class="line">分析结束后清理临时帧</span><br></pre></td></tr></table></figure>
+
+<p>同时补上了几层限制：</p>
+<ul>
+<li>一次最多 30 帧；</li>
+<li>单张图片最大 2 MB；</li>
+<li>服务端校验对象路径必须属于当前用户；</li>
+<li>无论分析成功还是失败，都在 <code>finally</code> 中清理临时文件；</li>
+<li>分析路由保留足够的执行时间。</li>
+</ul>
+<p>这样改完后，大体积图片不再经过 Next.js 分析接口，接口只负责轻量 JSON 和业务编排，链路稳定性明显提高。</p>
+<h2 id="二、三套存储同时存在：历史兼容代码变成了维护负担"><a href="#二、三套存储同时存在：历史兼容代码变成了维护负担" class="headerlink" title="二、三套存储同时存在：历史兼容代码变成了维护负担"></a>二、三套存储同时存在：历史兼容代码变成了维护负担</h2><p>排查上传逻辑时发现，项目里同时残留了三套存储：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Vercel Blob</span><br><span class="line">Backblaze B2</span><br><span class="line">Cloudflare R2</span><br></pre></td></tr></table></figure>
+
+<p>它们分别留下了依赖、环境变量、初始化脚本和分支判断。虽然线上主要使用 R2，但维护代码时仍然很难判断某个上传到底会走哪套实现。</p>
+<p>这种“先留着也许以后有用”的兼容代码，会让每次故障排查都多出很多无效分支。</p>
+<p>最后做了统一收口：</p>
+<ul>
+<li>删除 Vercel Blob 依赖和相关调用；</li>
+<li>删除 B2 配置与初始化脚本；</li>
+<li>上传、临时帧、文档和测试统一以 R2 为准；</li>
+<li>增加 R2 单一存储路径的验证。</li>
+</ul>
+<p>存储层从三套实现缩成一套后，视频分析和普通上传终于共享同一种资源生命周期。</p>
+<h2 id="三、OpenRouter-401：密钥失效只是表象，模型路由也不够严格"><a href="#三、OpenRouter-401：密钥失效只是表象，模型路由也不够严格" class="headerlink" title="三、OpenRouter 401：密钥失效只是表象，模型路由也不够严格"></a>三、OpenRouter 401：密钥失效只是表象，模型路由也不够严格</h2><p>存储问题修完后，线上又出现：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error: Request failed with status code 401</span><br></pre></td></tr></table></figure>
+
+<p>进一步检查后确认，当时的平台 OpenRouter Key 已经无法通过鉴权，接口返回的含义接近“找不到对应用户”。这部分需要更换平台密钥。</p>
+<p>但代码里还有一个更隐蔽的问题：用户在分析页选择了某个供应商后，后端有机会继续查找其他已保存的 Key，并静默切换到另一家供应商。</p>
+<p>这会导致两个后果：</p>
+<ol>
+<li>前端明明选择 KIE，错误信息却来自 OpenRouter；</li>
+<li>用户无法判断一次分析究竟消耗了谁的额度。</li>
+</ol>
+<p>修复后，分析请求会严格使用前端所选模型对应的供应商，不再偷偷回退到其他供应商。错误信息也按实际供应商返回，避免再出现“选了 KIE，却提示 OpenRouter Key 校验失败”的错位情况。</p>
+<p>设置页也随之收口，只保留目前真正支持用户配置的 KIE Key，不再展示已经退出主链路的供应商。</p>
+<h2 id="四、平台试用和用户-Key-混用：必须显式标记密钥来源"><a href="#四、平台试用和用户-Key-混用：必须显式标记密钥来源" class="headerlink" title="四、平台试用和用户 Key 混用：必须显式标记密钥来源"></a>四、平台试用和用户 Key 混用：必须显式标记密钥来源</h2><p>产品规则其实一直很明确：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">普通用户：可以使用 2 次平台免费试用</span><br><span class="line">普通用户：配置自己的 KIE Key 后，消耗自己的额度</span><br><span class="line">管理员：可以不限次数使用平台 Key，也可以使用自己的 Key</span><br></pre></td></tr></table></figure>
+
+<p>问题在于，旧代码更多是根据“当前有没有 Key”临时判断，没有把密钥来源建模成明确状态。平台 Key 和用户 Key 在同一条调用链里流动，很容易在重构时混淆。</p>
+<p>这次增加了明确的来源字段：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> <span class="title class_">ApiKeySource</span> = <span class="string">&quot;platform&quot;</span> | <span class="string">&quot;user&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>后端根据可信的模型定义和当前用户权限决定：</p>
+<ul>
+<li><code>platform</code>：使用服务端环境变量中的平台 KIE Key，并计入免费试用次数；</li>
+<li><code>user</code>：读取当前用户保存的 KIE Key，不消耗平台试用次数；</li>
+<li>管理员走平台来源时，不受普通用户的两次限制。</li>
+</ul>
+<p>平台 Key 只存在服务端，不允许前端传入或覆盖。这样“模型选择”和“谁付费”才真正成为两件可检查的事情。</p>
+<h2 id="五、平台试用从-OpenRouter-切到-KIE：分支合并状态也会制造线上错觉"><a href="#五、平台试用从-OpenRouter-切到-KIE：分支合并状态也会制造线上错觉" class="headerlink" title="五、平台试用从 OpenRouter 切到 KIE：分支合并状态也会制造线上错觉"></a>五、平台试用从 OpenRouter 切到 KIE：分支合并状态也会制造线上错觉</h2><p>中途产品策略发生了调整：平台的两次免费试用不再走 OpenRouter，统一改成使用平台配置的 KIE Key；用户继续使用时，需要配置自己的 KIE Key。</p>
+<p>代码改完并推送后，线上却仍然提示 OpenRouter 错误。原因不是新逻辑失效，而是对应提交还没有进入 <code>main</code>，线上部署自然仍然运行旧代码。</p>
+<p>这次专门补了新的 PR 才把 KIE 平台试用链路合入主分支。</p>
+<p>这件事提醒我，下面三个状态不能混为一谈：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">代码已经提交</span><br><span class="line">代码已经推送到功能分支</span><br><span class="line">代码已经合入 main 并完成线上部署</span><br></pre></td></tr></table></figure>
+
+<p>以后修线上故障，除了看本地代码，还要确认主分支 commit 和部署版本。否则很容易围绕“为什么修了还没生效”继续排查不存在的问题。</p>
+<h2 id="六、KIE-Gemini-API-returned-empty-result：200-不等于成功"><a href="#六、KIE-Gemini-API-returned-empty-result：200-不等于成功" class="headerlink" title="六、KIE Gemini API returned empty result：200 不等于成功"></a>六、<code>KIE Gemini API returned empty result</code>：200 不等于成功</h2><p>平台试用切到 KIE 后，又出现：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KIE Gemini API returned empty result</span><br></pre></td></tr></table></figure>
+
+<p>一开始的解析器只读取 OpenAI 常见结构：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">choices[<span class="number">0</span>].<span class="property">message</span>.<span class="property">content</span></span><br></pre></td></tr></table></figure>
+
+<p>但 KIE 的返回并不总是这种形态，可能出现：</p>
+<ul>
+<li>外层还有一层 <code>data</code>；</li>
+<li><code>message.content</code> 是分段数组；</li>
+<li>内容位于 Gemini 原生的 <code>candidates</code>；</li>
+<li>HTTP 状态是 200，但响应体里的业务 <code>code</code> 已经表示失败；</li>
+<li>模型因为某种原因结束，没有返回正文。</li>
+</ul>
+<p>旧代码没有识别这些情况，最后统一抛出“空结果”，把真正的上游错误吞掉了。</p>
+<p>修复后，解析器会依次处理：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">OpenAI-compatible choices</span><br><span class="line">data 包裹结构</span><br><span class="line">分段 content 数组</span><br><span class="line">Gemini candidates</span><br><span class="line">业务 code / msg</span><br><span class="line">finish_reason</span><br></pre></td></tr></table></figure>
+
+<p>日志也增加了经过脱敏和截断的响应结构摘要。这样既不会输出密钥或完整用户内容，又能看到上游究竟返回了什么。</p>
+<h2 id="七、KIE-422：真正原因是调用了不受支持的-channel"><a href="#七、KIE-422：真正原因是调用了不受支持的-channel" class="headerlink" title="七、KIE 422：真正原因是调用了不受支持的 channel"></a>七、KIE 422：真正原因是调用了不受支持的 channel</h2><p>解析器完善以后，原来模糊的“空结果”终于变成了真实错误：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KIE API error (422): The channel is not supported</span><br></pre></td></tr></table></figure>
+
+<p>这次没有继续靠猜，而是用最小请求直接测试 KIE：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">旧 Gemini 2.5 Flash channel</span><br><span class="line">  -&gt; HTTP 200</span><br><span class="line">  -&gt; 业务 code 422</span><br><span class="line">  -&gt; The channel is not supported</span><br></pre></td></tr></table></figure>
+
+<p>随后测试当前可用的 KIE Flash channel：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/gemini-3-5-flash-openai/v1/chat/completions</span><br><span class="line">model: gemini-3-5-flash-thinking</span><br><span class="line">  -&gt; 调用成功</span><br></pre></td></tr></table></figure>
+
+<p>旧实现把模型 ID 直接拼进 URL：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">`/<span class="subst">$&#123;model&#125;</span>/v1/chat/completions`</span></span><br></pre></td></tr></table></figure>
+
+<p>这隐含假设了“模型名等于 channel 名”，但 KIE 的实际规则并不是这样。模型、请求中的 <code>model</code> 参数和 URL channel 是三个不同概念。</p>
+<p>最后改成显式映射：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">产品模型</span><br><span class="line">  ↓</span><br><span class="line">供应商</span><br><span class="line">  ↓</span><br><span class="line">KIE channel</span><br><span class="line">  ↓</span><br><span class="line">请求 model 参数</span><br></pre></td></tr></table></figure>
+
+<p>平台试用和用户自带 KIE Key 的 Flash 模型都迁移到可用的 Gemini 3.5 Flash channel，旧模型 ID 则在兼容层映射到新实现，不再动态拼 URL。</p>
+<h2 id="八、Gemini-Pro-为什么仍然报错"><a href="#八、Gemini-Pro-为什么仍然报错" class="headerlink" title="八、Gemini Pro 为什么仍然报错"></a>八、Gemini Pro 为什么仍然报错</h2><p>排查 Flash 时也测试了 KIE 的 Gemini 2.5 Pro。</p>
+<p>它仍然出现在官方资料里，但真实请求返回的是 HTTP 200 加业务 <code>code 500</code>，提示服务端维护。这个结果只能说明当时的 KIE 上游通道不可用，不能直接断言模型已经下线。</p>
+<p>因此处理方式不是伪造一个成功回退，而是保留清晰的供应商错误，让用户知道当前是上游服务状态问题。对于生产环境，后续还应该给模型增加健康状态和临时下线开关，避免用户反复选择已知不可用的模型。</p>
+<h2 id="九、两次免费试用不能只靠前端，也不能只靠后端"><a href="#九、两次免费试用不能只靠前端，也不能只靠后端" class="headerlink" title="九、两次免费试用不能只靠前端，也不能只靠后端"></a>九、两次免费试用不能只靠前端，也不能只靠后端</h2><p>旧逻辑其实已经在服务端限制了普通用户的两次平台试用。第三次请求会返回 <code>402</code>，所以单纯绕过前端并不能无限使用平台 Key。</p>
+<p>但前端没有提前查询剩余额度。用户第三次点击后，浏览器仍然会先抽帧、压缩、上传 R2，直到调用分析接口时才得知额度已用完。</p>
+<p>这虽然没有造成计费漏洞，但体验很差，也浪费了上传和临时存储资源。</p>
+<p>这次增加了额度查询接口，前端会显示剩余次数，并在额度为 0 时：</p>
+<ul>
+<li>禁用平台试用模型；</li>
+<li>禁用对应的分析按钮；</li>
+<li>已保存 KIE Key 的用户，提示切换到自带 Key 的模型；</li>
+<li>没有 KIE Key 的用户，直接提供进入设置页的入口；</li>
+<li>管理员显示为不受普通试用次数限制。</li>
+</ul>
+<p>后端的 <code>402</code> 校验仍然保留，因为前端限制只能改善体验，真正的权限和额度边界必须由服务端执行。</p>
+<h2 id="十、最终的视频分析链路"><a href="#十、最终的视频分析链路" class="headerlink" title="十、最终的视频分析链路"></a>十、最终的视频分析链路</h2><p>修复后的完整链路是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">用户选择实际分析模型</span><br><span class="line">  ↓</span><br><span class="line">前端查询平台试用额度</span><br><span class="line">  ↓</span><br><span class="line">浏览器抽帧并压缩</span><br><span class="line">  ↓</span><br><span class="line">临时帧直传 R2</span><br><span class="line">  ↓</span><br><span class="line">服务端校验用户和对象归属</span><br><span class="line">  ↓</span><br><span class="line">根据模型解析 provider / channel / apiKeySource</span><br><span class="line">  ↓</span><br><span class="line">服务端校验额度和权限</span><br><span class="line">  ↓</span><br><span class="line">调用显式配置的 KIE channel</span><br><span class="line">  ↓</span><br><span class="line">兼容解析响应并记录安全摘要</span><br><span class="line">  ↓</span><br><span class="line">返回分析结果</span><br><span class="line">  ↓</span><br><span class="line">清理 R2 临时帧并刷新剩余额度</span><br></pre></td></tr></table></figure>
+
+<p>为了验证它不是“测试里能过”，还用真实公开图片分别跑了两条链路：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">平台 KIE Key 路径：成功返回完整中文分析</span><br><span class="line">用户自带 KIE Key 路径：成功返回完整中文分析</span><br></pre></td></tr></table></figure>
+
+<p>真实调用耗时在一分钟以上，也再次说明这类视觉分析必须按长任务设计，不能继续把大文件塞进同一个请求里碰运气。</p>
+<h2 id="十一、这次暴露出的架构问题"><a href="#十一、这次暴露出的架构问题" class="headerlink" title="十一、这次暴露出的架构问题"></a>十一、这次暴露出的架构问题</h2><p>回头看，今天并不是连续遇到了很多倒霉的小问题，而是几个架构缺口同时到了必须偿还的时候。</p>
+<h3 id="1-缺少单一事实来源"><a href="#1-缺少单一事实来源" class="headerlink" title="1. 缺少单一事实来源"></a>1. 缺少单一事实来源</h3><p>设置页、分析页和后端分别维护供应商与模型信息，导致页面显示和实际调用不一致。后续应该由一份模型注册表统一定义：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">modelId</span><br><span class="line">provider</span><br><span class="line">channel</span><br><span class="line">apiKeySource</span><br><span class="line">是否可试用</span><br><span class="line">是否管理员专用</span><br><span class="line">当前可用状态</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-模型路由过度依赖字符串"><a href="#2-模型路由过度依赖字符串" class="headerlink" title="2. 模型路由过度依赖字符串"></a>2. 模型路由过度依赖字符串</h3><p>直接从模型名推断 endpoint，在供应商调整 channel 时非常脆弱。外部服务的 URL、请求模型名和产品展示名必须分开建模。</p>
+<h3 id="3-平台密钥和用户密钥没有形成领域边界"><a href="#3-平台密钥和用户密钥没有形成领域边界" class="headerlink" title="3. 平台密钥和用户密钥没有形成领域边界"></a>3. 平台密钥和用户密钥没有形成领域边界</h3><p>只判断“有没有 Key”远远不够。密钥来源会直接影响计费、额度、权限和错误提示，应该是后端模型的一部分。</p>
+<h3 id="4-Mock-测试代替不了真实上游探测"><a href="#4-Mock-测试代替不了真实上游探测" class="headerlink" title="4. Mock 测试代替不了真实上游探测"></a>4. Mock 测试代替不了真实上游探测</h3><p>Mock 可以验证请求有没有发出，却无法发现 channel 已失效、业务错误放在 200 响应里、真实响应结构发生变化。关键供应商需要最小 live smoke test，但默认关闭，按需使用真实测试账户执行。</p>
+<h3 id="5-错误信息丢失太多"><a href="#5-错误信息丢失太多" class="headerlink" title="5. 错误信息丢失太多"></a>5. 错误信息丢失太多</h3><p>“空结果”这种二次包装错误看似简洁，却把最有价值的 <code>422 channel not supported</code> 吞掉了。第三方调用层应该保留状态码、业务错误码、消息和安全响应摘要。</p>
+<h3 id="6-部署状态没有进入故障检查流程"><a href="#6-部署状态没有进入故障检查流程" class="headerlink" title="6. 部署状态没有进入故障检查流程"></a>6. 部署状态没有进入故障检查流程</h3><p>功能分支已经修好，不代表线上已经修好。主分支 SHA、PR 合并状态和部署版本都应该成为线上排查清单的一部分。</p>
+<h3 id="7-前后端没有共享额度状态"><a href="#7-前后端没有共享额度状态" class="headerlink" title="7. 前后端没有共享额度状态"></a>7. 前后端没有共享额度状态</h3><p>服务端有正确限制，但前端不知道剩余次数，导致用户做完昂贵的准备工作后才失败。后端负责最终裁决，前端负责尽早反馈，两边缺一不可。</p>
+<h2 id="十二、总结"><a href="#十二、总结" class="headerlink" title="十二、总结"></a>十二、总结</h2><p>今天从 <code>stream has been aborted</code> 一路修到 KIE 422，最后处理的并不只是一串错误，而是视频分析系统里五个相互关联的边界：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">文件怎么传</span><br><span class="line">模型怎么选</span><br><span class="line">请求发到哪里</span><br><span class="line">使用谁的 Key</span><br><span class="line">谁来承担额度</span><br></pre></td></tr></table></figure>
+
+<p>最终的解决方案可以概括成几句话：</p>
+<ul>
+<li>大文件走 R2，业务接口只传 URL；</li>
+<li>存储统一为 R2，删除 Vercel Blob 和 B2 遗留；</li>
+<li>模型、供应商和 KIE channel 使用显式映射；</li>
+<li>平台 Key 与用户 Key 分开建模和计费；</li>
+<li>普通用户只有两次平台试用，服务端强制限制；</li>
+<li>前端提前展示额度，避免做完抽帧和上传后才失败；</li>
+<li>第三方响应要宽松解析，但错误必须完整暴露；</li>
+<li>修复完成后还要确认 PR、主分支和线上部署确实一致。</li>
+</ul>
+<p>这次维护最深的感受是：线上连续报错时，不能只追着最后一条错误信息修。错误往往只是入口，真正要找的是哪一条系统边界没有被明确建模。</p>
+<p>当存储、模型、channel、密钥来源和额度规则都成为显式配置后，这条链路才从“目前能跑”变成“后面还能维护”。</p>
+
+                  </div>
+                  <div class="home-article-actions">
+                    <button type="button" class="home-article-toggle" data-article-toggle aria-expanded="false">展开阅读</button>
+                  </div>
+                </article>
+              
                 <article class="home-readable-article" id="post-2026-08-03-用codex做前端太难了">
                   <header class="home-readable-header">
                     <time datetime="2026-08-03T18:30:00.000Z">2026-08-03</time>
@@ -3712,7 +3927,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-NPC/" rel="tag">AI NPC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-%E4%BA%A7%E5%93%81/" rel="tag">AI 产品</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E5%B7%A5%E5%85%B7/" rel="tag">AI工具</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E7%BC%96%E7%A8%8B/" rel="tag">AI编程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E8%A7%86%E9%A2%91/" rel="tag">AI视频</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/API%E6%8E%A5%E5%85%A5/" rel="tag">API接入</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cookie/" rel="tag">Cookie</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/D1/" rel="tag">D1</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DeepSeek/" rel="tag">DeepSeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Drizzle/" rel="tag">Drizzle</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gemini/" rel="tag">Gemini</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/H5-%E6%B8%B8%E6%88%8F/" rel="tag">H5 游戏</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HeroBuddy/" rel="tag">HeroBuddy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KIE/" rel="tag">KIE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCP/" rel="tag">MCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OCR/" rel="tag">OCR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PPT/" rel="tag">PPT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Playwright/" rel="tag">Playwright</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Prompt-Lens/" rel="tag">Prompt Lens</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReactFlow/" rel="tag">ReactFlow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Remotion-skills/" rel="tag">Remotion skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSE/" rel="tag">SSE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Serverless/" rel="tag">Serverless</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skills/" rel="tag">Skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TalentsAI/" rel="tag">TalentsAI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Veo/" rel="tag">Veo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel/" rel="tag">Vercel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel-Blob/" rel="tag">Vercel Blob</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VirtualBox/" rel="tag">VirtualBox</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-11/" rel="tag">Windows 11</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-7/" rel="tag">Windows 7</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/amCharts/" rel="tag">amCharts</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/i18n/" rel="tag">i18n</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/next-intl/" rel="tag">next-intl</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" rel="tag">产品复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B/" rel="tag">产品工程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" rel="tag">前端实践</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" rel="tag">前端设计</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%8D%E7%9B%98/" rel="tag">复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" rel="tag">多Agent协作</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" rel="tag">大文件上传</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" rel="tag">工程复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" rel="tag">无限画布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" rel="tag">流式生成</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" rel="tag">落地页</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" rel="tag">进阶规划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/" rel="tag">面试复盘</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-NPC/" rel="tag">AI NPC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-%E4%BA%A7%E5%93%81/" rel="tag">AI 产品</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E5%B7%A5%E5%85%B7/" rel="tag">AI工具</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E7%BC%96%E7%A8%8B/" rel="tag">AI编程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI%E8%A7%86%E9%A2%91/" rel="tag">AI视频</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/API%E6%8E%A5%E5%85%A5/" rel="tag">API接入</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloudflare-R2/" rel="tag">Cloudflare R2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cookie/" rel="tag">Cookie</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/D1/" rel="tag">D1</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Debug/" rel="tag">Debug</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DeepSeek/" rel="tag">DeepSeek</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Drizzle/" rel="tag">Drizzle</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Function-Compute/" rel="tag">Function Compute</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gemini/" rel="tag">Gemini</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Actions/" rel="tag">GitHub Actions</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/H5-%E6%B8%B8%E6%88%8F/" rel="tag">H5 游戏</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HeroBuddy/" rel="tag">HeroBuddy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KIE/" rel="tag">KIE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCP/" rel="tag">MCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-js/" rel="tag">Next.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OCR/" rel="tag">OCR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PPT/" rel="tag">PPT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Playwright/" rel="tag">Playwright</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Prompt-Lens/" rel="tag">Prompt Lens</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtAdmin/" rel="tag">QtAdmin</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud/" rel="tag">QtCloud</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtCloud-Asset/" rel="tag">QtCloud Asset</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/QtConsult/" rel="tag">QtConsult</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReactFlow/" rel="tag">ReactFlow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Remotion-skills/" rel="tag">Remotion skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSE/" rel="tag">SSE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Serverless/" rel="tag">Serverless</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skills/" rel="tag">Skills</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TalentsAI/" rel="tag">TalentsAI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Veo/" rel="tag">Veo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel/" rel="tag">Vercel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Vercel-Blob/" rel="tag">Vercel Blob</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VirtualBox/" rel="tag">VirtualBox</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-11/" rel="tag">Windows 11</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows-7/" rel="tag">Windows 7</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/amCharts/" rel="tag">amCharts</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/i18n/" rel="tag">i18n</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/next-intl/" rel="tag">next-intl</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/workflow/" rel="tag">workflow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" rel="tag">产品复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B/" rel="tag">产品工程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" rel="tag">前端实践</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" rel="tag">前端设计</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%8D%E7%9B%98/" rel="tag">复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" rel="tag">多Agent协作</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" rel="tag">大文件上传</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" rel="tag">工作总结</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" rel="tag">工程复盘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" rel="tag">数字资产</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" rel="tag">无限画布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" rel="tag">标本契约</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" rel="tag">流式生成</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" rel="tag">落地页</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90/" rel="tag">视频分析</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" rel="tag">议事档案</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" rel="tag">进阶规划</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" rel="tag">部署教程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/" rel="tag">面试复盘</a></li></ul>
     </div>
   </div>
 
@@ -3722,7 +3937,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签云</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AI-Agent/" style="font-size: 10px;">AI Agent</a> <a href="/tags/AI-NPC/" style="font-size: 10px;">AI NPC</a> <a href="/tags/AI-%E4%BA%A7%E5%93%81/" style="font-size: 10px;">AI 产品</a> <a href="/tags/AI%E5%B7%A5%E5%85%B7/" style="font-size: 10px;">AI工具</a> <a href="/tags/AI%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">AI编程</a> <a href="/tags/AI%E8%A7%86%E9%A2%91/" style="font-size: 10px;">AI视频</a> <a href="/tags/API%E6%8E%A5%E5%85%A5/" style="font-size: 10px;">API接入</a> <a href="/tags/Claude-Code/" style="font-size: 10px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 12px;">Codex</a> <a href="/tags/Cookie/" style="font-size: 10px;">Cookie</a> <a href="/tags/D1/" style="font-size: 10px;">D1</a> <a href="/tags/DeepSeek/" style="font-size: 10px;">DeepSeek</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Drizzle/" style="font-size: 10px;">Drizzle</a> <a href="/tags/Function-Compute/" style="font-size: 14px;">Function Compute</a> <a href="/tags/Gemini/" style="font-size: 10px;">Gemini</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/GitHub/" style="font-size: 10px;">GitHub</a> <a href="/tags/GitHub-Actions/" style="font-size: 16px;">GitHub Actions</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/H5-%E6%B8%B8%E6%88%8F/" style="font-size: 10px;">H5 游戏</a> <a href="/tags/HeroBuddy/" style="font-size: 10px;">HeroBuddy</a> <a href="/tags/Hexo/" style="font-size: 12px;">Hexo</a> <a href="/tags/KIE/" style="font-size: 10px;">KIE</a> <a href="/tags/Kubernetes/" style="font-size: 10px;">Kubernetes</a> <a href="/tags/MCP/" style="font-size: 10px;">MCP</a> <a href="/tags/Next-js/" style="font-size: 18px;">Next.js</a> <a href="/tags/OCR/" style="font-size: 10px;">OCR</a> <a href="/tags/OSS/" style="font-size: 12px;">OSS</a> <a href="/tags/PPT/" style="font-size: 12px;">PPT</a> <a href="/tags/Playwright/" style="font-size: 10px;">Playwright</a> <a href="/tags/Prompt-Lens/" style="font-size: 14px;">Prompt Lens</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/QtAdmin/" style="font-size: 10px;">QtAdmin</a> <a href="/tags/QtCloud/" style="font-size: 10px;">QtCloud</a> <a href="/tags/QtCloud-Asset/" style="font-size: 14px;">QtCloud Asset</a> <a href="/tags/QtConsult/" style="font-size: 12px;">QtConsult</a> <a href="/tags/ReactFlow/" style="font-size: 10px;">ReactFlow</a> <a href="/tags/Remotion-skills/" style="font-size: 10px;">Remotion skills</a> <a href="/tags/SSE/" style="font-size: 10px;">SSE</a> <a href="/tags/Serverless/" style="font-size: 10px;">Serverless</a> <a href="/tags/Skills/" style="font-size: 10px;">Skills</a> <a href="/tags/TalentsAI/" style="font-size: 10px;">TalentsAI</a> <a href="/tags/Veo/" style="font-size: 10px;">Veo</a> <a href="/tags/Vercel/" style="font-size: 12px;">Vercel</a> <a href="/tags/Vercel-Blob/" style="font-size: 10px;">Vercel Blob</a> <a href="/tags/VirtualBox/" style="font-size: 12px;">VirtualBox</a> <a href="/tags/Windows-11/" style="font-size: 10px;">Windows 11</a> <a href="/tags/Windows-7/" style="font-size: 10px;">Windows 7</a> <a href="/tags/amCharts/" style="font-size: 10px;">amCharts</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/i18n/" style="font-size: 10px;">i18n</a> <a href="/tags/next-intl/" style="font-size: 10px;">next-intl</a> <a href="/tags/workflow/" style="font-size: 10px;">workflow</a> <a href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" style="font-size: 10px;">产品复盘</a> <a href="/tags/%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">产品工程</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 10px;">前端</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" style="font-size: 10px;">前端实践</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;">前端设计</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 12px;">博客</a> <a href="/tags/%E5%A4%8D%E7%9B%98/" style="font-size: 12px;">复盘</a> <a href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" style="font-size: 10px;">多Agent协作</a> <a href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" style="font-size: 10px;">大文件上传</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 10px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 20px;">工作总结</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" style="font-size: 12px;">工程复盘</a> <a href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" style="font-size: 10px;">数字资产</a> <a href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" style="font-size: 10px;">无限画布</a> <a href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" style="font-size: 10px;">标本契约</a> <a href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" style="font-size: 10px;">流式生成</a> <a href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" style="font-size: 10px;">落地页</a> <a href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" style="font-size: 10px;">议事档案</a> <a href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" style="font-size: 10px;">进阶规划</a> <a href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" style="font-size: 10px;">部署教程</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 16px;">阿里云</a> <a href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/" style="font-size: 10px;">面试复盘</a>
+      <a href="/tags/AI/" style="font-size: 10px;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 10px;">AI Agent</a> <a href="/tags/AI-NPC/" style="font-size: 10px;">AI NPC</a> <a href="/tags/AI-%E4%BA%A7%E5%93%81/" style="font-size: 10px;">AI 产品</a> <a href="/tags/AI%E5%B7%A5%E5%85%B7/" style="font-size: 10px;">AI工具</a> <a href="/tags/AI%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">AI编程</a> <a href="/tags/AI%E8%A7%86%E9%A2%91/" style="font-size: 10px;">AI视频</a> <a href="/tags/API%E6%8E%A5%E5%85%A5/" style="font-size: 12px;">API接入</a> <a href="/tags/Claude-Code/" style="font-size: 10px;">Claude Code</a> <a href="/tags/Cloudflare-R2/" style="font-size: 10px;">Cloudflare R2</a> <a href="/tags/Codex/" style="font-size: 12px;">Codex</a> <a href="/tags/Cookie/" style="font-size: 10px;">Cookie</a> <a href="/tags/D1/" style="font-size: 10px;">D1</a> <a href="/tags/Debug/" style="font-size: 10px;">Debug</a> <a href="/tags/DeepSeek/" style="font-size: 10px;">DeepSeek</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Drizzle/" style="font-size: 10px;">Drizzle</a> <a href="/tags/Function-Compute/" style="font-size: 14px;">Function Compute</a> <a href="/tags/Gemini/" style="font-size: 10px;">Gemini</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/GitHub/" style="font-size: 10px;">GitHub</a> <a href="/tags/GitHub-Actions/" style="font-size: 16px;">GitHub Actions</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/H5-%E6%B8%B8%E6%88%8F/" style="font-size: 10px;">H5 游戏</a> <a href="/tags/HeroBuddy/" style="font-size: 10px;">HeroBuddy</a> <a href="/tags/Hexo/" style="font-size: 12px;">Hexo</a> <a href="/tags/KIE/" style="font-size: 14px;">KIE</a> <a href="/tags/Kubernetes/" style="font-size: 10px;">Kubernetes</a> <a href="/tags/MCP/" style="font-size: 10px;">MCP</a> <a href="/tags/Next-js/" style="font-size: 18px;">Next.js</a> <a href="/tags/OCR/" style="font-size: 10px;">OCR</a> <a href="/tags/OSS/" style="font-size: 12px;">OSS</a> <a href="/tags/PPT/" style="font-size: 12px;">PPT</a> <a href="/tags/Playwright/" style="font-size: 10px;">Playwright</a> <a href="/tags/Prompt-Lens/" style="font-size: 16px;">Prompt Lens</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/QtAdmin/" style="font-size: 10px;">QtAdmin</a> <a href="/tags/QtCloud/" style="font-size: 10px;">QtCloud</a> <a href="/tags/QtCloud-Asset/" style="font-size: 14px;">QtCloud Asset</a> <a href="/tags/QtConsult/" style="font-size: 12px;">QtConsult</a> <a href="/tags/ReactFlow/" style="font-size: 10px;">ReactFlow</a> <a href="/tags/Remotion-skills/" style="font-size: 10px;">Remotion skills</a> <a href="/tags/SSE/" style="font-size: 10px;">SSE</a> <a href="/tags/Serverless/" style="font-size: 10px;">Serverless</a> <a href="/tags/Skills/" style="font-size: 10px;">Skills</a> <a href="/tags/TalentsAI/" style="font-size: 10px;">TalentsAI</a> <a href="/tags/Veo/" style="font-size: 10px;">Veo</a> <a href="/tags/Vercel/" style="font-size: 12px;">Vercel</a> <a href="/tags/Vercel-Blob/" style="font-size: 10px;">Vercel Blob</a> <a href="/tags/VirtualBox/" style="font-size: 12px;">VirtualBox</a> <a href="/tags/Windows-11/" style="font-size: 10px;">Windows 11</a> <a href="/tags/Windows-7/" style="font-size: 10px;">Windows 7</a> <a href="/tags/amCharts/" style="font-size: 10px;">amCharts</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/i18n/" style="font-size: 10px;">i18n</a> <a href="/tags/next-intl/" style="font-size: 10px;">next-intl</a> <a href="/tags/workflow/" style="font-size: 10px;">workflow</a> <a href="/tags/%E4%BA%A7%E5%93%81%E5%A4%8D%E7%9B%98/" style="font-size: 10px;">产品复盘</a> <a href="/tags/%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">产品工程</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 10px;">前端</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E5%AE%9E%E8%B7%B5/" style="font-size: 10px;">前端实践</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;">前端设计</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 12px;">博客</a> <a href="/tags/%E5%A4%8D%E7%9B%98/" style="font-size: 12px;">复盘</a> <a href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/" style="font-size: 10px;">多Agent协作</a> <a href="/tags/%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" style="font-size: 10px;">大文件上传</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 10px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93/" style="font-size: 20px;">工作总结</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%A4%8D%E7%9B%98/" style="font-size: 14px;">工程复盘</a> <a href="/tags/%E6%95%B0%E5%AD%97%E8%B5%84%E4%BA%A7/" style="font-size: 10px;">数字资产</a> <a href="/tags/%E6%97%A0%E9%99%90%E7%94%BB%E5%B8%83/" style="font-size: 10px;">无限画布</a> <a href="/tags/%E6%A0%87%E6%9C%AC%E5%A5%91%E7%BA%A6/" style="font-size: 10px;">标本契约</a> <a href="/tags/%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90/" style="font-size: 10px;">流式生成</a> <a href="/tags/%E8%90%BD%E5%9C%B0%E9%A1%B5/" style="font-size: 10px;">落地页</a> <a href="/tags/%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90/" style="font-size: 10px;">视频分析</a> <a href="/tags/%E8%AE%AE%E4%BA%8B%E6%A1%A3%E6%A1%88/" style="font-size: 10px;">议事档案</a> <a href="/tags/%E8%BF%9B%E9%98%B6%E8%A7%84%E5%88%92/" style="font-size: 10px;">进阶规划</a> <a href="/tags/%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/" style="font-size: 10px;">部署教程</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 16px;">阿里云</a> <a href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/" style="font-size: 10px;">面试复盘</a>
     </div>
   </div>
 
@@ -3731,7 +3946,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/08/">八月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/07/">七月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/04/">四月 2026</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/10/">十月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/09/">九月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/08/">八月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/07/">七月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/04/">四月 2026</a></li></ul>
     </div>
   </div>
 
@@ -3744,6 +3959,14 @@
       <ul>
         
           <li>
+            <a href="/2026/10/09/2026-10-09-%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90%E6%8E%A5%E5%8F%A3%E6%8E%92%E9%9A%9C%E5%A4%8D%E7%9B%98/">一次视频分析接口排障：为什么页面总是返回空结果并且显示错误</a>
+          </li>
+        
+          <li>
+            <a href="/2026/09/24/2026-09-24-Prompt-Lens%E8%A7%86%E9%A2%91%E5%88%86%E6%9E%90%E9%93%BE%E8%B7%AF%E6%95%85%E9%9A%9C%E5%A4%8D%E7%9B%98/">从 stream aborted 到 KIE 422：Prompt Lens 视频分析链路故障复盘</a>
+          </li>
+        
+          <li>
             <a href="/2026/08/30/2026-08-30-%E7%99%BE%E5%BA%A6AI%E4%BA%A7%E5%93%81%E5%B7%A5%E7%A8%8B%E5%AE%9E%E4%B9%A0%E7%94%9F%E9%9D%A2%E8%AF%95%E5%A4%8D%E7%9B%98/">BaiDu AI 产品工程实习生一面、二面复盘</a>
           </li>
         
@@ -3753,14 +3976,6 @@
         
           <li>
             <a href="/2026/08/08/2026-08-08-git-push-learning/">Git 推送学习：从 git status 到 GitHub 大文件限制</a>
-          </li>
-        
-          <li>
-            <a href="/2026/08/03/2026-08-03-%E7%94%A8codex%E5%81%9A%E5%89%8D%E7%AB%AF%E5%A4%AA%E9%9A%BE%E4%BA%86/">用codex做前端太难了</a>
-          </li>
-        
-          <li>
-            <a href="/2026/07/27/2026-07-27-SSE%E7%9C%9F%E6%B5%81%E5%BC%8F%E7%94%9F%E6%88%90%E6%95%88%E6%9E%9C%E5%AE%9E%E7%8E%B0%E5%A4%8D%E7%9B%98/">SSE（Server-Sent Events） 真流式生成效果实现复盘</a>
           </li>
         
       </ul>
